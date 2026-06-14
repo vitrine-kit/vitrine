@@ -1,0 +1,56 @@
+{
+  "$ref": "#/definitions/RegistryIndex",
+  "definitions": {
+    "RegistryIndex": {
+      "type": "object",
+      "properties": {
+        "kitVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contracts": {
+          "type": "string",
+          "minLength": 1
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "kitVersion": {
+                "type": "string"
+              },
+              "tier": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "catalog",
+                    "simple-store",
+                    "full-store"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "title",
+              "kitVersion",
+              "tier"
+            ],
+            "additionalProperties": false
+          },
+          "default": {}
+        }
+      },
+      "required": [
+        "kitVersion",
+        "contracts"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

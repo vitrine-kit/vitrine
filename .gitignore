@@ -1,0 +1,27 @@
+node_modules/
+dist/
+.turbo/
+coverage/
+*.log
+*.tsbuildinfo
+
+# Окружение и локальные dev-данные
+.env
+.env.local
+.env.*.local
+.vitrine/
+
+# OS / редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# AI-ассистенты / IDE-правила / локальные доки — не коммитим по умолчанию.
+# Пути закреплены за корнем (ведущий /), чтобы НЕ задеть будущие шиппинг-файлы
+# вроде templates/base/CLAUDE.md (это деливерабл клиента) или доки внутри пакетов.
+/CLAUDE.md
+/.claude/
+/.cursor/
+/docs/

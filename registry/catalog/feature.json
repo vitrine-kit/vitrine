@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "catalog",
+  "title": "Каталог товаров",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": [],
+  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/catalog/", "to": "components/catalog/" },
+    { "from": "files/lib/catalog/", "to": "lib/catalog/" }
+  ],
+  "config": { "set": { "features.catalog": true } },
+  "slots": [{ "slot": "global.header-nav", "component": "CategoryNav", "order": 10 }],
+  "env": [],
+  "claudeDoc": "docs/catalog.md",
+  "conflicts": [],
+  "removable": false
+}

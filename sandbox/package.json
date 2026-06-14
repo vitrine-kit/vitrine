@@ -1,0 +1,20 @@
+{
+  "name": "sandbox",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Площадка core-разработки: гоняет реестр фич на одних контрактах.",
+  "scripts": {
+    "demo": "tsx src/demo.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@maks417/contracts": "workspace:*",
+    "@maks417/core": "workspace:*",
+    "@maks417/payload-blueprint": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@maks417/vitrine",
+  "version": "0.0.0",
+  "description": "Vitrine CLI — примитив установки фичи, init (визард), add, update, doctor, design apply.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bin": {
+    "vitrine": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maks417/vitrine.git",
+    "directory": "packages/cli"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.8.2",
+    "@maks417/contracts": "workspace:*",
+    "commander": "^12.1.0"
+  }
+}

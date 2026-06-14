@@ -1,0 +1,180 @@
+{
+  "$ref": "#/definitions/SiteConfig",
+  "definitions": {
+    "SiteConfig": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "type": "string",
+          "enum": [
+            "payload",
+            "vendure"
+          ]
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "catalog",
+            "simple-store",
+            "full-store"
+          ]
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "default": {}
+        },
+        "layout": {
+          "type": "object",
+          "properties": {
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "global.banner-top",
+                      "global.header-start",
+                      "global.header-nav",
+                      "global.header-actions",
+                      "global.footer",
+                      "global.body-end",
+                      "home.hero",
+                      "home.below-hero",
+                      "home.sections",
+                      "home.bottom",
+                      "catalog.toolbar",
+                      "catalog.sidebar",
+                      "catalog.grid-top",
+                      "catalog.grid-bottom",
+                      "category.header",
+                      "category.below-products",
+                      "product.gallery",
+                      "product.below-title",
+                      "product.below-price",
+                      "product.purchase",
+                      "product.below-description",
+                      "product.tabs",
+                      "product.related",
+                      "cart.items-bottom",
+                      "cart.summary",
+                      "cart.below",
+                      "checkout.top",
+                      "checkout.below",
+                      "order.top",
+                      "order.below",
+                      "search.results-top",
+                      "search.empty"
+                    ]
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "override": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "slot"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "sections": []
+          }
+        },
+        "theme": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "default": "default"
+            },
+            "cssFile": {
+              "type": "string",
+              "default": "theme/client.css"
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "name": "default",
+            "cssFile": "theme/client.css"
+          }
+        },
+        "integrations": {
+          "type": "object",
+          "properties": {
+            "payments": {
+              "type": "string",
+              "enum": [
+                "stripe"
+              ]
+            },
+            "email": {
+              "type": "string"
+            },
+            "analytics": {
+              "type": "string"
+            },
+            "media": {
+              "type": "string"
+            },
+            "shipping": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "i18n": {
+          "type": "object",
+          "properties": {
+            "defaultLocale": {
+              "type": "string",
+              "default": "ru"
+            },
+            "locales": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "ru"
+              ]
+            },
+            "currency": {
+              "type": "string",
+              "default": "RUB"
+            },
+            "priceFormat": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "defaultLocale": "ru",
+            "locales": [
+              "ru"
+            ],
+            "currency": "RUB"
+          }
+        }
+      },
+      "required": [
+        "backend",
+        "tier"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

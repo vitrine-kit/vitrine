@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "product-page",
+  "title": "Страница товара",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": ["catalog"],
+  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/product/", "to": "components/product/" },
+    { "from": "files/lib/product/", "to": "lib/product/" }
+  ],
+  "config": { "set": { "features.product-page": true } },
+  "slots": [],
+  "env": [],
+  "claudeDoc": "docs/product-page.md",
+  "conflicts": [],
+  "removable": false
+}

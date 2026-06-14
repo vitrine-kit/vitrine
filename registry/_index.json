@@ -1,0 +1,22 @@
+{
+  "$schema": "../schemas/registry-index.schema.json",
+  "kitVersion": "0.0.0",
+  "contracts": "1.0.0",
+  "features": {
+    "catalog": {
+      "title": "Каталог товаров",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "product-page": {
+      "title": "Страница товара",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "seo": {
+      "title": "SEO — метаданные и JSON-LD",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    }
+  }
+}

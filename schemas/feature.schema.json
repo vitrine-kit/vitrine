@@ -1,0 +1,226 @@
+{
+  "$ref": "#/definitions/FeatureManifest",
+  "definitions": {
+    "FeatureManifest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kitVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiresContracts": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tier": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "catalog",
+              "simple-store",
+              "full-store"
+            ]
+          },
+          "minItems": 1
+        },
+        "registryDependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "corePackages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
+        "npm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "set": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "boolean"
+              }
+            }
+          },
+          "required": [
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "slot": {
+                "type": "string",
+                "enum": [
+                  "global.banner-top",
+                  "global.header-start",
+                  "global.header-nav",
+                  "global.header-actions",
+                  "global.footer",
+                  "global.body-end",
+                  "home.hero",
+                  "home.below-hero",
+                  "home.sections",
+                  "home.bottom",
+                  "catalog.toolbar",
+                  "catalog.sidebar",
+                  "catalog.grid-top",
+                  "catalog.grid-bottom",
+                  "category.header",
+                  "category.below-products",
+                  "product.gallery",
+                  "product.below-title",
+                  "product.below-price",
+                  "product.purchase",
+                  "product.below-description",
+                  "product.tabs",
+                  "product.related",
+                  "cart.items-bottom",
+                  "cart.summary",
+                  "cart.below",
+                  "checkout.top",
+                  "checkout.below",
+                  "order.top",
+                  "order.below",
+                  "search.results-top",
+                  "search.empty"
+                ]
+              },
+              "component": {
+                "type": "string",
+                "minLength": 1
+              },
+              "order": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "slot",
+              "component"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "blueprint": {
+          "type": "object",
+          "properties": {
+            "extend": {
+              "type": "string",
+              "enum": [
+                "product",
+                "variant",
+                "category",
+                "media",
+                "order",
+                "user"
+              ]
+            },
+            "addFields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "extend",
+            "addFields"
+          ],
+          "additionalProperties": false
+        },
+        "env": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "claudeDoc": {
+          "type": "string"
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "removable": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": [
+        "name",
+        "title",
+        "kitVersion",
+        "requiresContracts",
+        "tier"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

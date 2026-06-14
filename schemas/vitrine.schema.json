@@ -1,0 +1,58 @@
+{
+  "$ref": "#/definitions/VitrineLock",
+  "definitions": {
+    "VitrineLock": {
+      "type": "object",
+      "properties": {
+        "kitVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contracts": {
+          "type": "string",
+          "minLength": 1
+        },
+        "backend": {
+          "type": "string",
+          "enum": [
+            "payload",
+            "vendure"
+          ]
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "catalog",
+            "simple-store",
+            "full-store"
+          ]
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "default": {}
+        }
+      },
+      "required": [
+        "kitVersion",
+        "contracts",
+        "backend",
+        "tier"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

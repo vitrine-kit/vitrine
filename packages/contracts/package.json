@@ -1,0 +1,39 @@
+{
+  "name": "@maks417/contracts",
+  "version": "0.0.0",
+  "description": "Vitrine — пять стабильных контрактов: Tokens, Data, Slots, Config, Blueprint.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maks417/vitrine.git",
+    "directory": "packages/contracts"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "schemas": "tsx scripts/generate-schemas.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "zod-to-json-schema": "^3.24.1"
+  }
+}

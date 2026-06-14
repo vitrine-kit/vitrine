@@ -1,0 +1,11 @@
+# Нормализуем переводы строк к LF в репозитории (CI на Linux, .editorconfig = LF).
+* text=auto eol=lf
+
+# Бинарные ассеты — без нормализации.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

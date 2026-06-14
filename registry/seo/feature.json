@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "seo",
+  "title": "SEO — метаданные и JSON-LD",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": [],
+  "corePackages": {},
+  "npm": [],
+  "files": [
+    { "from": "files/components/seo/", "to": "components/seo/" },
+    { "from": "files/lib/seo/", "to": "lib/seo/" }
+  ],
+  "config": { "set": { "features.seo": true } },
+  "slots": [],
+  "env": [],
+  "claudeDoc": "docs/seo.md",
+  "conflicts": [],
+  "removable": false
+}

@@ -1,0 +1,25 @@
+// Сетка товаров — презентационная, семантический список.
+import type { Product } from '@maks417/contracts';
+import { ProductCard } from './ProductCard.js';
+
+export interface ProductGridProps {
+  products: Product[];
+}
+
+export function ProductGrid({ products }: ProductGridProps) {
+  if (products.length === 0) {
+    return <p className="text-muted-fg">Товары не найдены.</p>;
+  }
+  return (
+    <ul
+      role="list"
+      className="vt-product-grid grid grid-cols-2 gap-gutter md:grid-cols-3 lg:grid-cols-4"
+    >
+      {products.map((product) => (
+        <li key={product.id}>
+          <ProductCard product={product} />
+        </li>
+      ))}
+    </ul>
+  );
+}
