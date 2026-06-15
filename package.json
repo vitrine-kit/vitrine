@@ -18,13 +18,14 @@
     "typecheck": "turbo run typecheck",
     "typecheck:registry": "tsc -p registry/tsconfig.json",
     "typecheck:templates": "tsc -p templates/tsconfig.json",
-    "lint": "turbo run lint",
+    "lint": "biome lint .",
     "schemas": "turbo run schemas",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "@changesets/cli": "^2.27.10",
     "@maks417/contracts": "workspace:*",
     "@maks417/core": "workspace:*",

@@ -256,6 +256,32 @@ describe('remove атомарен', () => {
   });
 });
 
+describe('remove удаляет только файлы фичи (общий app/, P0)', () => {
+  it('remove checkout-stripe не трогает файлы cart и базового шаблона', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root, name: 'shop', backend: 'payload', tier: 'simple-store',
+      features: ['cart', 'checkout-stripe'], registry,
+    });
+    // cart и checkout-stripe оба отображают files/app/ → app/
+    expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true); // базовый шаблон
+
+    removeFeature(loadProject(root), 'checkout-stripe', registry);
+
+    // удалены РОВНО файлы checkout-stripe
+    expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(false);
+    expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(false);
+    expect(existsSync(join(root, '.vitrine/originals/checkout-stripe@0.0.0/app/api/checkout/route.ts'))).toBe(false);
+    // cart и базовый шаблон уцелели (раньше removeTree(app/) сносил весь каталог)
+    expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/api/cart/route.ts'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, '.vitrine/originals/cart@0.0.0/app/api/cart/route.ts'))).toBe(true);
+  });
+});
+
 describe('design apply (M6)', () => {
   function scaffold(features: string[] = ['catalog']): string {
     const root = join(tmp(), 'shop');

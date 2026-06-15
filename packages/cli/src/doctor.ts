@@ -5,10 +5,8 @@ import { join } from 'node:path';
 import type { Project } from './project.js';
 import { projectPaths } from './project.js';
 import type { RegistrySource } from './registry.js';
-import { exists, isDir, parseNpmSpec, pascalCase, readJson, readText, walkRelFiles } from './util.js';
-
-/** Путь для вывода — всегда со слешами '/' (независимо от платформы). */
-const slashes = (p: string): string => p.split('\\').join('/');
+import { exists, parseEnvKeys, parseNpmSpec, pascalCase, readJson, readText } from './util.js';
+import { eachFeatureFile } from './feature-files.js';
 
 export interface DoctorIssue {
   severity: 'error' | 'warn';
@@ -22,16 +20,6 @@ export interface DoctorReport {
   issues: DoctorIssue[];
 }
 
-function envKeys(text: string): Set<string> {
-  return new Set(
-    text
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l && !l.startsWith('#') && l.includes('='))
-      .map((l) => l.split('=')[0]?.trim() ?? ''),
-  );
-}
-
 export function runDoctor(project: Project, registry: RegistrySource): DoctorReport {
   const paths = projectPaths(project.root);
   const issues: DoctorIssue[] = [];
@@ -39,7 +27,7 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
 
   const pkg = exists(paths.pkg) ? readJson<{ dependencies?: Record<string, string> }>(paths.pkg) : {};
   const deps = pkg.dependencies ?? {};
-  const env = exists(paths.env) ? envKeys(readText(paths.env)) : new Set<string>();
+  const env = exists(paths.env) ? parseEnvKeys(readText(paths.env)) : new Set<string>();
   const configText = exists(paths.config) ? readText(paths.config) : '';
   const slotsText = exists(paths.slots) ? readText(paths.slots) : '';
 
@@ -81,16 +69,12 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
     // файлы (по каждому файлу источника реестра — ловит и удаление одного файла)
     const featDir = registry.featureDir(name);
     for (const map of manifest.files) {
-      const src = join(featDir, map.from);
-      if (!exists(src)) continue; // источника нет в реестре — это проблема kit, не репо
-      const rels = isDir(src) ? walkRelFiles(src) : [''];
-      for (const rel of rels) {
-        const target = rel ? join(project.root, map.to, rel) : join(project.root, map.to);
-        if (!exists(target)) {
+      for (const file of eachFeatureFile(featDir, map)) {
+        if (!exists(join(project.root, file.repoRel))) {
           add({
             severity: 'error',
             scope,
-            message: `нет файла "${slashes(rel ? join(map.to, rel) : map.to)}"`,
+            message: `нет файла "${file.toRel}"`,
             fix: `vitrine add ${name} (переустановит)`,
           });
         }

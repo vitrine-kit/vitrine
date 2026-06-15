@@ -11,7 +11,8 @@ import type { RegistrySource } from './registry.js';
 import { FsTransaction } from './transaction.js';
 import { regenerateDerived } from './install.js';
 import { merge3 } from './merge.js';
-import { exists, isDir, readText, walkRelFiles } from './util.js';
+import { exists, readText, safeJoin } from './util.js';
+import { eachFeatureFile } from './feature-files.js';
 
 export type FileStatus = 'unchanged' | 'clean' | 'conflict' | 'new';
 
@@ -44,26 +45,23 @@ export function planUpdate(project: Project, name: string, registry: RegistrySou
 
   const files: FileUpdate[] = [];
   for (const map of manifest.files) {
-    const src = join(featDir, map.from);
-    if (!exists(src)) continue;
-    const rels = isDir(src) ? walkRelFiles(src) : [''];
-    for (const rel of rels) {
-      const theirs = rel ? readText(join(src, rel)) : readText(src);
-      const repoRel = rel ? join(map.to, rel) : map.to;
-      const toRel = repoRel.split('\\').join('/');
-      const ours = exists(join(project.root, repoRel)) ? readText(join(project.root, repoRel)) : null;
-      const base = exists(join(originalsBase, repoRel)) ? readText(join(originalsBase, repoRel)) : null;
+    for (const file of eachFeatureFile(featDir, map)) {
+      const theirs = readText(file.srcAbs);
+      const oursPath = join(project.root, file.repoRel);
+      const basePath = join(originalsBase, file.repoRel);
+      const ours = exists(oursPath) ? readText(oursPath) : null;
+      const base = exists(basePath) ? readText(basePath) : null;
 
       if (ours === null) {
-        files.push({ to: toRel, status: 'new', merged: theirs, conflicts: 0 });
+        files.push({ to: file.toRel, status: 'new', merged: theirs, conflicts: 0 });
       } else if (theirs === base || theirs === ours) {
-        files.push({ to: toRel, status: 'unchanged', merged: ours, conflicts: 0 });
+        files.push({ to: file.toRel, status: 'unchanged', merged: ours, conflicts: 0 });
       } else if (base === null) {
         // нет pristine-базы (фича стара) — безопасный 2-way: расхождение = конфликт
-        files.push({ to: toRel, status: 'conflict', merged: ours, conflicts: 1 });
+        files.push({ to: file.toRel, status: 'conflict', merged: ours, conflicts: 1 });
       } else {
         const res = merge3(base, ours, theirs);
-        files.push({ to: toRel, status: res.clean ? 'clean' : 'conflict', merged: res.text, conflicts: res.conflicts });
+        files.push({ to: file.toRel, status: res.clean ? 'clean' : 'conflict', merged: res.text, conflicts: res.conflicts });
       }
     }
   }
@@ -88,17 +86,12 @@ export function applyUpdate(project: Project, plan: UpdatePlan, registry: Regist
   const tx = new FsTransaction();
   try {
     for (const f of plan.files) {
-      if (f.status !== 'unchanged') tx.write(join(project.root, f.to), f.merged);
+      if (f.status !== 'unchanged') tx.write(safeJoin(project.root, f.to), f.merged);
     }
     // новый pristine-снапшот = текущая версия реестра (theirs) целиком — база следующего update
     for (const map of manifest.files) {
-      const src = join(featDir, map.from);
-      if (!exists(src)) continue;
-      const rels = isDir(src) ? walkRelFiles(src) : [''];
-      for (const rel of rels) {
-        const theirs = rel ? readText(join(src, rel)) : readText(src);
-        const repoRel = rel ? join(map.to, rel) : map.to;
-        tx.write(join(newOriginals, repoRel), theirs);
+      for (const file of eachFeatureFile(featDir, map)) {
+        tx.write(safeJoin(newOriginals, file.repoRel), readText(file.srcAbs));
       }
     }
     project.lock.features[plan.feature] = { version: plan.toVersion };

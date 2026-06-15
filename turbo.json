@@ -12,7 +12,6 @@
     "test": {
       "dependsOn": ["^build"]
     },
-    "lint": {},
     "schemas": {
       "dependsOn": ["^build"],
       "outputs": ["../../schemas/**"]

@@ -16,6 +16,13 @@ const f = (
   extra: Record<string, unknown> = {},
 ): BlueprintFieldDef => ({ name, type, ...extra });
 
+// Доступ только для аутентифицированных (админ): закрывает авто-сгенерированный
+// публичный REST/GraphQL над корзинами/заказами. Server-local вызовы Payload
+// (адаптер, webhook) идут с overrideAccess и не затрагиваются. Тип облегчён, чтобы
+// не тащить payload в пакет контрактных коллекций.
+const authenticated = ({ req }: { req?: { user?: unknown } }): boolean => Boolean(req?.user);
+const adminOnly = { read: authenticated, create: authenticated, update: authenticated, delete: authenticated };
+
 export const categoriesCollection: BlueprintCollectionConfig = {
   slug: 'categories',
   admin: { useAsTitle: 'title' },
@@ -69,6 +76,7 @@ export const productsCollection: BlueprintCollectionConfig = {
 export const ordersCollection: BlueprintCollectionConfig = {
   slug: 'orders',
   admin: { useAsTitle: 'id' },
+  access: adminOnly,
   fields: [
     f('status', 'select', {
       options: ['pending', 'paid', 'fulfilled', 'cancelled', 'refunded'],
@@ -79,6 +87,7 @@ export const ordersCollection: BlueprintCollectionConfig = {
     f('subtotal', 'number'),
     f('total', 'number'),
     f('lines', 'json'),
+    f('stripeSessionId', 'text', { index: true }), // идемпотентность webhook (дедуп по сессии)
     f('createdAt', 'date'),
   ],
 };
@@ -86,6 +95,7 @@ export const ordersCollection: BlueprintCollectionConfig = {
 export const cartsCollection: BlueprintCollectionConfig = {
   slug: 'carts',
   admin: { useAsTitle: 'id' },
+  access: adminOnly,
   fields: [
     f('lines', 'json'), // CartLine[] (контракт); арифметика — в @maks417/core
     f('currency', 'text'),

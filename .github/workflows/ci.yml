@@ -42,5 +42,8 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Validate schemas
-        run: pnpm schemas
+      - name: Lint
+        run: pnpm lint
+
+      - name: Validate schemas (no drift vs committed)
+        run: pnpm schemas && git diff --exit-code schemas

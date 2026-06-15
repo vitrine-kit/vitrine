@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
 /**
  * Preflight (шаг 0 визарда, план §10): требуем Node >= min, иначе понятная ошибка
@@ -41,6 +41,37 @@ export function ensureDir(p: string): void {
   mkdirSync(p, { recursive: true });
 }
 
+/** Нормализует путь к POSIX-разделителям ('/') — для лок-файла, вывода и сравнений. */
+export function toPosix(p: string): string {
+  return p.split('\\').join('/');
+}
+
+/**
+ * join(root, ...segs) с гарантией, что результат не выходит за пределы root.
+ * Защита от манифеста с `to: "../.."` (path traversal) и симлинков-побегов.
+ */
+export function safeJoin(root: string, ...segs: string[]): string {
+  const base = resolve(root);
+  const target = resolve(base, ...segs);
+  const rel = relative(base, target);
+  if (rel.startsWith('..') || isAbsolute(rel)) {
+    throw new Error(`[vitrine] путь "${join(...segs)}" выходит за пределы "${root}"`);
+  }
+  return target;
+}
+
+/** Ключи (имена) переменных из .env-текста; пропускает комментарии и пустые строки. */
+export function parseEnvKeys(text: string): Set<string> {
+  return new Set(
+    text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#') && l.includes('='))
+      .map((l) => l.split('=')[0]?.trim() ?? '')
+      .filter(Boolean),
+  );
+}
+
 /** Файлы внутри dir рекурсивно, пути относительно dir (с разделителем '/'). */
 export function walkRelFiles(dir: string): string[] {
   const out: string[] = [];
@@ -48,7 +79,7 @@ export function walkRelFiles(dir: string): string[] {
     for (const entry of readdirSync(current, { withFileTypes: true })) {
       const abs = join(current, entry.name);
       if (entry.isDirectory()) walk(abs);
-      else out.push(relative(dir, abs).split('\\').join('/'));
+      else out.push(toPosix(relative(dir, abs)));
     }
   };
   walk(dir);
@@ -90,5 +121,5 @@ export function replaceBetween(
   }
   const afterStartLine = content.indexOf('\n', si) + 1;
   const endLineStart = content.lastIndexOf('\n', ei) + 1;
-  return content.slice(0, afterStartLine) + replacement + '\n' + content.slice(endLineStart);
+  return `${content.slice(0, afterStartLine)}${replacement}\n${content.slice(endLineStart)}`;
 }

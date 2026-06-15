@@ -6,7 +6,7 @@ import Stripe from 'stripe';
 import { getPayload } from 'payload';
 import config from '@payload-config';
 import type { Cart } from '@maks417/contracts';
-import { buildOrderFromCart, handleStripeWebhook, type StripeEventLike } from '@maks417/core';
+import { buildOrderFromCart, handleStripeWebhook, shouldCreateOrder, type StripeEventLike } from '@maks417/core';
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -33,6 +33,22 @@ export async function POST(req: Request) {
           const cartDoc = await payload.findByID({ collection: 'carts', id: cartId }).catch(() => null);
           if (!cartDoc) return;
 
+          // Идемпотентность: Stripe ретраит webhook — не создаём заказ повторно
+          // (корзина уже converted или заказ по этой сессии уже есть).
+          const prior = session.id
+            ? await payload
+                .find({ collection: 'orders', where: { stripeSessionId: { equals: session.id } }, limit: 1 })
+                .catch(() => ({ docs: [] as Array<{ stripeSessionId?: string }> }))
+            : { docs: [] as Array<{ stripeSessionId?: string }> };
+          const consumable = shouldCreateOrder({
+            cartStatus: (cartDoc as { status?: string }).status,
+            sessionId: session.id,
+            existingOrderSessionIds: (prior.docs as Array<{ stripeSessionId?: string }>).map(
+              (d) => d.stripeSessionId,
+            ),
+          });
+          if (!consumable) return;
+
           const cart: Cart = {
             id: String(cartDoc.id),
             lines: (cartDoc.lines as Cart['lines']) ?? [],
@@ -53,6 +69,7 @@ export async function POST(req: Request) {
               total: order.total,
               lines: order.lines,
               createdAt: order.createdAt,
+              stripeSessionId: session.id,
             },
           });
           await payload.update({

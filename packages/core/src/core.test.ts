@@ -14,6 +14,7 @@ import {
   setCartLineQty,
 } from './commerce/cart.js';
 import { buildOrderFromCart, cartToStripeLineItems } from './commerce/order.js';
+import { shouldCreateOrder } from './order/idempotency.js';
 import { Slot } from './react.js';
 
 const A: ComponentType<Record<string, unknown>> = () => null;
@@ -130,6 +131,18 @@ describe('корзинная арифметика (commerce)', () => {
     expect(cartItemCount(cart)).toBe(3);
   });
 
+  it('addCartLine отвергает нецелое/неположительное количество', () => {
+    const empty = emptyCart('c1', 'RUB');
+    expect(() => addCartLine(empty, line({ quantity: 0 }))).toThrow(/недопустимое количество/);
+    expect(() => addCartLine(empty, line({ quantity: -1 }))).toThrow(/недопустимое количество/);
+    expect(() => addCartLine(empty, line({ quantity: 2.5 }))).toThrow(/недопустимое количество/);
+  });
+
+  it('setCartLineQty отвергает нецелое количество', () => {
+    const cart = addCartLine(emptyCart('c1', 'RUB'), line());
+    expect(() => setCartLineQty(cart, 'l1', 1.5)).toThrow(/недопустимое количество/);
+  });
+
   it('setCartLineQty меняет количество, qty=0 удаляет', () => {
     let cart = addCartLine(emptyCart('c1', 'RUB'), line());
     cart = setCartLineQty(cart, 'l1', 4);
@@ -155,6 +168,49 @@ describe('корзинная арифметика (commerce)', () => {
     expect(items[0]?.price_data.currency).toBe('usd');
     expect(items[0]?.price_data.unit_amount).toBe(1000);
     expect(items[0]?.quantity).toBe(2);
+  });
+
+  it('shouldCreateOrder: converted/существующая сессия → false, свежая → true', () => {
+    expect(shouldCreateOrder({ cartStatus: 'converted' })).toBe(false);
+    expect(shouldCreateOrder({ sessionId: 'cs_1', existingOrderSessionIds: ['cs_1'] })).toBe(false);
+    expect(shouldCreateOrder({ cartStatus: 'active', sessionId: 'cs_2', existingOrderSessionIds: ['cs_1'] })).toBe(true);
+    expect(shouldCreateOrder({})).toBe(true);
+  });
+
+  it('двойная доставка webhook (ретрай Stripe) → ровно один заказ', async () => {
+    const cart = addCartLine(emptyCart('cart1', 'RUB'), line({ quantity: 1 }));
+    const cartStore = new Map([[cart.id, { ...cart, status: 'active' as string }]]);
+    const orders: Order[] = [];
+    const verify: StripeVerifier = () => ({
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_test', metadata: { cartId: 'cart1' }, customer_details: { email: 'x@y.z' } } },
+    });
+    const deliver = () =>
+      handleStripeWebhook({
+        payload: '{}', signature: 's', verify,
+        handlers: {
+          onCheckoutCompleted: async (e) => {
+            const obj = e.data.object as {
+              id?: string; metadata?: { cartId?: string }; customer_details?: { email?: string };
+            };
+            const doc = cartStore.get(obj.metadata?.cartId ?? '');
+            if (!doc) return;
+            const ok = shouldCreateOrder({
+              cartStatus: doc.status,
+              sessionId: obj.id,
+              existingOrderSessionIds: orders.map((o) => o.number),
+            });
+            if (!ok) return;
+            orders.push(buildOrderFromCart(doc, { id: doc.id, number: obj.id, email: obj.customer_details?.email }));
+            doc.status = 'converted';
+          },
+        },
+      });
+
+    await deliver();
+    await deliver(); // Stripe ретраит ту же сессию
+    expect(orders).toHaveLength(1);
+    expect(orders[0]?.number).toBe('cs_test');
   });
 
   it('checkout.session.completed → заказ из корзины (полная цепочка, моки Stripe)', async () => {

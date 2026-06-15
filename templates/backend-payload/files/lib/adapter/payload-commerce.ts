@@ -9,6 +9,7 @@ import {
   buildOrderFromCart,
   cartToStripeLineItems,
   emptyCart,
+  recalcCart,
   removeCartLine,
   setCartLineQty,
 } from '@maks417/core';
@@ -100,9 +101,24 @@ export class PayloadCommerceBackend implements CommerceBackend {
     return this.persist(removeCartLine(cart, lineId));
   }
 
+  /** Перепроверяет цены строк по актуальным вариантам (анти-stale). Источник цены —
+   *  БД, а не величина, сохранённая в корзине при добавлении. */
+  private async reprice(cart: Cart): Promise<Cart> {
+    const lines = await Promise.all(
+      cart.lines.map(async (l) => {
+        const variant = (await this.payload
+          .findByID({ collection: 'variants', id: l.variantId })
+          .catch(() => null)) as unknown as VariantDoc | null;
+        return variant && typeof variant.price === 'number' ? { ...l, unitPrice: variant.price } : l;
+      }),
+    );
+    return this.persist(recalcCart({ ...cart, lines })); // recalc пересчитает lineTotal/итоги
+  }
+
   async startCheckout(cartId: string): Promise<{ redirectUrl: string }> {
-    const cart = await this.getCart(cartId);
-    if (!cart || cart.lines.length === 0) throw new Error('[vitrine] корзина пуста');
+    const current = await this.getCart(cartId);
+    if (!current || current.lines.length === 0) throw new Error('[vitrine] корзина пуста');
+    const cart = await this.reprice(current);
 
     const { default: Stripe } = await import('stripe');
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '');

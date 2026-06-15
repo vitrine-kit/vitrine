@@ -87,14 +87,26 @@ export interface MergeLabels {
   theirs?: string;
 }
 
+/** Потолок ячеек LCS-матрицы (O(n·m) памяти). Файлы фич крошечные; защита от патологии. */
+const MAX_LCS_CELLS = 4_000_000;
+
 export function merge3(base: string, ours: string, theirs: string, labels: MergeLabels = {}): MergeResult {
   const B = splitLines(base);
   const O = splitLines(ours);
   const T = splitLines(theirs);
-  const oh = changeHunks(B, O);
-  const th = changeHunks(B, T);
   const ourLabel = labels.ours ?? 'ours (репо клиента)';
   const theirLabel = labels.theirs ?? 'theirs (реестр)';
+
+  // Безопасный фолбэк без построения огромной DP-матрицы на гигантских входах.
+  if (B.length * Math.max(O.length, T.length) > MAX_LCS_CELLS) {
+    if (ours === theirs || theirs === base) return { text: ours, clean: true, conflicts: 0 };
+    if (ours === base) return { text: theirs, clean: true, conflicts: 0 };
+    const text = [`<<<<<<< ${ourLabel}`, ours, '=======', theirs, `>>>>>>> ${theirLabel}`].join('\n');
+    return { text, clean: false, conflicts: 1 };
+  }
+
+  const oh = changeHunks(B, O);
+  const th = changeHunks(B, T);
 
   const out: string[] = [];
   let conflicts = 0;

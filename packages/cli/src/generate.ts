@@ -2,7 +2,7 @@
 // фич. Регенерация из состояния (а не патчинг) делает шаги примитива
 // идемпотентными по построению.
 import { TOKEN_CSS_VARS, type FeatureManifest } from '@maks417/contracts';
-import { pascalCase, parseNpmSpec, sortKeys } from './util.js';
+import { parseEnvKeys, pascalCase, parseNpmSpec, sortKeys } from './util.js';
 
 export interface FeatureState {
   name: string;
@@ -30,9 +30,23 @@ export function renderFeaturesRegion(features: FeatureState[]): string {
   return `  features: {\n${body}\n  },`;
 }
 
+/** Имена фич не должны схлопываться в один PascalCase-идентификатор (дубль register/extend). */
+function assertNoPascalCollisions(features: FeatureState[]): void {
+  const byPascal = new Map<string, string>();
+  for (const f of features) {
+    const id = pascalCase(f.name);
+    const prev = byPascal.get(id);
+    if (prev && prev !== f.name) {
+      throw new Error(`[vitrine] фичи "${prev}" и "${f.name}" дают один идентификатор "${id}" — переименуйте одну`);
+    }
+    byPascal.set(id, f.name);
+  }
+}
+
 /** lib/slots.ts — целиком генерируемый: зовёт register<Name>Slots() фич со слотами. */
 export function renderSlotsFile(features: FeatureState[]): string {
   const withSlots = features.filter((f) => (f.manifest.slots?.length ?? 0) > 0);
+  assertNoPascalCollisions(withSlots);
   const imports = withSlots.map(
     (f) => `import { register${pascalCase(f.name)}Slots } from './${f.name}/register.js';`,
   );
@@ -51,6 +65,7 @@ export function renderSlotsFile(features: FeatureState[]): string {
 /** lib/blueprint.ts — базовый blueprint + аддитивные расширения фич с blueprint. */
 export function renderBlueprintFile(features: FeatureState[]): string {
   const withBp = features.filter((f) => f.manifest.blueprint);
+  assertNoPascalCollisions(withBp);
   const imports = withBp.map(
     (f) => `import { extend${pascalCase(f.name)}Blueprint } from './${f.name}/blueprint.js';`,
   );
@@ -81,12 +96,7 @@ export function renderClaudeFeaturesTable(features: FeatureState[]): string {
 
 /** Идемпотентное добавление недостающих ключей env в .env.example. */
 export function mergeEnvExample(existing: string, features: FeatureState[]): string {
-  const present = new Set(
-    existing
-      .split('\n')
-      .filter((l) => l.includes('='))
-      .map((l) => l.split('=')[0]?.trim()),
-  );
+  const present = parseEnvKeys(existing);
   const additions: string[] = [];
   for (const f of features) {
     for (const e of f.manifest.env ?? []) {

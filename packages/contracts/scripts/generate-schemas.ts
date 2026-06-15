@@ -27,7 +27,7 @@ mkdirSync(outDir, { recursive: true });
 
 for (const { file, name, schema } of targets) {
   const json = zodToJsonSchema(schema, { name, $refStrategy: 'none' });
-  writeFileSync(resolve(outDir, file), JSON.stringify(json, null, 2) + '\n', 'utf8');
+  writeFileSync(resolve(outDir, file), `${JSON.stringify(json, null, 2)}\n`, 'utf8');
   console.log(`[schemas] ${file}`);
 }
 

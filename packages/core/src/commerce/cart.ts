@@ -34,6 +34,9 @@ export interface NewLineInput {
 
 /** Добавляет строку; если вариант уже в корзине — увеличивает количество. */
 export function addCartLine(cart: Cart, input: NewLineInput): Cart {
+  if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
+    throw new Error(`[vitrine] недопустимое количество строки: ${input.quantity} (нужно целое > 0)`);
+  }
   const exists = cart.lines.some((l) => l.variantId === input.variantId);
   const lines: CartLine[] = exists
     ? cart.lines.map((l) =>
@@ -57,6 +60,9 @@ export function addCartLine(cart: Cart, input: NewLineInput): Cart {
 
 /** Меняет количество строки; quantity ≤ 0 удаляет строку. */
 export function setCartLineQty(cart: Cart, lineId: string, quantity: number): Cart {
+  if (!Number.isInteger(quantity)) {
+    throw new Error(`[vitrine] недопустимое количество: ${quantity} (нужно целое)`);
+  }
   if (quantity <= 0) return removeCartLine(cart, lineId);
   return recalcCart({
     ...cart,

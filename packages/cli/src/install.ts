@@ -18,7 +18,8 @@ import {
   renderFeaturesRegion,
   renderSlotsFile,
 } from './generate.js';
-import { exists, isDir, readJson, readText, replaceBetween, walkRelFiles } from './util.js';
+import { exists, isDir, readJson, readText, replaceBetween, safeJoin, walkRelFiles } from './util.js';
+import { eachFeatureFile } from './feature-files.js';
 
 export interface InstallResult {
   installed: string[];
@@ -67,15 +68,13 @@ function copyFeatureFiles(
   const originalsBase = join(projectPaths(project.root).originals, `${name}@${manifest.kitVersion}`);
 
   for (const map of manifest.files) {
-    const src = join(featDir, map.from);
-    if (!exists(src)) {
+    if (!exists(join(featDir, map.from))) {
       throw new Error(`[vitrine] фича "${name}": нет источника "${map.from}"`);
     }
-    const rels = isDir(src) ? walkRelFiles(src) : [''];
-    for (const rel of rels) {
-      const content = rel ? readText(join(src, rel)) : readText(src);
-      tx.write(join(project.root, map.to, rel), content); // в репо
-      tx.write(join(originalsBase, map.to, rel), content); // pristine для M9
+    for (const file of eachFeatureFile(featDir, map)) {
+      const content = readText(file.srcAbs);
+      tx.write(safeJoin(project.root, file.repoRel), content); // в репо
+      tx.write(safeJoin(originalsBase, file.repoRel), content); // pristine для M9
     }
   }
 }
@@ -183,18 +182,23 @@ export function removeFeature(project: Project, name: string, registry: Registry
   // Всё мутирующее — в одной транзакции (как installFeatures): tx.remove снапшотит
   // содержимое, поэтому откат восстановит удалённые файлы; лок-файл регенерится из
   // нового состояния, а in-memory лок чиним вручную при ошибке. Полу-удаления нет.
+  //
+  // Удаляем РОВНО файлы фичи, а не весь каталог назначения: фичи, отображающие в
+  // общий корень (cart/checkout-stripe → app/), иначе снесли бы базовый шаблон и
+  // соседние фичи. Источник истины — pristine-снимок (что реально ставилось) ∪
+  // текущий источник реестра. Несуществующие пути tx.remove игнорирует.
   const originalsDir = join(projectPaths(project.root).originals, `${name}@${removed.version}`);
+  const featDir = registry.featureDir(name);
+  const targets = new Set<string>();
+  if (isDir(originalsDir)) for (const rel of walkRelFiles(originalsDir)) targets.add(rel);
+  for (const map of manifest.files) for (const file of eachFeatureFile(featDir, map)) targets.add(file.toRel);
+
   const tx = new FsTransaction();
-  const removeTree = (root: string): void => {
-    if (isDir(root)) {
-      for (const rel of walkRelFiles(root)) tx.remove(join(root, rel));
-    } else if (exists(root)) {
-      tx.remove(root);
-    }
-  };
   try {
-    for (const map of manifest.files) removeTree(join(project.root, map.to));
-    removeTree(originalsDir);
+    for (const rel of targets) {
+      tx.remove(safeJoin(project.root, rel)); // файл в репо
+      tx.remove(safeJoin(originalsDir, rel)); // pristine-снимок
+    }
     delete project.lock.features[name];
     regenerateDerived(project, registry, tx);
     tx.commit();

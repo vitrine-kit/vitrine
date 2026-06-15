@@ -156,7 +156,6 @@ program
   .option('--registry <path>', 'путь к реестру')
   .option('--yes', 'без интерактивных вопросов')
   .action(async (nameArg: string | undefined, opts: Record<string, string | boolean>) => {
-    preflightNode(); // шаг 0: рантайм Node 20+
     const registry = createRegistrySource(opts.registry as string | undefined);
     let name = nameArg;
     let tier = opts.tier as Tier | undefined;
@@ -197,7 +196,12 @@ program
     console.log(`Установлено: ${res.installed.join(', ') || '—'}`);
   });
 
-program.parseAsync(process.argv).catch((error: unknown) => {
+async function main(): Promise<void> {
+  preflightNode(); // шаг 0: рантайм Node 20+ — для всех команд, не только init
+  await program.parseAsync(process.argv);
+}
+
+main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });

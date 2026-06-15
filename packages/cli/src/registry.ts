@@ -3,6 +3,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { featureManifestSchema, type FeatureManifest } from '@maks417/contracts';
+import { vitrineHome } from './cache.js';
 import { isDir, readText } from './util.js';
 
 export interface RegistrySource {
@@ -27,12 +28,14 @@ function findUpRegistry(start: string): string | null {
 export function resolveRegistryRoot(explicit?: string): string {
   if (explicit) return resolve(explicit);
   if (process.env.VITRINE_REGISTRY) return resolve(process.env.VITRINE_REGISTRY);
-  // Кэш kit (~/.vitrine/registry), заполняемый `kit update`. VITRINE_HOME — приоритетный.
-  const home = process.env.VITRINE_HOME
-    ? resolve(process.env.VITRINE_HOME)
-    : process.env.USERPROFILE ?? process.env.HOME
-      ? join(process.env.USERPROFILE ?? (process.env.HOME as string), '.vitrine')
-      : null;
+  // Кэш kit (~/.vitrine/registry), заполняемый `kit update`. Корень ~/.vitrine —
+  // единый источник (cache.vitrineHome): VITRINE_HOME, иначе USERPROFILE/HOME.
+  let home: string | null;
+  try {
+    home = vitrineHome();
+  } catch {
+    home = null; // нет HOME/USERPROFILE — переходим к dev-реестру
+  }
   if (home) {
     const cache = join(home, 'registry');
     if (existsSync(join(cache, '_index.json'))) return cache;
