@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "//": "Типизируем только чистые файлы шаблона (контракты + node) — критическую логику zero-config и мапперы. Файлы с импортами Next/Payload проверяются при инстанцировании клиента (там стек установлен).",
+  "include": [
+    "backend-payload/files/lib/adapter/db-decision.ts",
+    "backend-payload/files/lib/adapter/db-ping.ts",
+    "backend-payload/files/lib/adapter/payload-types.ts",
+    "backend-payload/files/lib/adapter/map.ts",
+    "backend-payload/files/lib/seed/demo.ts",
+    "backend-payload/files/lib/seed/guards.ts",
+    "backend-vendure/files/lib/adapter/vendure-types.ts",
+    "backend-vendure/files/lib/adapter/map.ts"
+  ]
+}

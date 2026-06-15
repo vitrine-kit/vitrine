@@ -17,6 +17,16 @@
       "title": "SEO — метаданные и JSON-LD",
       "kitVersion": "0.0.0",
       "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "cart": {
+      "title": "Корзина",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
+    },
+    "checkout-stripe": {
+      "title": "Оформление заказа (Stripe)",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
     }
   }
 }

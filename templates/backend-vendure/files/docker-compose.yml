@@ -1,0 +1,54 @@
+# Эталонный деплой Vitrine на Vendure: db (Postgres) + server (Vendure) + web (Next).
+# Запуск: GITHUB_TOKEN=... VENDURE_SUPERADMIN_PASSWORD=... docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vitrine
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vitrine}
+      POSTGRES_DB: vitrine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vitrine']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    restart: unless-stopped
+    command: ['node', 'dist/index.js']
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://vitrine:${POSTGRES_PASSWORD:-vitrine}@db:5432/vitrine
+      VENDURE_SUPERADMIN_USERNAME: ${VENDURE_SUPERADMIN_USERNAME:-superadmin}
+      VENDURE_SUPERADMIN_PASSWORD: ${VENDURE_SUPERADMIN_PASSWORD:?задайте VENDURE_SUPERADMIN_PASSWORD}
+    ports:
+      - '3001:3001'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    restart: unless-stopped
+    command: ['pnpm', 'start']
+    environment:
+      NODE_ENV: production
+      VENDURE_SHOP_API_URL: http://server:3001/shop-api
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    ports:
+      - '3000:3000'
+    depends_on:
+      - server
+
+volumes:
+  pgdata:

@@ -82,7 +82,7 @@ function copyFeatureFiles(
 }
 
 /** Перегенерация производных файлов из ПОЛНОГО состояния установленных фич. */
-function regenerateDerived(project: Project, registry: RegistrySource, tx: FsTransaction): void {
+export function regenerateDerived(project: Project, registry: RegistrySource, tx: FsTransaction): void {
   const paths = projectPaths(project.root);
   const states: FeatureState[] = Object.entries(project.lock.features).map(([name, pin]) => ({
     name,

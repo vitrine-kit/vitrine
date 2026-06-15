@@ -36,6 +36,9 @@ jobs:
       - name: Typecheck registry (copy-in feature files)
         run: pnpm typecheck:registry
 
+      - name: Typecheck templates (pure zero-config + mappers)
+        run: pnpm typecheck:templates
+
       - name: Test
         run: pnpm test
 

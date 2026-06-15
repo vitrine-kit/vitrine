@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initProject } from './init.js';
+import { initProject, suggestFeatures } from './init.js';
 import { installFeatures, removeFeature } from './install.js';
 import { loadProject } from './project.js';
 import { createRegistrySource } from './registry.js';
@@ -14,6 +14,18 @@ import {
   renderSlotsFile,
   type FeatureState,
 } from './generate.js';
+import {
+  buildDesignPrompt,
+  designApply,
+  designHasInput,
+  extractDesignInstruction,
+  findClaudeBin,
+} from './design.js';
+import { runDoctor } from './doctor.js';
+import { computeChangelog, populateCache, readKitMeta } from './cache.js';
+import { kitStatus } from './kit-update.js';
+import { merge3 } from './merge.js';
+import { applyUpdate, planUpdate } from './update.js';
 import { replaceBetween } from './util.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -97,6 +109,52 @@ describe('init + примитив установки (DoD)', () => {
   });
 });
 
+describe('init payload-шаблон (M5)', () => {
+  it('скаффолдит base + backend-payload (zero-config + Docker) и стек в package.json', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root,
+      name: 'shop',
+      backend: 'payload',
+      tier: 'catalog',
+      features: ['catalog', 'product-page', 'seo'],
+      registry,
+    });
+
+    // статический каркас base
+    expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'tailwind.config.ts'))).toBe(true);
+    expect(existsSync(join(root, '.gitignore'))).toBe(true);
+    expect(existsSync(join(root, '.npmrc'))).toBe(true);
+
+    // backend-payload: конфиг, адаптеры, zero-config, Docker
+    expect(existsSync(join(root, 'payload.config.ts'))).toBe(true);
+    expect(existsSync(join(root, 'lib/adapter/db.ts'))).toBe(true);
+    expect(existsSync(join(root, 'lib/adapter/map.ts'))).toBe(true);
+    expect(existsSync(join(root, 'lib/seed/demo.ts'))).toBe(true);
+    expect(existsSync(join(root, 'seed-assets/placeholder-1.svg'))).toBe(true);
+    expect(existsSync(join(root, 'app/(payload)/layout.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'Dockerfile'))).toBe(true);
+    expect(existsSync(join(root, 'docker-compose.yml'))).toBe(true);
+
+    // package.json — стек Next + Payload + dev-скрипт
+    const pkg = JSON.parse(read(root, 'package.json'));
+    expect(pkg.dependencies.next).toBeDefined();
+    expect(pkg.dependencies.payload).toBeDefined();
+    expect(pkg.dependencies['@maks417/payload-blueprint']).toBeDefined();
+    expect(pkg.scripts.dev).toBe('next dev');
+
+    // .env.example — ключи zero-config
+    const env = read(root, '.env.example');
+    expect(env).toContain('DATABASE_URL=');
+    expect(env).toContain('PAYLOAD_SECRET=');
+
+    // управляемые файлы по-прежнему консистентны
+    expect(read(root, 'site.config.ts')).toContain('"catalog": true');
+    expect(read(root, 'lib/slots.ts')).toContain('registerCatalogSlots');
+  });
+});
+
 describe('откат при ошибке', () => {
   function brokenRegistry(): string {
     const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
@@ -145,6 +203,340 @@ describe('откат при ошибке', () => {
     expect(existsSync(join(root, 'lib/good/x.ts'))).toBe(false);
     expect(project.lock.features.good).toBeUndefined();
     expect(JSON.parse(read(root, 'vitrine.json')).features).toEqual({});
+  });
+});
+
+describe('design apply (M6)', () => {
+  function scaffold(features: string[] = ['catalog']): string {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features, registry });
+    return root;
+  }
+
+  it('findClaudeBin: явный путь — существующий возвращается, отсутствующий бросает', () => {
+    expect(findClaudeBin(process.execPath)).toBe(process.execPath);
+    expect(() => findClaudeBin(join(tmp(), 'nope', 'claude'))).toThrow(/не найден/);
+  });
+
+  it('designHasInput: только README → false; добавили файл → true', () => {
+    const root = scaffold();
+    expect(designHasInput(root)).toBe(false); // в base только design/README.md
+    writeFileSync(join(root, 'design', 'tokens.json'), '{}');
+    expect(designHasInput(root)).toBe(true);
+  });
+
+  it('extractDesignInstruction вытаскивает блок §11, без соседних разделов', () => {
+    const md = read(scaffold(), 'CLAUDE.md');
+    const instr = extractDesignInstruction(md);
+    expect(instr).toContain('ИНСТРУКЦИЯ: применить дизайн');
+    expect(instr).not.toContain('## Установленные фичи');
+  });
+
+  it('buildDesignPrompt включает инструкцию, целевой файл и набор токенов', () => {
+    const project = loadProject(scaffold());
+    const prompt = buildDesignPrompt(project);
+    expect(prompt).toContain('theme/client.css');
+    expect(prompt).toContain('--vt-color-primary');
+    expect(prompt).toContain('ИНСТРУКЦИЯ');
+  });
+
+  it('designApply шеллит в Claude Code с -p и cwd проекта (через stub-runner)', () => {
+    const root = scaffold();
+    writeFileSync(join(root, 'design', 'export.css'), ':root{}');
+    const project = loadProject(root);
+    const calls: { bin: string; args: string[]; cwd: string; prompt: string }[] = [];
+    const code = designApply(project, { bin: process.execPath }, (cmd) => {
+      calls.push(cmd);
+      return 0;
+    });
+    expect(code).toBe(0);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.args).toContain('-p');
+    expect(calls[0]?.args).toContain('acceptEdits');
+    expect(calls[0]?.cwd).toBe(root);
+    expect(calls[0]?.prompt).toContain('--vt-color-primary');
+  });
+
+  it('designApply бросает на пустой design/ (нечего применять)', () => {
+    const project = loadProject(scaffold());
+    expect(() => designApply(project, { bin: process.execPath }, () => 0)).toThrow(/пуста/);
+  });
+});
+
+describe('doctor (M7)', () => {
+  // Синтетический реестр с фичей, объявляющей files+env+npm+slots — для контроля рассинхрона.
+  function featureRegistry(): string {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({
+        kitVersion: '0.0.0',
+        contracts: '1.0.0',
+        features: { demo: { title: 'Demo', kitVersion: '0.0.0', tier: ['catalog'] } },
+      }),
+    );
+    mkdirSync(join(dir, 'demo', 'files', 'lib', 'demo'), { recursive: true });
+    writeFileSync(join(dir, 'demo', 'files', 'lib', 'demo', 'register.ts'), 'export function registerDemoSlots() {}\n');
+    writeFileSync(
+      join(dir, 'demo', 'feature.json'),
+      JSON.stringify({
+        name: 'demo', title: 'Demo', kitVersion: '0.0.0', requiresContracts: '>=1.0.0', tier: ['catalog'],
+        corePackages: { '@maks417/core': '>=0.1.0' }, npm: ['zod@^3'],
+        files: [{ from: 'files/lib/demo/', to: 'lib/demo/' }],
+        config: { set: { 'features.demo': true } },
+        slots: [{ slot: 'home.hero', component: 'DemoHero', order: 10 }],
+        env: [{ key: 'DEMO_KEY', required: true }],
+        removable: true,
+      }),
+    );
+    return dir;
+  }
+
+  it('чистый проект — без проблем', () => {
+    const reg = createRegistrySource(featureRegistry());
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['demo'], registry: reg });
+    const report = runDoctor(loadProject(root), reg);
+    expect(report.issues).toEqual([]);
+    expect(report.ok).toBe(true);
+  });
+
+  it('ловит рассинхрон: удалённый файл, пропавший env, пропавшая зависимость, версия не та', () => {
+    const reg = createRegistrySource(featureRegistry());
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['demo'], registry: reg });
+
+    rmSync(join(root, 'lib/demo/register.ts'));
+    writeFileSync(join(root, '.env.example'), read(root, '.env.example').replace(/DEMO_KEY=?/g, ''));
+    const pkg = JSON.parse(read(root, 'package.json'));
+    delete pkg.dependencies.zod;
+    writeFileSync(join(root, 'package.json'), JSON.stringify(pkg, null, 2));
+    const lock = JSON.parse(read(root, 'vitrine.json'));
+    lock.features.demo.version = '9.9.9';
+    writeFileSync(join(root, 'vitrine.json'), JSON.stringify(lock, null, 2));
+
+    const report = runDoctor(loadProject(root), reg);
+    const msgs = report.issues.map((i) => i.message).join('\n');
+    expect(report.ok).toBe(false); // есть error-уровень
+    expect(msgs).toMatch(/нет файла "lib\/demo\/register\.ts"/);
+    expect(msgs).toMatch(/DEMO_KEY/);
+    expect(msgs).toMatch(/zod/);
+    expect(msgs).toMatch(/версия в репо 9\.9\.9/);
+  });
+});
+
+describe('kit cache (M7)', () => {
+  const repoRoot = join(here, '..', '..', '..'); // монорепо: registry/ + templates/
+
+  it('populateCache наполняет ~/.vitrine (registry + templates) и пишет meta', () => {
+    const home = tmp();
+    const res = populateCache(repoRoot, { home });
+    expect(existsSync(join(home, 'registry', '_index.json'))).toBe(true);
+    expect(existsSync(join(home, 'templates', 'base', 'files', 'app', '(frontend)', 'layout.tsx'))).toBe(true);
+    expect(readKitMeta(home)?.kitVersion).toBeDefined();
+    expect(res.changelog.length).toBeGreaterThan(0);
+    expect(res.changelog.every((e) => e.kind === 'added')).toBe(true); // первый прогон
+  });
+
+  it('повторный populateCache — без изменений набора фич', () => {
+    const home = tmp();
+    populateCache(repoRoot, { home });
+    expect(populateCache(repoRoot, { home }).changelog).toEqual([]);
+  });
+
+  it('kitStatus читает кэш', () => {
+    const home = tmp();
+    expect(kitStatus(home).cached).toBe(false);
+    populateCache(repoRoot, { home });
+    const s = kitStatus(home);
+    expect(s.cached).toBe(true);
+    expect(s.featureCount).toBeGreaterThanOrEqual(3);
+  });
+
+  it('offline init из кэша (DoD): VITRINE_HOME → реестр и шаблоны из ~/.vitrine', () => {
+    const home = tmp();
+    populateCache(repoRoot, { home });
+    const prev = process.env.VITRINE_HOME;
+    process.env.VITRINE_HOME = home;
+    try {
+      const reg = createRegistrySource(); // без explicit → должен взять кэш
+      expect(reg.root).toBe(join(home, 'registry'));
+      const root = join(tmp(), 'shop');
+      initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry: reg });
+      expect(existsSync(join(root, 'components/catalog/ProductCard.tsx'))).toBe(true);
+      expect(existsSync(join(root, 'payload.config.ts'))).toBe(true); // шаблоны тоже из кэша
+    } finally {
+      if (prev === undefined) delete process.env.VITRINE_HOME;
+      else process.env.VITRINE_HOME = prev;
+    }
+  });
+
+  it('computeChangelog: added / removed / changed', () => {
+    const cl = computeChangelog(
+      { features: { x: { kitVersion: '1.0.0' }, y: { kitVersion: '1.0.0' } } },
+      { features: { x: { kitVersion: '1.1.0' }, z: { kitVersion: '1.0.0' } } },
+    );
+    expect(cl).toContainEqual({ kind: 'changed', name: 'x', from: '1.0.0', to: '1.1.0' });
+    expect(cl).toContainEqual({ kind: 'added', name: 'z', to: '1.0.0' });
+    expect(cl).toContainEqual({ kind: 'removed', name: 'y', from: '1.0.0' });
+  });
+});
+
+describe('init vendure / переносимость (M10)', () => {
+  it('full-store → vendure: backend-vendure + та же витрина и фичи, без Payload', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root,
+      name: 'shop',
+      backend: 'vendure',
+      tier: 'full-store',
+      features: ['catalog', 'product-page', 'seo', 'cart'],
+      registry,
+    });
+
+    // vendure-специфичное
+    expect(existsSync(join(root, 'vendure-config.ts'))).toBe(true);
+    expect(existsSync(join(root, 'src/index.ts'))).toBe(true);
+    expect(existsSync(join(root, 'lib/adapter/vendure-catalog.ts'))).toBe(true);
+    expect(existsSync(join(root, 'lib/adapter/map.ts'))).toBe(true);
+    // НЕ Payload
+    expect(existsSync(join(root, 'payload.config.ts'))).toBe(false);
+
+    // переносимость: те же витрина (base) и компоненты каталога/корзины, что и на Payload
+    expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'components/catalog/ProductGrid.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'components/cart/CartView.tsx'))).toBe(true);
+
+    const pkg = JSON.parse(read(root, 'package.json'));
+    expect(pkg.dependencies['@vendure/core']).toBeDefined();
+    expect(pkg.dependencies.payload).toBeUndefined();
+    expect(pkg.scripts.vendure).toBe('tsx src/index.ts');
+  });
+
+  it('suggestFeatures: vendure full-store без checkout-stripe, payload simple-store — с ним', () => {
+    const v = suggestFeatures('full-store', registry, 'vendure');
+    expect(v).toContain('cart');
+    expect(v).not.toContain('checkout-stripe');
+    expect(suggestFeatures('simple-store', registry, 'payload')).toContain('checkout-stripe');
+  });
+});
+
+describe('merge3 (3-way, M9)', () => {
+  it('theirs-only изменение → берём theirs', () => {
+    const r = merge3('a\nb\nc', 'a\nb\nc', 'a\nb\nc\nd');
+    expect(r.clean).toBe(true);
+    expect(r.text).toBe('a\nb\nc\nd');
+  });
+
+  it('ours-only изменение → сохраняем ours (правка клиента)', () => {
+    const r = merge3('a\nb', 'a\nZ', 'a\nb');
+    expect(r.clean).toBe(true);
+    expect(r.text).toBe('a\nZ');
+  });
+
+  it('оба изменили одинаково → чисто', () => {
+    const r = merge3('a\nb', 'a\nQ', 'a\nQ');
+    expect(r.clean).toBe(true);
+    expect(r.text).toBe('a\nQ');
+  });
+
+  it('непересекающиеся изменения → оба применены', () => {
+    const r = merge3('a\nb\nc\nd\ne', 'A\nb\nc\nd\ne', 'a\nb\nc\nd\nE');
+    expect(r.clean).toBe(true);
+    expect(r.text).toBe('A\nb\nc\nd\nE');
+  });
+
+  it('вставки на разных концах → обе применены', () => {
+    const r = merge3('l1\nl2\nl3', 'HEAD\nl1\nl2\nl3', 'l1\nl2\nl3\nTAIL');
+    expect(r.clean).toBe(true);
+    expect(r.text).toBe('HEAD\nl1\nl2\nl3\nTAIL');
+  });
+
+  it('пересекающиеся разные изменения → конфликт с маркерами', () => {
+    const r = merge3('a\nb\nc', 'a\nX\nc', 'a\nY\nc');
+    expect(r.clean).toBe(false);
+    expect(r.conflicts).toBe(1);
+    expect(r.text).toContain('<<<<<<<');
+    expect(r.text).toContain('X');
+    expect(r.text).toContain('=======');
+    expect(r.text).toContain('Y');
+    expect(r.text).toContain('>>>>>>>');
+  });
+});
+
+describe('vitrine update (M9)', () => {
+  function demoReg(version: string, content: string): string {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({ kitVersion: version, contracts: '1.0.0', features: { demo: { title: 'Demo', kitVersion: version, tier: ['catalog'] } } }),
+    );
+    mkdirSync(join(dir, 'demo', 'files', 'lib', 'demo'), { recursive: true });
+    writeFileSync(join(dir, 'demo', 'files', 'lib', 'demo', 'x.ts'), content);
+    writeFileSync(
+      join(dir, 'demo', 'feature.json'),
+      JSON.stringify({
+        name: 'demo', title: 'Demo', kitVersion: version, requiresContracts: '>=1.0.0', tier: ['catalog'],
+        files: [{ from: 'files/lib/demo/', to: 'lib/demo/' }],
+        config: { set: { 'features.demo': true } },
+      }),
+    );
+    return dir;
+  }
+
+  function setup(v1Content: string): string {
+    const v1 = createRegistrySource(demoReg('0.0.0', v1Content));
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['demo'], registry: v1 });
+    return root;
+  }
+
+  it('3-way merge сохраняет правки клиента и вливает новое из реестра', () => {
+    const root = setup('line1\nline2\nline3\n');
+    writeFileSync(join(root, 'lib/demo/x.ts'), 'CLIENT1\nline2\nline3\n'); // клиент стилизовал line1
+    const v2 = createRegistrySource(demoReg('0.1.0', 'line1\nline2\nTHEIRS3\n')); // реестр сменил line3
+    const project = loadProject(root);
+
+    const plan = planUpdate(project, 'demo', v2);
+    expect(plan.toVersion).toBe('0.1.0');
+    expect(plan.hasConflicts).toBe(false);
+    applyUpdate(project, plan, v2);
+
+    const merged = read(root, 'lib/demo/x.ts');
+    expect(merged).toContain('CLIENT1'); // правка клиента сохранена
+    expect(merged).toContain('THEIRS3'); // новое из реестра влито
+    expect(merged).not.toContain('line1');
+    expect(JSON.parse(read(root, 'vitrine.json')).features.demo.version).toBe('0.1.0');
+    expect(existsSync(join(root, '.vitrine/originals/demo@0.1.0/lib/demo/x.ts'))).toBe(true);
+    expect(existsSync(join(root, '.vitrine/originals/demo@0.0.0'))).toBe(false); // старый pristine снят
+  });
+
+  it('конфликт помечается git-маркерами', () => {
+    const root = setup('a\nb\nc\n');
+    writeFileSync(join(root, 'lib/demo/x.ts'), 'a\nCLIENT\nc\n');
+    const v2 = createRegistrySource(demoReg('0.1.0', 'a\nREGISTRY\nc\n'));
+    const project = loadProject(root);
+
+    const plan = planUpdate(project, 'demo', v2);
+    expect(plan.hasConflicts).toBe(true);
+    applyUpdate(project, plan, v2);
+
+    const merged = read(root, 'lib/demo/x.ts');
+    expect(merged).toContain('<<<<<<<');
+    expect(merged).toContain('CLIENT');
+    expect(merged).toContain('REGISTRY');
+  });
+
+  it('diff (planUpdate) не пишет файлы', () => {
+    const root = setup('a\nb\n');
+    writeFileSync(join(root, 'lib/demo/x.ts'), 'a\nZZ\n');
+    const v2 = createRegistrySource(demoReg('0.1.0', 'a\nb\nc\n'));
+    const before = read(root, 'lib/demo/x.ts');
+    const plan = planUpdate(loadProject(root), 'demo', v2);
+    expect(plan.changed).toBe(true);
+    expect(read(root, 'lib/demo/x.ts')).toBe(before);
   });
 });
 

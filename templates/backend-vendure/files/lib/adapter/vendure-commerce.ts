@@ -1,0 +1,76 @@
+// Реализация контракта CommerceBackend поверх Vendure (активный заказ + session
+// token). cartId == Vendure auth-token сессии. Денежные итоги отдаёт Vendure;
+// нормализация — в map.ts. Оплата — Stripe-плагин Vendure (startCheckout переводит
+// заказ в ArrangingPayment). Next-glue, валидируется на запущенном Vendure.
+import type { Cart, CommerceBackend, Order } from '@maks417/contracts';
+import { shopQuery } from './graphql.js';
+import { mapVendureOrder, mapVendureOrderToCart } from './map.js';
+import type { VOrder } from './vendure-types.js';
+
+const ORDER_FIELDS = `
+  id code state currencyCode subTotalWithTax totalWithTax createdAt
+  customer { emailAddress }
+  lines {
+    id quantity unitPriceWithTax linePriceWithTax
+    featuredAsset { preview }
+    productVariant { id sku name product { id slug } }
+  }
+`;
+
+const emptyCart = (id: string): Cart => ({ id, lines: [], currency: 'USD', subtotal: 0, total: 0 });
+
+export class VendureCommerceBackend implements CommerceBackend {
+  constructor(private readonly baseUrl: string) {}
+
+  async createCart(): Promise<Cart> {
+    // Vendure выдаёт session-токен на любом запросе; активный заказ создаётся при addItem.
+    const { token } = await shopQuery(`{ activeChannel { id } }`);
+    return emptyCart(token ?? '');
+  }
+
+  async getCart(cartId: string): Promise<Cart | null> {
+    const { data } = await shopQuery<{ activeOrder: VOrder | null }>(`{ activeOrder { ${ORDER_FIELDS} } }`, {}, cartId);
+    return data.activeOrder ? mapVendureOrderToCart(data.activeOrder) : emptyCart(cartId);
+  }
+
+  async addItem(cartId: string, variantId: string, qty: number): Promise<Cart> {
+    const { data } = await shopQuery<{ addItemToOrder: VOrder }>(
+      `mutation ($id: ID!, $q: Int!) { addItemToOrder(productVariantId: $id, quantity: $q) { ...on Order { ${ORDER_FIELDS} } } }`,
+      { id: variantId, q: qty },
+      cartId,
+    );
+    return mapVendureOrderToCart(data.addItemToOrder);
+  }
+
+  async updateItem(cartId: string, lineId: string, qty: number): Promise<Cart> {
+    const { data } = await shopQuery<{ adjustOrderLine: VOrder }>(
+      `mutation ($id: ID!, $q: Int!) { adjustOrderLine(orderLineId: $id, quantity: $q) { ...on Order { ${ORDER_FIELDS} } } }`,
+      { id: lineId, q: qty },
+      cartId,
+    );
+    return mapVendureOrderToCart(data.adjustOrderLine);
+  }
+
+  async removeItem(cartId: string, lineId: string): Promise<Cart> {
+    const { data } = await shopQuery<{ removeOrderLine: VOrder }>(
+      `mutation ($id: ID!) { removeOrderLine(orderLineId: $id) { ...on Order { ${ORDER_FIELDS} } } }`,
+      { id: lineId },
+      cartId,
+    );
+    return mapVendureOrderToCart(data.removeOrderLine);
+  }
+
+  async startCheckout(cartId: string): Promise<{ redirectUrl: string }> {
+    // Перевод в оплату; Stripe-плагин Vendure создаёт PaymentIntent на странице оплаты.
+    await shopQuery(`mutation { transitionOrderToState(state: "ArrangingPayment") { ...on Order { id } } }`, {}, cartId);
+    return { redirectUrl: `${this.baseUrl}/checkout/payment` };
+  }
+
+  async getOrder(id: string): Promise<Order | null> {
+    const { data } = await shopQuery<{ orderByCode: VOrder | null }>(
+      `query ($code: String!) { orderByCode(code: $code) { ${ORDER_FIELDS} } }`,
+      { code: id },
+    );
+    return data.orderByCode ? mapVendureOrder(data.orderByCode) : null;
+  }
+}

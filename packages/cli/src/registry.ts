@@ -27,9 +27,14 @@ function findUpRegistry(start: string): string | null {
 export function resolveRegistryRoot(explicit?: string): string {
   if (explicit) return resolve(explicit);
   if (process.env.VITRINE_REGISTRY) return resolve(process.env.VITRINE_REGISTRY);
-  const home = process.env.HOME ?? process.env.USERPROFILE;
+  // Кэш kit (~/.vitrine/registry), заполняемый `kit update`. VITRINE_HOME — приоритетный.
+  const home = process.env.VITRINE_HOME
+    ? resolve(process.env.VITRINE_HOME)
+    : process.env.USERPROFILE ?? process.env.HOME
+      ? join(process.env.USERPROFILE ?? (process.env.HOME as string), '.vitrine')
+      : null;
   if (home) {
-    const cache = join(home, '.vitrine', 'registry');
+    const cache = join(home, 'registry');
     if (existsSync(join(cache, '_index.json'))) return cache;
   }
   const dev = findUpRegistry(process.cwd());

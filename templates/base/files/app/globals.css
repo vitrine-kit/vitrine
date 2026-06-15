@@ -1,0 +1,6 @@
+/* Значения токенов клиента задаёт дизайн-шаг (vitrine design apply). */
+@import '../theme/client.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

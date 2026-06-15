@@ -3,7 +3,7 @@
 // (утверждён, docs/contracts-v1-proposal.md). Расширять ТОЛЬКО аддитивно.
 import { z } from 'zod';
 
-/** 31 слот v1. Порядок и группировка — как в утверждённом предложении. */
+/** 32 слота v1. Порядок и группировка — как в утверждённом предложении. */
 export const SLOT_IDS = [
   // global — на всех страницах
   'global.banner-top', 'global.header-start', 'global.header-nav',

@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# окружение и секреты
+.env
+.env.local
+.env.*.local
+
+# zero-config dev: локальная SQLite + pristine-оригиналы фич (M9)
+.vitrine/
+
+# сгенерированное
+next-env.d.ts
+*.tsbuildinfo
+payload-types.ts

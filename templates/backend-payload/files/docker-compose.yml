@@ -1,0 +1,37 @@
+# Эталонный деплой Vitrine на VPS: app (Next+Payload) + Postgres.
+# Запуск: GITHUB_TOKEN=... PAYLOAD_SECRET=... docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vitrine
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vitrine}
+      POSTGRES_DB: vitrine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vitrine']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://vitrine:${POSTGRES_PASSWORD:-vitrine}@db:5432/vitrine
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?задайте PAYLOAD_SECRET}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

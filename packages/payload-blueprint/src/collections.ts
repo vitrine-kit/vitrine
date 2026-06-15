@@ -83,6 +83,23 @@ export const ordersCollection: BlueprintCollectionConfig = {
   ],
 };
 
+export const cartsCollection: BlueprintCollectionConfig = {
+  slug: 'carts',
+  admin: { useAsTitle: 'id' },
+  fields: [
+    f('lines', 'json'), // CartLine[] (контракт); арифметика — в @maks417/core
+    f('currency', 'text'),
+    f('subtotal', 'number'),
+    f('discountTotal', 'number'),
+    f('total', 'number'),
+    f('status', 'select', {
+      options: ['active', 'converted', 'abandoned'],
+      defaultValue: 'active',
+    }),
+    f('stripeSessionId', 'text', { index: true }),
+  ],
+};
+
 /** Базовые коллекции в стабильном порядке. */
 export const baseCollections: BlueprintCollectionConfig[] = [
   categoriesCollection,
@@ -91,4 +108,5 @@ export const baseCollections: BlueprintCollectionConfig[] = [
   productsCollection,
   variantsCollection,
   ordersCollection,
+  cartsCollection,
 ];

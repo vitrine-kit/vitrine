@@ -7,7 +7,7 @@ const products = (cols: { slug: string; fields: { name: string }[] }[]) =>
 describe('blueprint', () => {
   it('build() возвращает базовые коллекции', () => {
     const slugs = createBlueprint().build().map((c) => c.slug);
-    expect(slugs).toEqual(['categories', 'media', 'users', 'products', 'variants', 'orders']);
+    expect(slugs).toEqual(['categories', 'media', 'users', 'products', 'variants', 'orders', 'carts']);
   });
 
   it('extend() аддитивно добавляет поле', () => {

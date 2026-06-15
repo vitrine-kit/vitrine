@@ -15,7 +15,7 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const registry = resolve(here, '../../registry');
-const features = ['catalog', 'product-page', 'seo'];
+const features = ['catalog', 'product-page', 'seo', 'cart', 'checkout-stripe'];
 
 describe('registry feature.json валидны против схемы', () => {
   for (const name of features) {

@@ -29,7 +29,7 @@ export function ProductView({ product }: ProductViewProps) {
         ) : null}
         <Slot name="product.below-price" />
         <div className="vt-product-purchase">
-          <Slot name="product.purchase" />
+          <Slot name="product.purchase" product={product} />
         </div>
         {product.description ? (
           <div className="vt-product-description text-fg">{product.description}</div>

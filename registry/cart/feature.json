@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "cart",
+  "title": "Корзина",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["simple-store", "full-store"],
+  "registryDependencies": [],
+  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/cart/", "to": "components/cart/" },
+    { "from": "files/lib/cart/", "to": "lib/cart/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.cart": true } },
+  "slots": [
+    { "slot": "product.purchase", "component": "AddToCart", "order": 10 },
+    { "slot": "global.header-actions", "component": "CartIndicator", "order": 20 }
+  ],
+  "env": [],
+  "claudeDoc": "docs/cart.md",
+  "conflicts": [],
+  "removable": true
+}
