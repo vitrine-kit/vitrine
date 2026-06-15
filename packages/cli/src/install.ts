@@ -3,7 +3,6 @@
 // site.config → слоты → blueprint → env+npm → vitrine.json + CLAUDE.md.
 // Идемпотентен (повтор той же версии = no-op), транзакционен (откат при ошибке),
 // снапшотит pristine-оригиналы в .vitrine/originals (база для 3-way merge, M9).
-import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { FeatureManifest } from '@maks417/contracts';
 import type { Project } from './project.js';
@@ -167,7 +166,8 @@ export function installFeatures(
 }
 
 export function removeFeature(project: Project, name: string, registry: RegistrySource): void {
-  if (!project.lock.features[name]) throw new Error(`[vitrine] фича "${name}" не установлена`);
+  const removed = project.lock.features[name];
+  if (!removed) throw new Error(`[vitrine] фича "${name}" не установлена`);
   const manifest = registry.loadManifest(name);
   if (!manifest.removable) {
     throw new Error(`[vitrine] фича "${name}" не удаляема (removable: false)`);
@@ -180,21 +180,27 @@ export function removeFeature(project: Project, name: string, registry: Registry
     }
   }
 
-  for (const map of manifest.files) {
-    rmSync(join(project.root, map.to), { recursive: true, force: true });
-  }
-  rmSync(join(projectPaths(project.root).originals, `${name}@${manifest.kitVersion}`), {
-    recursive: true,
-    force: true,
-  });
-  delete project.lock.features[name];
-
+  // Всё мутирующее — в одной транзакции (как installFeatures): tx.remove снапшотит
+  // содержимое, поэтому откат восстановит удалённые файлы; лок-файл регенерится из
+  // нового состояния, а in-memory лок чиним вручную при ошибке. Полу-удаления нет.
+  const originalsDir = join(projectPaths(project.root).originals, `${name}@${removed.version}`);
   const tx = new FsTransaction();
+  const removeTree = (root: string): void => {
+    if (isDir(root)) {
+      for (const rel of walkRelFiles(root)) tx.remove(join(root, rel));
+    } else if (exists(root)) {
+      tx.remove(root);
+    }
+  };
   try {
+    for (const map of manifest.files) removeTree(join(project.root, map.to));
+    removeTree(originalsDir);
+    delete project.lock.features[name];
     regenerateDerived(project, registry, tx);
     tx.commit();
   } catch (error) {
     tx.rollback();
+    project.lock.features[name] = removed; // восстановить лок в памяти
     throw error;
   }
 }

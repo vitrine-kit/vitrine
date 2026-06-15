@@ -20,6 +20,7 @@ import { defaultBackend, initProject, suggestFeatures } from './init.js';
 import { formatChangelog } from './cache.js';
 import { kitStatus, kitUpdate, selfUpdate } from './kit-update.js';
 import { renderPlan } from './update.js';
+import { preflightNode } from './util.js';
 
 const program = new Command();
 program.name('vitrine').description('Vitrine CLI').version('0.0.0');
@@ -155,6 +156,7 @@ program
   .option('--registry <path>', 'путь к реестру')
   .option('--yes', 'без интерактивных вопросов')
   .action(async (nameArg: string | undefined, opts: Record<string, string | boolean>) => {
+    preflightNode(); // шаг 0: рантайм Node 20+
     const registry = createRegistrySource(opts.registry as string | undefined);
     let name = nameArg;
     let tier = opts.tier as Tier | undefined;

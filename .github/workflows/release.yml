@@ -1,0 +1,53 @@
+name: Release
+
+# Двухшаговый поток Changesets на push в main:
+#   1) есть неучтённые changesets → бот открывает/обновляет PR "Version Packages"
+#      (бамп версий + сборка CHANGELOG);
+#   2) этот PR влит (changesets израсходованы) → запускается publish:
+#      `pnpm release` публикует изменённые @maks417/* в GitHub Packages,
+#      changeset publish ставит git-теги, а createGithubReleases делает GitHub Releases.
+# Source-архив каждого релиза — это то, что тянет `vitrine kit update`
+# (gh release download --archive=tar.gz, см. packages/cli/src/kit-update.ts).
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write # git-теги + GitHub Releases
+  pull-requests: write # PR "Version Packages"
+  packages: write # публикация в GitHub Packages
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # changesets нужна история/теги
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@maks417'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Version PR / Publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm version-packages # bump версий из changesets
+          publish: pnpm release # turbo build && changeset publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

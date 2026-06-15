@@ -26,7 +26,7 @@ import { computeChangelog, populateCache, readKitMeta } from './cache.js';
 import { kitStatus } from './kit-update.js';
 import { merge3 } from './merge.js';
 import { applyUpdate, planUpdate } from './update.js';
-import { replaceBetween } from './util.js';
+import { preflightNode, replaceBetween } from './util.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const monorepoRegistry = join(here, '..', '..', '..', 'registry');
@@ -203,6 +203,56 @@ describe('откат при ошибке', () => {
     expect(existsSync(join(root, 'lib/good/x.ts'))).toBe(false);
     expect(project.lock.features.good).toBeUndefined();
     expect(JSON.parse(read(root, 'vitrine.json')).features).toEqual({});
+  });
+});
+
+describe('remove атомарен', () => {
+  function soloReg(): string {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({
+        kitVersion: '0.0.0',
+        contracts: '1.0.0',
+        features: { solo: { title: 'Solo', kitVersion: '0.0.0', tier: ['catalog'] } },
+      }),
+    );
+    mkdirSync(join(dir, 'solo', 'files', 'lib', 'solo'), { recursive: true });
+    writeFileSync(join(dir, 'solo', 'files', 'lib', 'solo', 'x.ts'), 'export const x = 1;\n');
+    writeFileSync(
+      join(dir, 'solo', 'feature.json'),
+      JSON.stringify({
+        name: 'solo', title: 'Solo', kitVersion: '0.0.0', requiresContracts: '>=1.0.0', tier: ['catalog'],
+        files: [{ from: 'files/lib/solo/', to: 'lib/solo/' }],
+        config: { set: { 'features.solo': true } }, removable: true,
+      }),
+    );
+    return dir;
+  }
+
+  it('падение регенерации при remove откатывает удаление файлов и лок', () => {
+    const reg = createRegistrySource(soloReg());
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['solo'], registry: reg });
+    expect(existsSync(join(root, 'lib/solo/x.ts'))).toBe(true);
+    expect(existsSync(join(root, '.vitrine/originals/solo@0.0.0/lib/solo/x.ts'))).toBe(true);
+
+    // Ломаем маркеры site.config → regenerateDerived (replaceBetween) бросит уже ПОСЛЕ
+    // того, как файлы фичи удалены транзакцией.
+    writeFileSync(
+      join(root, 'site.config.ts'),
+      read(root, 'site.config.ts').replace('// vitrine:features:start', '// broken'),
+    );
+
+    const project = loadProject(root);
+    expect(() => removeFeature(project, 'solo', reg)).toThrow();
+
+    // файлы и pristine восстановлены, лок (в памяти и на диске) не тронут
+    expect(existsSync(join(root, 'lib/solo/x.ts'))).toBe(true);
+    expect(existsSync(join(root, '.vitrine/originals/solo@0.0.0/lib/solo/x.ts'))).toBe(true);
+    expect(project.lock.features.solo).toBeDefined();
+    expect(JSON.parse(read(root, 'vitrine.json')).features.solo).toBeDefined();
   });
 });
 
@@ -587,5 +637,10 @@ describe('генераторы (чистые)', () => {
   it('replaceBetween заменяет только содержимое между маркерами', () => {
     const src = 'a\n// s\nOLD\n// e\nb';
     expect(replaceBetween(src, '// s', '// e', 'NEW')).toBe('a\n// s\nNEW\n// e\nb');
+  });
+
+  it('preflightNode: ниже минимума бросает, на текущем рантайме — нет', () => {
+    expect(() => preflightNode(99)).toThrow(/нужен Node >= 99/);
+    expect(() => preflightNode(1)).not.toThrow();
   });
 });

@@ -1,6 +1,21 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 
+/**
+ * Preflight (шаг 0 визарда, план §10): требуем Node >= min, иначе понятная ошибка
+ * вместо загадочного падения дальше по стеку. Ошибка ловится верхним .catch в
+ * index.ts (печать message + exit 1).
+ */
+export function preflightNode(min = 20): void {
+  const major = Number(process.versions.node.split('.')[0]);
+  if (Number.isFinite(major) && major < min) {
+    throw new Error(
+      `[vitrine] нужен Node >= ${min} (текущий ${process.versions.node}). ` +
+        `Установите Node ${min} LTS: https://nodejs.org`,
+    );
+  }
+}
+
 export function exists(p: string): boolean {
   return existsSync(p);
 }
