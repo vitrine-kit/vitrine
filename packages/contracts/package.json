@@ -1,6 +1,6 @@
 {
   "name": "@maks417/contracts",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Vitrine — пять стабильных контрактов: Tokens, Data, Slots, Config, Blueprint.",
   "license": "UNLICENSED",
   "type": "module",
@@ -13,7 +13,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"

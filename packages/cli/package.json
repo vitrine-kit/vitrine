@@ -1,13 +1,15 @@
 {
   "name": "@maks417/vitrine",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Vitrine CLI — примитив установки фичи, init (визард), add, update, doctor, design apply.",
   "license": "UNLICENSED",
   "type": "module",
   "bin": {
     "vitrine": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
