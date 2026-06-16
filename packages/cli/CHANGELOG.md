@@ -1,5 +1,11 @@
 # @maks417/vitrine
 
+## 0.1.1
+
+### Patch Changes
+
+- b7b4590: CLI: `vitrine --version` теперь читает версию из package.json в рантайме вместо захардкоженного `0.0.0` (расходился с релизной версией пакета).
+
 ## 0.1.0
 
 ### Minor Changes
