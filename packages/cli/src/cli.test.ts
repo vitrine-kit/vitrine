@@ -85,6 +85,30 @@ describe('init + примитив установки (DoD)', () => {
     expect(existsSync(join(root, '.vitrine/originals/catalog@0.0.0/components/catalog/ProductCard.tsx'))).toBe(true);
   });
 
+  it('README генерируется backend-aware (Payload) с полным жизненным циклом', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
+    const readme = read(root, 'README.md');
+    // запуск/деплой Payload-специфичны
+    expect(readme).toContain('http://localhost:3000/admin');
+    expect(readme).toContain('PAYLOAD_SECRET');
+    expect(readme).not.toContain('pnpm vendure');
+    // жизненный цикл фич/обновлений (не только init→dev→deploy)
+    expect(readme).toContain('vitrine add');
+    expect(readme).toContain('vitrine update');
+    expect(readme).toContain('vitrine doctor');
+  });
+
+  it('README генерируется backend-aware (Vendure) — без Payload-инструкций', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'vendure', tier: 'full-store', features: [], registry });
+    const readme = read(root, 'README.md');
+    expect(readme).toContain('pnpm vendure');
+    expect(readme).toContain('VENDURE_');
+    expect(readme).not.toContain('PAYLOAD_SECRET');
+    expect(readme).not.toContain('/admin');
+  });
+
   it('повторный add той же версии — no-op', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });

@@ -190,6 +190,110 @@ function clientEnvExample(backend: Backend): string {
   ].join('\n');
 }
 
+/**
+ * README клиентского репозитория — генерируется (не статичный файл шаблона), потому
+ * что запуск/деплой backend-специфичны (Payload: /admin + PAYLOAD_SECRET; Vendure:
+ * pnpm vendure + Shop API :3001 + VENDURE_*). Создаётся один раз при init; маркеров
+ * нет, add/update его НЕ переписывают — клиент владеет файлом и правит свободно.
+ */
+function clientReadme(name: string, backend: Backend, tier: Tier): string {
+  const run =
+    backend === 'vendure'
+      ? [
+          '```bash',
+          'pnpm install',
+          'cp .env.example .env',
+          'pnpm vendure   # Vendure-сервер (Shop API на :3001) — в отдельном терминале',
+          'pnpm dev       # витрина на :3000',
+          '```',
+          '',
+          'Без Postgres dev поднимает встроенный SQLite (`.vitrine/vendure.sqlite`) и',
+          'populate-сид. Суперадмин — из `VENDURE_SUPERADMIN_*` (dev-дефолт',
+          'superadmin/superadmin; смените для прода).',
+        ].join('\n')
+      : [
+          '```bash',
+          'pnpm install',
+          'cp .env.example .env',
+          'pnpm dev',
+          '```',
+          '',
+          '- Витрина: http://localhost:3000',
+          '- Админка: http://localhost:3000/admin',
+          '',
+          'Без Postgres dev поднимает встроенный SQLite (`.vitrine/dev.sqlite`), заполняет',
+          'демо-каталог (5 товаров, 2 категории) и заводит dev-админа (логин/пароль печатаются',
+          'в консоль один раз). Отключить fallback и в dev — `VITRINE_DB_STRICT=1`.',
+        ].join('\n');
+
+  const deploySecret =
+    backend === 'vendure'
+      ? 'export VENDURE_COOKIE_SECRET=...  # секрет cookie Vendure'
+      : 'export PAYLOAD_SECRET=...         # случайный секрет Payload';
+
+  return `# ${name}
+
+Клиентский проект на Vitrine. Backend: \`${backend}\`, уровень: \`${tier}\`.
+Next.js + Tailwind; фичи скопированы из реестра Vitrine — вы владеете кодом и
+стилизуете его токенами (\`theme/client.css\`), не меняя логику.
+
+## 1. Предусловия
+
+Приватные пакеты \`@maks417/*\` тянутся из GitHub Packages — нужен PAT с правом
+\`read:packages\` (используется \`.npmrc\`, scope \`@maks417\`):
+
+\`\`\`bash
+export GITHUB_TOKEN=...
+\`\`\`
+
+## 2. Локальный запуск (zero-config)
+
+${run}
+
+## 3. Применить дизайн клиента
+
+1. Положите экспорт бренда (Figma export, скриншоты, ассеты) в \`/design\`.
+2. \`vitrine design apply\` — ИИ задаёт значения токенов в \`theme/client.css\`
+   (логику/данные/роутинг/a11y не трогает). Шаг идемпотентен.
+
+## 4. Фичи: добавить, убрать, посмотреть
+
+\`\`\`bash
+vitrine list             # установленные + доступные
+vitrine add reviews      # скопировать фичу: флаг, слоты, blueprint, env
+vitrine remove reviews   # убрать (если фича removable)
+vitrine design apply     # стилизовать новую фичу
+\`\`\`
+
+\`add\` идемпотентен и транзакционен (откат при ошибке); оригиналы версий пишутся в
+\`.vitrine/originals/\` — основа для 3-way merge при обновлении.
+
+## 5. Обновления и проверка
+
+\`\`\`bash
+vitrine kit update       # обновить локальный кэш реестра/шаблонов с GitHub
+vitrine diff <feature>   # предпросмотр обновления фичи
+vitrine update [feature] # 3-way merge новой версии фичи (база = ваш снапшот)
+vitrine doctor           # консистентность vitrine.json ↔ файлы ↔ пакеты ↔ env
+\`\`\`
+
+Пакеты \`@maks417/*\` версионируются независимо: фикс в \`core\` поднимает только
+\`@maks417/core\`, а \`@maks417/contracts\` остаётся на своей стабильной версии —
+обновляйте версии в \`package.json\` точечно.
+
+## 6. Деплой (VPS + Docker)
+
+\`\`\`bash
+export GITHUB_TOKEN=...           # PAT read:packages (build-arg для приватных пакетов)
+${deploySecret}
+docker compose up --build
+\`\`\`
+
+Production требует реальный \`DATABASE_URL\` — без него старт прерывается
+(SQLite-fallback только в dev).
+`;
+}
+
 function scaffoldBase(opts: InitOptions): void {
   const { root, name, backend, tier } = opts;
   const tRoot = templatesRoot(opts.registry.root);
@@ -262,9 +366,15 @@ a11y-роли/лейблы, публичные пропсы. Токены — э
 Если дизайн требует иной структуры секции — создать override секции в репозитории
 (композиция), а не править общий wireframe.
 Шаг идемпотентен: повторный прогон сходится, не накапливает мусор.
+
+## Рабочий поток
+Полный гайд для разработчика — в \`README.md\`. Команды CLI: \`vitrine add/remove/list\`
+(фичи), \`vitrine update/diff\` (3-way merge), \`vitrine doctor\` (консистентность),
+\`vitrine kit update\` (кэш реестра), \`vitrine design apply\` (дизайн).
 `,
   );
 
+  writeText(join(root, 'README.md'), clientReadme(name, backend, tier));
   writeText(join(root, 'lib', 'slots.ts'), renderSlotsFile([]));
   writeText(join(root, 'lib', 'blueprint.ts'), renderBlueprintFile([]));
   writeText(join(root, 'theme', 'client.css'), renderNeutralTheme());
