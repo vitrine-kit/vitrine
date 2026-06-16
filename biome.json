@@ -3,14 +3,21 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["packages/**", "!**/dist", "!**/node_modules"]
+    "includes": ["packages/**", "registry/**", "templates/**", "!**/dist", "!**/node_modules"]
   },
   "formatter": { "enabled": false },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
-      "style": { "noNonNullAssertion": "off" }
+      "style": { "noNonNullAssertion": "off" },
+      "suspicious": {
+        "noUndeclaredEnvVars": "off",
+        "noUnknownAtRules": "off"
+      },
+      "a11y": {
+        "noRedundantRoles": "off"
+      }
     }
   }
 }

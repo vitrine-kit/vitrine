@@ -2,6 +2,7 @@
 // @maks417/vitrine — CLI. Команды-обёртки над примитивом установки.
 // Поверхность §9: init/add/remove/list реализованы (M4); update/diff/doctor/
 // kit/design — M7+/M9.
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 import * as p from '@clack/prompts';
@@ -22,8 +23,14 @@ import { kitStatus, kitUpdate, selfUpdate } from './kit-update.js';
 import { renderPlan } from './update.js';
 import { preflightNode } from './util.js';
 
+// Версию берём из package.json в рантайме (dist/index.js → ../package.json),
+// чтобы `vitrine --version` не расходился с релизом (changeset бампит package.json).
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+  version: string;
+};
+
 const program = new Command();
-program.name('vitrine').description('Vitrine CLI').version('0.0.0');
+program.name('vitrine').description('Vitrine CLI').version(pkg.version);
 
 program
   .command('add')

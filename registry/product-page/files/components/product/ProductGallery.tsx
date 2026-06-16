@@ -22,7 +22,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
       {rest.length > 0 ? (
         <ul role="list" className="mt-gutter flex gap-gutter">
           {rest.map((img, i) => (
-            <li key={i}>
+            <li key={img.url}>
               <img
                 src={img.url}
                 alt={img.alt ?? `${title} — изображение ${i + 2}`}

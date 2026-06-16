@@ -1,10 +1,10 @@
 // Проверка реестра M3: манифесты валидны против схемы, а data-слой каталога
 // работает на любом CatalogSource (доказательство переносимости через контракт).
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { featureManifestSchema } from '@maks417/contracts';
+import { featureManifestSchema, registryIndexSchema } from '@maks417/contracts';
 import type { CatalogSource, Category, Product } from '@maks417/contracts';
 import {
   formatPrice,
@@ -15,15 +15,47 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const registry = resolve(here, '../../registry');
-const features = ['catalog', 'product-page', 'seo', 'cart', 'checkout-stripe'];
+
+// Все фичи реестра — каталоги с feature.json. Список НЕ хардкодим: новые фичи
+// автоматически попадают под валидацию (битый манифест ловится в CI, а не у
+// клиента на `vitrine add`).
+const featureDirs = readdirSync(registry, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && existsSync(resolve(registry, e.name, 'feature.json')))
+  .map((e) => e.name)
+  .sort();
 
 describe('registry feature.json валидны против схемы', () => {
-  for (const name of features) {
+  it('реестр содержит фичи', () => {
+    expect(featureDirs.length).toBeGreaterThan(0);
+  });
+
+  for (const name of featureDirs) {
     it(name, () => {
       const json = JSON.parse(readFileSync(resolve(registry, name, 'feature.json'), 'utf8'));
       expect(() => featureManifestSchema.parse(json)).not.toThrow();
+      // имя в манифесте обязано совпадать с именем каталога (CLI резолвит по нему)
+      expect((json as { name?: string }).name).toBe(name);
     });
   }
+});
+
+describe('registry/_index.json', () => {
+  const parsed = registryIndexSchema.safeParse(
+    JSON.parse(readFileSync(resolve(registry, '_index.json'), 'utf8')),
+  );
+  const indexFeatures = parsed.success ? Object.keys(parsed.data.features) : [];
+
+  it('валиден против registryIndexSchema', () => {
+    expect(parsed.success).toBe(true);
+  });
+
+  it('перечисленные фичи существуют на диске', () => {
+    for (const name of indexFeatures) expect(featureDirs).toContain(name);
+  });
+
+  it('все фичи на диске перечислены в индексе', () => {
+    for (const name of featureDirs) expect(indexFeatures).toContain(name);
+  });
 });
 
 describe('catalog data на in-memory CatalogSource', () => {

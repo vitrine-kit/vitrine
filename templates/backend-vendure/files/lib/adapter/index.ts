@@ -8,9 +8,13 @@ let catalog: CatalogSource | null = null;
 let commerce: CommerceBackend | null = null;
 
 export async function getCatalogSource(): Promise<CatalogSource> {
-  return (catalog ??= new VendureCatalogSource());
+  if (!catalog) catalog = new VendureCatalogSource();
+  return catalog;
 }
 
 export async function getCommerceBackend(): Promise<CommerceBackend> {
-  return (commerce ??= new VendureCommerceBackend(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'));
+  if (!commerce) {
+    commerce = new VendureCommerceBackend(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000');
+  }
+  return commerce;
 }

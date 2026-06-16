@@ -330,6 +330,21 @@ describe('платёжные провайдеры (мульти-провайде
     expect(() => installFeatures(project, ['checkout-paddle'], registry)).toThrow(/конфликт/);
   });
 
+  it('paddle: integrations.payments, регистрация провайдера и env', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root, name: 'shop', backend: 'payload', tier: 'simple-store',
+      features: ['checkout-paddle'], registry,
+    });
+    expect(read(root, 'site.config.ts')).toContain('payments: "paddle"');
+    const payments = read(root, 'lib/payments.ts');
+    expect(payments).toContain('registerCheckoutPaddleProvider');
+    expect(payments).toContain('./checkout-paddle/register.js');
+    expect(read(root, '.env.example')).toContain('PADDLE_API_KEY=');
+    // doctor доволен консистентным проектом
+    expect(runDoctor(loadProject(root), registry).ok).toBe(true);
+  });
+
   it('yookassa: integrations.payments и регистрация провайдера', () => {
     const root = join(tmp(), 'shop');
     initProject({

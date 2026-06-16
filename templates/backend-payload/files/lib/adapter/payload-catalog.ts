@@ -17,8 +17,7 @@ function sortExpr(sort?: ProductSort): string {
       return 'createdAt'; // цена в коллекции variants — сортировку по цене даёт фича filters (M8+)
     case 'price-desc':
       return '-createdAt';
-    case 'newest':
-    default:
+    default: // newest и неуказанная сортировка
       return '-createdAt';
   }
 }

@@ -8,7 +8,7 @@ export function JsonLd({ data }: JsonLdProps) {
   return (
     <script
       type="application/ld+json"
-      // JSON-LD безопасен: сериализованные данные, не пользовательский HTML.
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD безопасен — сериализованные данные, не пользовательский HTML.
       dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
     />
   );
