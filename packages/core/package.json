@@ -1,6 +1,6 @@
 {
   "name": "@maks417/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Vitrine core — runtime слотов/адаптера, order pipeline, Stripe webhook. Критическая логика (баг = инцидент у всех).",
   "license": "UNLICENSED",
   "type": "module",
@@ -17,7 +17,9 @@
       "import": "./dist/react.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
@@ -39,7 +41,9 @@
     "react": ">=18.0.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true }
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
