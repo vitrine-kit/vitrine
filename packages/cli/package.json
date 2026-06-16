@@ -1,6 +1,6 @@
 {
   "name": "@maks417/vitrine",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Vitrine CLI — примитив установки фичи, init (визард), add, update, doctor, design apply.",
   "license": "UNLICENSED",
   "type": "module",
