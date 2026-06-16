@@ -5,11 +5,17 @@
     "jsx": "react-jsx",
     "types": ["react", "node"]
   },
-  "//": "Типизируем презентационные components/ + контрактный lib/ (зависят только от контрактов/core). Next-glue под files/app/** (роуты, server actions, webhook) проверяется при инстанцировании клиента.",
+  "//": "Типизируем презентационные components/ + контрактный lib/ (зависят только от контрактов/core). Next-glue под files/app/** (роуты, server actions, webhook) и платёжный glue (provider.ts тащит SDK провайдера, fulfill.ts — payload/@payload-config) проверяются при инстанцировании клиента, не в ките.",
   "include": [
     "*/files/components/**/*.ts",
     "*/files/components/**/*.tsx",
     "*/files/lib/**/*.ts",
     "*/files/lib/**/*.tsx"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "*/files/lib/checkout-*/**",
+    "*/files/lib/checkout/fulfill.ts"
   ]
 }
