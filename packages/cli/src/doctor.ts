@@ -30,6 +30,7 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
   const env = exists(paths.env) ? parseEnvKeys(readText(paths.env)) : new Set<string>();
   const configText = exists(paths.config) ? readText(paths.config) : '';
   const slotsText = exists(paths.slots) ? readText(paths.slots) : '';
+  const paymentsText = exists(paths.payments) ? readText(paths.payments) : '';
 
   // Глобальные пакеты-контракты.
   for (const core of ['@maks417/contracts', '@maks417/core']) {
@@ -112,6 +113,17 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
     // флаг в site.config
     if (!configText.includes(`"${name}": true`)) {
       add({ severity: 'warn', scope, message: `в site.config нет флага features.${name}`, fix: `vitrine add ${name} (регенерирует флаги)` });
+    }
+
+    // платёжный провайдер: регистрация в lib/payments.ts + активен в site.config
+    if (manifest.payment) {
+      const fn = `register${pascalCase(name)}Provider`;
+      if (!paymentsText.includes(fn)) {
+        add({ severity: 'error', scope, message: `lib/payments.ts не вызывает ${fn}`, fix: `vitrine add ${name} (регенерирует payments)` });
+      }
+      if (!configText.includes(`payments: ${JSON.stringify(manifest.payment.provider)}`)) {
+        add({ severity: 'warn', scope, message: `в site.config integrations.payments ≠ "${manifest.payment.provider}"`, fix: `vitrine add ${name} (регенерирует integrations)` });
+      }
     }
   }
 

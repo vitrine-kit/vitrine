@@ -23,8 +23,23 @@
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     },
+    "checkout": {
+      "title": "Оформление заказа",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
+    },
     "checkout-stripe": {
-      "title": "Оформление заказа (Stripe)",
+      "title": "Оплата — Stripe",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
+    },
+    "checkout-paddle": {
+      "title": "Оплата — Paddle",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
+    },
+    "checkout-yookassa": {
+      "title": "Оплата — ЮKassa",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     }

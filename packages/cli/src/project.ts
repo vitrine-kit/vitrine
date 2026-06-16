@@ -13,6 +13,7 @@ export interface Project {
 export interface ProjectPaths {
   config: string;
   slots: string;
+  payments: string;
   blueprint: string;
   claude: string;
   env: string;
@@ -25,6 +26,7 @@ export function projectPaths(root: string): ProjectPaths {
   return {
     config: join(root, 'site.config.ts'),
     slots: join(root, 'lib', 'slots.ts'),
+    payments: join(root, 'lib', 'payments.ts'),
     blueprint: join(root, 'lib', 'blueprint.ts'),
     claude: join(root, 'CLAUDE.md'),
     env: join(root, '.env.example'),

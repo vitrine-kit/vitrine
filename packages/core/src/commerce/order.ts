@@ -1,6 +1,6 @@
-// Построение заказа из корзины и маппинг в Stripe Checkout line items. Денежная/
-// заказная логика — в пакете (критично). Stripe SDK сюда НЕ тащим: возвращаем
-// нейтральную структуру line items, шаблон передаёт её в stripe.checkout.sessions.
+// Построение заказа из корзины. Денежная/заказная логика — в пакете (критично).
+// Маппинг в формат конкретного платёжного провайдера живёт в самой фиче
+// checkout-<provider> (вместе с её SDK), а не здесь.
 import type { Cart, Order, OrderLine, OrderStatus } from '@maks417/contracts';
 
 export interface BuildOrderOptions {
@@ -34,26 +34,4 @@ export function buildOrderFromCart(cart: Cart, opts: BuildOrderOptions): Order {
     email: opts.email,
     createdAt: opts.createdAt ?? new Date().toISOString(),
   };
-}
-
-/** Нейтральная форма line item Stripe Checkout (price_data — динамические цены). */
-export interface StripeCheckoutLineItem {
-  quantity: number;
-  price_data: {
-    currency: string;
-    unit_amount: number;
-    product_data: { name: string };
-  };
-}
-
-/** Cart → Stripe Checkout line_items. unit_amount — минимальные единицы (как Money). */
-export function cartToStripeLineItems(cart: Cart): StripeCheckoutLineItem[] {
-  return cart.lines.map((l) => ({
-    quantity: l.quantity,
-    price_data: {
-      currency: cart.currency.toLowerCase(),
-      unit_amount: l.unitPrice,
-      product_data: { name: l.title },
-    },
-  }));
 }

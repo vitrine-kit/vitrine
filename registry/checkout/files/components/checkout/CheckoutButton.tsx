@@ -1,5 +1,6 @@
 // Кнопка оформления заказа — клиентский компонент. Монтируется в слот cart.summary.
-// POST /api/checkout создаёт Stripe Checkout-сессию и возвращает URL редиректа.
+// POST /api/checkout создаёт платёжную сессию активного провайдера и возвращает URL
+// редиректа — компонент не знает, какой провайдер настроен (Stripe/Paddle/YooKassa).
 'use client';
 import { useState } from 'react';
 

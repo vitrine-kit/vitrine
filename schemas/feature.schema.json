@@ -90,6 +90,23 @@
           ],
           "additionalProperties": false
         },
+        "payment": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": [
+                "stripe",
+                "paddle",
+                "yookassa"
+              ]
+            }
+          },
+          "required": [
+            "provider"
+          ],
+          "additionalProperties": false
+        },
         "slots": {
           "type": "array",
           "items": {

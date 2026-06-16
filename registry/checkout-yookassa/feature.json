@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "checkout-yookassa",
+  "title": "Оплата — ЮKassa",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["simple-store", "full-store"],
+  "registryDependencies": ["checkout"],
+  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/lib/checkout-yookassa/", "to": "lib/checkout-yookassa/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.checkout-yookassa": true } },
+  "payment": { "provider": "yookassa" },
+  "env": [
+    { "key": "YOOKASSA_SHOP_ID", "required": true },
+    { "key": "YOOKASSA_SECRET_KEY", "required": true }
+  ],
+  "claudeDoc": "docs/checkout-yookassa.md",
+  "conflicts": ["checkout-stripe", "checkout-paddle"],
+  "removable": true
+}

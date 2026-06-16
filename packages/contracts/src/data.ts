@@ -142,7 +142,7 @@ export interface CommerceBackend {
   addItem(cartId: string, variantId: string, qty: number): Promise<Cart>;
   updateItem(cartId: string, lineId: string, qty: number): Promise<Cart>;
   removeItem(cartId: string, lineId: string): Promise<Cart>;
-  /** Hosted Stripe Checkout → redirectUrl. */
+  /** Hosted checkout активного платёжного провайдера → redirectUrl. */
   startCheckout(cartId: string): Promise<{ redirectUrl: string }>;
   getOrder(id: string): Promise<Order | null>;
 }

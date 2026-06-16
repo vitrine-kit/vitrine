@@ -30,6 +30,22 @@ export function renderFeaturesRegion(features: FeatureState[]): string {
   return `  features: {\n${body}\n  },`;
 }
 
+/** Активный платёжный провайдер из блоков payment установленных фич (одна активна). */
+export function activePaymentProvider(features: FeatureState[]): string | undefined {
+  const providers = new Set<string>();
+  for (const f of features) {
+    if (f.manifest.payment) providers.add(f.manifest.payment.provider);
+  }
+  return [...providers].sort()[0];
+}
+
+/** Тело свойства `integrations` для управляемого региона site.config (2 пробела). */
+export function renderIntegrationsRegion(features: FeatureState[]): string {
+  const payments = activePaymentProvider(features);
+  if (!payments) return '  integrations: {},';
+  return `  integrations: {\n    payments: ${JSON.stringify(payments)},\n  },`;
+}
+
 /** Имена фич не должны схлопываться в один PascalCase-идентификатор (дубль register/extend). */
 function assertNoPascalCollisions(features: FeatureState[]): void {
   const byPascal = new Map<string, string>();
@@ -57,6 +73,25 @@ export function renderSlotsFile(features: FeatureState[]): string {
     '',
     'export function registerSlots(): void {',
     ...(calls.length ? calls : ['  // нет фич со слотами']),
+    '}',
+    '',
+  ].join('\n');
+}
+
+/** lib/payments.ts — целиком генерируемый: зовёт register<Name>Provider() платёжных фич. */
+export function renderPaymentsFile(features: FeatureState[]): string {
+  const withPayment = features.filter((f) => f.manifest.payment);
+  assertNoPascalCollisions(withPayment);
+  const imports = withPayment.map(
+    (f) => `import { register${pascalCase(f.name)}Provider } from './${f.name}/register.js';`,
+  );
+  const calls = withPayment.map((f) => `  register${pascalCase(f.name)}Provider();`);
+  return [
+    '// vitrine:generated — регистрация платёжных провайдеров установленных фич. Не редактировать вручную.',
+    ...imports,
+    '',
+    'export function registerPayments(): void {',
+    ...(calls.length ? calls : ['  // нет платёжных фич']),
     '}',
     '',
   ].join('\n');

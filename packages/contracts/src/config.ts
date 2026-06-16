@@ -16,7 +16,7 @@ export type LayoutSection = z.infer<typeof layoutSectionSchema>;
 
 export const integrationsSchema = z
   .object({
-    payments: z.enum(['stripe']).optional(),
+    payments: z.enum(['stripe', 'paddle', 'yookassa']).optional(),
     email: z.string().optional(),
     analytics: z.string().optional(),
     media: z.string().optional(),

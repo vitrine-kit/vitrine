@@ -116,7 +116,9 @@
             "payments": {
               "type": "string",
               "enum": [
-                "stripe"
+                "stripe",
+                "paddle",
+                "yookassa"
               ]
             },
             "email": {

@@ -37,6 +37,17 @@ export function defaultBackend(tier: Tier): Backend {
   return tier === 'full-store' ? 'vendure' : 'payload';
 }
 
+/**
+ * Фичи платёжных провайдеров — взаимоисключающие (conflicts). Провайдер выбирается
+ * отдельным шагом мастера (single-select), поэтому из общего списка фич их убирают.
+ * Порядок = порядок в меню мастера; первый — провайдер по умолчанию.
+ */
+export const PAYMENT_PROVIDER_FEATURES: string[] = [
+  'checkout-stripe',
+  'checkout-paddle',
+  'checkout-yookassa',
+];
+
 export function suggestFeatures(
   tier: Tier,
   registry: RegistrySource,
@@ -217,7 +228,9 @@ export const siteConfig: SiteConfig = {
   // vitrine:features:end
   layout: { sections: [] },
   theme: { name: 'default', cssFile: 'theme/client.css' },
+  // vitrine:integrations:start
   integrations: {},
+  // vitrine:integrations:end
   i18n: { defaultLocale: 'ru', locales: ['ru'], currency: 'RUB' },
 };
 

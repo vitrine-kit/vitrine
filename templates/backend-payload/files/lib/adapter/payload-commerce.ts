@@ -1,14 +1,14 @@
 // Реализация контракта CommerceBackend поверх Payload (коллекции carts/orders).
 // Денежная арифметика и заказ — из @maks417/core (критлогика); здесь только
-// персистентность и вызов Stripe. Stripe SDK импортируется лениво (в startCheckout),
-// поэтому модуль грузится и на уровне catalog (без зависимости stripe).
+// персистентность. Создание оплаты делегируется активному платёжному провайдеру
+// (payments.resolve по site.config), поэтому модуль не тащит ни одного платёжного
+// SDK и грузится на любом уровне (включая catalog).
 import type { Payload } from 'payload';
-import type { Cart, CommerceBackend, Order } from '@maks417/contracts';
+import type { Cart, CommerceBackend, Order, SiteConfig } from '@maks417/contracts';
 import {
   addCartLine,
-  buildOrderFromCart,
-  cartToStripeLineItems,
   emptyCart,
+  payments,
   recalcCart,
   removeCartLine,
   setCartLineQty,
@@ -29,6 +29,7 @@ export class PayloadCommerceBackend implements CommerceBackend {
     private readonly payload: Payload,
     private readonly currency: string,
     private readonly baseUrl: string,
+    private readonly siteConfig: SiteConfig,
   ) {}
 
   private toCart(doc: CartDoc): Cart {
@@ -119,17 +120,9 @@ export class PayloadCommerceBackend implements CommerceBackend {
     const current = await this.getCart(cartId);
     if (!current || current.lines.length === 0) throw new Error('[vitrine] корзина пуста');
     const cart = await this.reprice(current);
-
-    const { default: Stripe } = await import('stripe');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '');
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: cartToStripeLineItems(cart),
-      success_url: `${this.baseUrl}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${this.baseUrl}/cart`,
-      metadata: { cartId: cart.id },
-    });
-    return { redirectUrl: session.url ?? `${this.baseUrl}/cart` };
+    // Активный провайдер (Stripe/Paddle/YooKassa) резолвится по integrations.payments;
+    // его фича checkout-<provider> зарегистрировала его в реестре через lib/payments.ts.
+    return payments.resolve(this.siteConfig).createCheckout({ cart, baseUrl: this.baseUrl });
   }
 
   async getOrder(id: string): Promise<Order | null> {
@@ -159,6 +152,3 @@ export class PayloadCommerceBackend implements CommerceBackend {
     };
   }
 }
-
-/** Не используется напрямую — buildOrderFromCart реэкспортируем для webhook-роута. */
-export { buildOrderFromCart };

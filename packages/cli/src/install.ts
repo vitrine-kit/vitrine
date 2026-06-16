@@ -16,6 +16,8 @@ import {
   renderBlueprintFile,
   renderClaudeFeaturesTable,
   renderFeaturesRegion,
+  renderIntegrationsRegion,
+  renderPaymentsFile,
   renderSlotsFile,
 } from './generate.js';
 import { exists, isDir, readJson, readText, replaceBetween, safeJoin, walkRelFiles } from './util.js';
@@ -88,15 +90,27 @@ export function regenerateDerived(project: Project, registry: RegistrySource, tx
     manifest: registry.loadManifest(name),
   }));
 
-  // 3 · флаг в site.config (управляемый регион)
+  // 3 · флаг features + активный платёжный провайдер в site.config (управляемые регионы)
   const config = readText(paths.config);
+  const withFeatures = replaceBetween(
+    config,
+    '// vitrine:features:start',
+    '// vitrine:features:end',
+    renderFeaturesRegion(states),
+  );
   tx.write(
     paths.config,
-    replaceBetween(config, '// vitrine:features:start', '// vitrine:features:end', renderFeaturesRegion(states)),
+    replaceBetween(
+      withFeatures,
+      '// vitrine:integrations:start',
+      '// vitrine:integrations:end',
+      renderIntegrationsRegion(states),
+    ),
   );
 
-  // 4 · слоты (генерируемый файл)
+  // 4 · слоты + платёжные провайдеры (генерируемые файлы)
   tx.write(paths.slots, renderSlotsFile(states));
+  tx.write(paths.payments, renderPaymentsFile(states));
 
   // 5 · blueprint (генерируемый файл)
   tx.write(paths.blueprint, renderBlueprintFile(states));

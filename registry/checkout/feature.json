@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "checkout",
+  "title": "Оформление заказа",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["simple-store", "full-store"],
+  "registryDependencies": ["cart"],
+  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/checkout/", "to": "components/checkout/" },
+    { "from": "files/lib/checkout/", "to": "lib/checkout/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.checkout": true } },
+  "slots": [{ "slot": "cart.summary", "component": "CheckoutButton", "order": 10 }],
+  "claudeDoc": "docs/checkout.md",
+  "conflicts": [],
+  "removable": true
+}

@@ -1,13 +1,17 @@
-# Фича: checkout-stripe (оформление заказа)
+# Фича: checkout-stripe (платёжный провайдер Stripe)
 
-Stripe hosted checkout для `simple-store` / `full-store`. Зависит от фичи `cart`.
-Критическая логика (подпись webhook, заказ из корзины) — в `@maks417/core`.
+Провайдер Stripe Hosted Checkout для каркаса `checkout` (от него зависит). Ставится
+вместо `checkout-paddle` / `checkout-yookassa` (взаимоисключающие). Критическая
+логика (диспетчер вебхука, заказ из корзины) — в `@maks417/core`.
 
-- **Компонент:** `CheckoutButton` (клиентский) — слот `cart.summary`.
-- **API (Next-glue):** `POST /api/checkout` (создаёт Stripe-сессию через
-  `CommerceBackend.startCheckout`), `POST /api/webhooks/stripe` (проверяет подпись
-  Stripe SDK → `handleStripeWebhook` → `buildOrderFromCart` → заказ в Payload).
+- **Провайдер:** `lib/checkout-stripe/provider.ts` → `stripeProvider`
+  (`PaymentProvider`): `createCheckout` создаёт Stripe-сессию; `verifyWebhook`
+  проверяет подпись Stripe SDK и нормализует событие.
+- **Регистрация:** `registerCheckoutStripeProvider()` (зовётся из `lib/payments.ts`),
+  ставит `integrations.payments: "stripe"` в `site.config`.
+- **API (Next-glue):** `POST /api/webhooks/stripe` → `handlePaymentWebhook` →
+  `fulfillOrderFromEvent` (общий код фичи `checkout`).
 - **env:** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (обязательны).
 
 Поток: корзина → `Оформить заказ` → редирект на Stripe → webhook
-`checkout.session.completed` → заказ в админке, корзина помечается `converted`.
+`checkout.session.completed` → заказ в админке, корзина `converted`.

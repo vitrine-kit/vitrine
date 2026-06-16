@@ -3,14 +3,17 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initProject, suggestFeatures } from './init.js';
+import { initProject, suggestFeatures, PAYMENT_PROVIDER_FEATURES } from './init.js';
 import { installFeatures, removeFeature } from './install.js';
 import { loadProject } from './project.js';
 import { createRegistrySource } from './registry.js';
 import {
+  activePaymentProvider,
   mergePackageDeps,
   renderBlueprintFile,
   renderFeaturesRegion,
+  renderIntegrationsRegion,
+  renderPaymentsFile,
   renderSlotsFile,
   type FeatureState,
 } from './generate.js';
@@ -257,14 +260,16 @@ describe('remove атомарен', () => {
 });
 
 describe('remove удаляет только файлы фичи (общий app/, P0)', () => {
-  it('remove checkout-stripe не трогает файлы cart и базового шаблона', () => {
+  it('remove checkout-stripe не трогает файлы checkout/cart и базового шаблона', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
       features: ['cart', 'checkout-stripe'], registry,
     });
-    // cart и checkout-stripe оба отображают files/app/ → app/
-    expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(true);
+    // checkout-stripe тянет checkout (→ cart); все мапят files/app/ → app/
+    expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(true); // checkout-stripe
+    expect(existsSync(join(root, 'lib/checkout-stripe/provider.ts'))).toBe(true);
+    expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true); // checkout (зависимость)
     expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true); // базовый шаблон
 
@@ -272,13 +277,69 @@ describe('remove удаляет только файлы фичи (общий app
 
     // удалены РОВНО файлы checkout-stripe
     expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(false);
-    expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(false);
-    expect(existsSync(join(root, '.vitrine/originals/checkout-stripe@0.0.0/app/api/checkout/route.ts'))).toBe(false);
-    // cart и базовый шаблон уцелели (раньше removeTree(app/) сносил весь каталог)
+    expect(existsSync(join(root, 'lib/checkout-stripe/provider.ts'))).toBe(false);
+    expect(existsSync(join(root, '.vitrine/originals/checkout-stripe@0.0.0/app/api/webhooks/stripe/route.ts'))).toBe(false);
+    // checkout (родительская зависимость), cart и базовый шаблон уцелели
+    expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true);
+    expect(existsSync(join(root, 'components/checkout/CheckoutButton.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/api/cart/route.ts'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
-    expect(existsSync(join(root, '.vitrine/originals/cart@0.0.0/app/api/cart/route.ts'))).toBe(true);
+  });
+});
+
+describe('платёжные провайдеры (мульти-провайдер)', () => {
+  it('install checkout-stripe тянет checkout/cart и ставит провайдера', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root, name: 'shop', backend: 'payload', tier: 'simple-store',
+      features: ['checkout-stripe'], registry,
+    });
+    // зависимости подтянулись (checkout-stripe → checkout → cart)
+    const lock = JSON.parse(read(root, 'vitrine.json'));
+    expect(Object.keys(lock.features).sort()).toEqual(['cart', 'checkout', 'checkout-stripe']);
+    // активный провайдер в site.config (управляемый регион integrations)
+    expect(read(root, 'site.config.ts')).toContain('payments: "stripe"');
+    // регистрация провайдера в lib/payments.ts
+    const payments = read(root, 'lib/payments.ts');
+    expect(payments).toContain('registerCheckoutStripeProvider');
+    expect(payments).toContain('./checkout-stripe/register.js');
+    // кнопка оформления — слот из generic checkout
+    expect(read(root, 'lib/slots.ts')).toContain('registerCheckoutSlots');
+    // env Stripe домержен
+    expect(read(root, '.env.example')).toContain('STRIPE_SECRET_KEY=');
+  });
+
+  it('мастер: провайдеры есть в реестре и исключаются из общего списка фич', () => {
+    for (const f of PAYMENT_PROVIDER_FEATURES) expect(registry.hasFeature(f)).toBe(true);
+    // baseline мультиселекта = подсказанные фичи минус провайдеры (их выбирают отдельным шагом)
+    const baseline = suggestFeatures('simple-store', registry, 'payload').filter(
+      (f) => !PAYMENT_PROVIDER_FEATURES.includes(f),
+    );
+    expect(baseline).toContain('cart');
+    expect(baseline).not.toContain('checkout-stripe');
+  });
+
+  it('провайдеры взаимоисключающи: paddle при установленном stripe → конфликт', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root, name: 'shop', backend: 'payload', tier: 'simple-store',
+      features: ['checkout-stripe'], registry,
+    });
+    const project = loadProject(root);
+    expect(() => installFeatures(project, ['checkout-paddle'], registry)).toThrow(/конфликт/);
+  });
+
+  it('yookassa: integrations.payments и регистрация провайдера', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root, name: 'shop', backend: 'payload', tier: 'simple-store',
+      features: ['checkout-yookassa'], registry,
+    });
+    expect(read(root, 'site.config.ts')).toContain('payments: "yookassa"');
+    expect(read(root, 'lib/payments.ts')).toContain('registerCheckoutYookassaProvider');
+    // doctor доволен консистентным проектом
+    expect(runDoctor(loadProject(root), registry).ok).toBe(true);
   });
 });
 
@@ -640,6 +701,31 @@ describe('генераторы (чистые)', () => {
     const out = renderSlotsFile([withSlots, noSlots]);
     expect(out).toContain('registerCatalogSlots');
     expect(out).not.toContain('registerSeoSlots');
+  });
+
+  it('renderPaymentsFile зовёт register<Name>Provider только для платёжных фич', () => {
+    const provider: FeatureState = {
+      name: 'checkout-stripe', version: '0.0.0',
+      manifest: fakeManifest({ payment: { provider: 'stripe' } }),
+    };
+    const noPayment: FeatureState = { name: 'cart', version: '0.0.0', manifest: fakeManifest() };
+    const out = renderPaymentsFile([provider, noPayment]);
+    expect(out).toContain('registerCheckoutStripeProvider');
+    expect(out).toContain('./checkout-stripe/register.js');
+    expect(out).not.toContain('registerCartProvider');
+  });
+
+  it('activePaymentProvider/renderIntegrationsRegion берут провайдера из блока payment', () => {
+    const states: FeatureState[] = [
+      { name: 'cart', version: '0.0.0', manifest: fakeManifest() },
+      { name: 'checkout-yookassa', version: '0.0.0', manifest: fakeManifest({ payment: { provider: 'yookassa' } }) },
+    ];
+    expect(activePaymentProvider(states)).toBe('yookassa');
+    expect(renderIntegrationsRegion(states)).toContain('payments: "yookassa"');
+    // без платёжных фич — пустой объект
+    expect(renderIntegrationsRegion([{ name: 'cart', version: '0.0.0', manifest: fakeManifest() }])).toBe(
+      '  integrations: {},',
+    );
   });
 
   it('renderBlueprintFile подключает extend<Name>Blueprint для фич с blueprint', () => {

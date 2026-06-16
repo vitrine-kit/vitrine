@@ -1,25 +1,24 @@
 {
   "$schema": "../../schemas/feature.schema.json",
   "name": "checkout-stripe",
-  "title": "Оформление заказа (Stripe)",
+  "title": "Оплата — Stripe",
   "kitVersion": "0.0.0",
   "requiresContracts": ">=1.0.0 <2.0.0",
   "tier": ["simple-store", "full-store"],
-  "registryDependencies": ["cart"],
+  "registryDependencies": ["checkout"],
   "corePackages": { "@maks417/core": ">=0.1.0" },
   "npm": ["stripe@^17.0.0"],
   "files": [
-    { "from": "files/components/checkout/", "to": "components/checkout/" },
     { "from": "files/lib/checkout-stripe/", "to": "lib/checkout-stripe/" },
     { "from": "files/app/", "to": "app/" }
   ],
   "config": { "set": { "features.checkout-stripe": true } },
-  "slots": [{ "slot": "cart.summary", "component": "CheckoutButton", "order": 10 }],
+  "payment": { "provider": "stripe" },
   "env": [
     { "key": "STRIPE_SECRET_KEY", "required": true },
     { "key": "STRIPE_WEBHOOK_SECRET", "required": true }
   ],
   "claudeDoc": "docs/checkout-stripe.md",
-  "conflicts": [],
+  "conflicts": ["checkout-paddle", "checkout-yookassa"],
   "removable": true
 }

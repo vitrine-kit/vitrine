@@ -4,7 +4,9 @@ import type { CatalogSource, CommerceBackend, Order, SiteConfig } from '@maks417
 import { createSlotRegistry } from './slots/registry.js';
 import { createAdapterRegistry, type AdapterFactory } from './adapter/resolver.js';
 import { runPipeline, type OrderStage } from './order/pipeline.js';
-import { handleStripeWebhook, type StripeVerifier } from './stripe/webhook.js';
+import { handlePaymentWebhook } from './payment/webhook.js';
+import { createPaymentRegistry } from './payment/registry.js';
+import type { PaymentProvider, PaymentProviderName } from './payment/provider.js';
 import {
   addCartLine,
   cartItemCount,
@@ -13,7 +15,7 @@ import {
   removeCartLine,
   setCartLineQty,
 } from './commerce/cart.js';
-import { buildOrderFromCart, cartToStripeLineItems } from './commerce/order.js';
+import { buildOrderFromCart } from './commerce/order.js';
 import { shouldCreateOrder } from './order/idempotency.js';
 import { Slot } from './react.js';
 
@@ -92,24 +94,56 @@ describe('order pipeline', () => {
   });
 });
 
-describe('stripe webhook (моки Stripe)', () => {
-  const verifyOk: StripeVerifier = () => ({ type: 'checkout.session.completed', data: { object: {} } });
-  const verifyBad: StripeVerifier = () => { throw new Error('bad signature'); };
+describe('payment registry', () => {
+  const provider = (name: PaymentProviderName): PaymentProvider => ({
+    name,
+    createCheckout: async () => ({ redirectUrl: `https://pay.example/${name}` }),
+    verifyWebhook: async () => ({ kind: 'unknown', raw: {} }),
+  });
+  const cfg = (payments?: PaymentProviderName) =>
+    ({ integrations: { payments } }) as unknown as SiteConfig;
 
-  it('диспатчит checkout.session.completed → запускает пайплайн заказа', async () => {
+  it('register + resolve по integrations.payments', () => {
+    const reg = createPaymentRegistry();
+    reg.register(provider('stripe'));
+    reg.register(provider('yookassa'));
+    expect(reg.resolve(cfg('yookassa')).name).toBe('yookassa');
+    expect(reg.get('stripe')?.name).toBe('stripe');
+  });
+
+  it('бросает, если провайдер не задан или не зарегистрирован', () => {
+    const reg = createPaymentRegistry();
+    expect(() => reg.resolve(cfg(undefined))).toThrow(/не задан/);
+    expect(() => reg.resolve(cfg('paddle'))).toThrow(/не зарегистрирован/);
+  });
+});
+
+describe('payment webhook (provider-agnostic)', () => {
+  const okProvider: PaymentProvider = {
+    name: 'stripe',
+    createCheckout: async () => ({ redirectUrl: 'https://pay.example/redirect' }),
+    verifyWebhook: async () => ({ kind: 'checkout_completed', raw: {} }),
+  };
+  const badProvider: PaymentProvider = {
+    name: 'stripe',
+    createCheckout: async () => ({ redirectUrl: '' }),
+    verifyWebhook: async () => { throw new Error('bad signature'); },
+  };
+
+  it('диспатчит checkout_completed → запускает пайплайн заказа', async () => {
     const onCheckoutCompleted = vi.fn(async () => {
       await runPipeline({ created: false }, [(c) => ({ ...c, created: true })]);
     });
-    const res = await handleStripeWebhook({
-      payload: '{}', signature: 'sig', verify: verifyOk, handlers: { onCheckoutCompleted },
+    const res = await handlePaymentWebhook({
+      provider: okProvider, req: { rawBody: '{}', headers: {} }, handlers: { onCheckoutCompleted },
     });
     expect(onCheckoutCompleted).toHaveBeenCalledOnce();
-    expect(res).toEqual({ received: true, type: 'checkout.session.completed', handled: true });
+    expect(res).toEqual({ received: true, kind: 'checkout_completed', handled: true });
   });
 
   it('бросает при неверной подписи', async () => {
     await expect(
-      handleStripeWebhook({ payload: '{}', signature: 'x', verify: verifyBad }),
+      handlePaymentWebhook({ provider: badProvider, req: { rawBody: '{}', headers: {} } }),
     ).rejects.toThrow('bad signature');
   });
 });
@@ -162,73 +196,65 @@ describe('корзинная арифметика (commerce)', () => {
     expect(cart.lines).toHaveLength(0);
   });
 
-  it('cartToStripeLineItems: валюта в нижнем регистре, unit_amount = минимальные единицы', () => {
-    const cart = addCartLine(emptyCart('c1', 'USD'), line({ unitPrice: 1000, quantity: 2 }));
-    const items = cartToStripeLineItems(cart);
-    expect(items[0]?.price_data.currency).toBe('usd');
-    expect(items[0]?.price_data.unit_amount).toBe(1000);
-    expect(items[0]?.quantity).toBe(2);
-  });
-
-  it('shouldCreateOrder: converted/существующая сессия → false, свежая → true', () => {
+  it('shouldCreateOrder: converted/существующий ref → false, свежий → true', () => {
     expect(shouldCreateOrder({ cartStatus: 'converted' })).toBe(false);
-    expect(shouldCreateOrder({ sessionId: 'cs_1', existingOrderSessionIds: ['cs_1'] })).toBe(false);
-    expect(shouldCreateOrder({ cartStatus: 'active', sessionId: 'cs_2', existingOrderSessionIds: ['cs_1'] })).toBe(true);
+    expect(shouldCreateOrder({ providerRef: 'cs_1', existingOrderRefs: ['cs_1'] })).toBe(false);
+    expect(shouldCreateOrder({ cartStatus: 'active', providerRef: 'cs_2', existingOrderRefs: ['cs_1'] })).toBe(true);
     expect(shouldCreateOrder({})).toBe(true);
   });
 
-  it('двойная доставка webhook (ретрай Stripe) → ровно один заказ', async () => {
+  it('двойная доставка webhook (ретрай провайдера) → ровно один заказ', async () => {
     const cart = addCartLine(emptyCart('cart1', 'RUB'), line({ quantity: 1 }));
     const cartStore = new Map([[cart.id, { ...cart, status: 'active' as string }]]);
     const orders: Order[] = [];
-    const verify: StripeVerifier = () => ({
-      type: 'checkout.session.completed',
-      data: { object: { id: 'cs_test', metadata: { cartId: 'cart1' }, customer_details: { email: 'x@y.z' } } },
-    });
+    const provider: PaymentProvider = {
+      name: 'stripe',
+      createCheckout: async () => ({ redirectUrl: '' }),
+      verifyWebhook: async () => ({
+        kind: 'checkout_completed', cartId: 'cart1', providerRef: 'cs_test', email: 'x@y.z', raw: {},
+      }),
+    };
     const deliver = () =>
-      handleStripeWebhook({
-        payload: '{}', signature: 's', verify,
+      handlePaymentWebhook({
+        provider, req: { rawBody: '{}', headers: {} },
         handlers: {
           onCheckoutCompleted: async (e) => {
-            const obj = e.data.object as {
-              id?: string; metadata?: { cartId?: string }; customer_details?: { email?: string };
-            };
-            const doc = cartStore.get(obj.metadata?.cartId ?? '');
+            const doc = cartStore.get(e.cartId ?? '');
             if (!doc) return;
             const ok = shouldCreateOrder({
               cartStatus: doc.status,
-              sessionId: obj.id,
-              existingOrderSessionIds: orders.map((o) => o.number),
+              providerRef: e.providerRef,
+              existingOrderRefs: orders.map((o) => o.number),
             });
             if (!ok) return;
-            orders.push(buildOrderFromCart(doc, { id: doc.id, number: obj.id, email: obj.customer_details?.email }));
+            orders.push(buildOrderFromCart(doc, { id: doc.id, number: e.providerRef, email: e.email }));
             doc.status = 'converted';
           },
         },
       });
 
     await deliver();
-    await deliver(); // Stripe ретраит ту же сессию
+    await deliver(); // провайдер ретраит то же событие
     expect(orders).toHaveLength(1);
     expect(orders[0]?.number).toBe('cs_test');
   });
 
-  it('checkout.session.completed → заказ из корзины (полная цепочка, моки Stripe)', async () => {
+  it('checkout_completed → заказ из корзины (полная цепочка)', async () => {
     const cart = addCartLine(emptyCart('cart1', 'RUB'), line({ quantity: 2 }));
     const carts = new Map([[cart.id, cart]]);
     const created: Order[] = [];
-    const verify: StripeVerifier = () => ({
-      type: 'checkout.session.completed',
-      data: { object: { metadata: { cartId: 'cart1' }, customer_email: 'x@y.z' } },
-    });
+    const provider: PaymentProvider = {
+      name: 'stripe',
+      createCheckout: async () => ({ redirectUrl: '' }),
+      verifyWebhook: async () => ({ kind: 'checkout_completed', cartId: 'cart1', email: 'x@y.z', raw: {} }),
+    };
 
-    const res = await handleStripeWebhook({
-      payload: '{}', signature: 's', verify,
+    const res = await handlePaymentWebhook({
+      provider, req: { rawBody: '{}', headers: {} },
       handlers: {
         onCheckoutCompleted: async (e) => {
-          const obj = e.data.object as { metadata?: { cartId?: string }; customer_email?: string };
-          const found = carts.get(obj.metadata?.cartId ?? '');
-          if (found) created.push(buildOrderFromCart(found, { id: 'o1', email: obj.customer_email }));
+          const found = carts.get(e.cartId ?? '');
+          if (found) created.push(buildOrderFromCart(found, { id: 'o1', email: e.email }));
         },
       },
     });

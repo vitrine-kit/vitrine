@@ -1,7 +1,7 @@
-// Регистрация слотов фичи checkout-stripe. Кнопка оформления — в итогах корзины.
-import { registerSlot } from '@maks417/core';
-import { CheckoutButton } from '../../components/checkout/CheckoutButton.js';
+// Регистрация платёжного провайдера Stripe. CLI зовёт это из lib/payments.ts.
+import { payments } from '@maks417/core';
+import { stripeProvider } from './provider.js';
 
-export function registerCheckoutStripeSlots(): void {
-  registerSlot({ slot: 'cart.summary', component: CheckoutButton, order: 10 });
+export function registerCheckoutStripeProvider(): void {
+  payments.register(stripeProvider);
 }

@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "checkout-paddle",
+  "title": "Оплата — Paddle",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["simple-store", "full-store"],
+  "registryDependencies": ["checkout"],
+  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "npm": ["@paddle/paddle-node-sdk@^2.0.0"],
+  "files": [
+    { "from": "files/lib/checkout-paddle/", "to": "lib/checkout-paddle/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.checkout-paddle": true } },
+  "payment": { "provider": "paddle" },
+  "env": [
+    { "key": "PADDLE_API_KEY", "required": true },
+    { "key": "PADDLE_WEBHOOK_SECRET", "required": true },
+    { "key": "PADDLE_ENVIRONMENT", "required": false },
+    { "key": "PADDLE_CHECKOUT_URL", "required": false }
+  ],
+  "claudeDoc": "docs/checkout-paddle.md",
+  "conflicts": ["checkout-stripe", "checkout-yookassa"],
+  "removable": true
+}

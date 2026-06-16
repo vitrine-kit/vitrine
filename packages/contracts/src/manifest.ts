@@ -29,6 +29,12 @@ export const featureManifestSchema = z.object({
   npm: z.array(z.string()).default([]),
   files: z.array(featureFileMapSchema).default([]),
   config: z.object({ set: z.record(z.string(), z.boolean()) }).optional(),
+  /**
+   * Платёжный провайдер фичи checkout-<provider>. CLI по нему: (1) генерирует
+   * регистрацию провайдера в lib/payments.ts, (2) проставляет integrations.payments
+   * в site.config. register<Pascal>Provider() экспортируется из lib/<name>/register.ts.
+   */
+  payment: z.object({ provider: z.enum(['stripe', 'paddle', 'yookassa']) }).optional(),
   slots: z.array(slotRegistrationSchema).default([]),
   blueprint: blueprintManifestSchema.optional(),
   env: z.array(featureEnvSchema).default([]),

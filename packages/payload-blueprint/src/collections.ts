@@ -87,7 +87,8 @@ export const ordersCollection: BlueprintCollectionConfig = {
     f('subtotal', 'number'),
     f('total', 'number'),
     f('lines', 'json'),
-    f('stripeSessionId', 'text', { index: true }), // идемпотентность webhook (дедуп по сессии)
+    f('paymentProvider', 'text'), // 'stripe' | 'paddle' | 'yookassa'
+    f('paymentRef', 'text', { index: true }), // идемпотентность webhook (дедуп по референсу платежа)
     f('createdAt', 'date'),
   ],
 };
@@ -106,7 +107,7 @@ export const cartsCollection: BlueprintCollectionConfig = {
       options: ['active', 'converted', 'abandoned'],
       defaultValue: 'active',
     }),
-    f('stripeSessionId', 'text', { index: true }),
+    f('paymentRef', 'text', { index: true }),
   ],
 };
 

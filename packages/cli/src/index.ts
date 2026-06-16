@@ -16,7 +16,7 @@ import {
   updateFeaturesCmd,
 } from './commands.js';
 import { createRegistrySource } from './registry.js';
-import { defaultBackend, initProject, suggestFeatures } from './init.js';
+import { defaultBackend, initProject, suggestFeatures, PAYMENT_PROVIDER_FEATURES } from './init.js';
 import { formatChangelog } from './cache.js';
 import { kitStatus, kitUpdate, selfUpdate } from './kit-update.js';
 import { renderPlan } from './update.js';
@@ -175,13 +175,38 @@ program
         })) as Tier;
       }
       const suggested = suggestFeatures(tier, registry);
+      // Провайдер оплаты — отдельным шагом; из общего списка фич его убираем.
+      const baseline = suggested.filter((f) => !PAYMENT_PROVIDER_FEATURES.includes(f));
       const picked = await p.multiselect({
         message: 'Фичи',
-        options: suggested.map((f) => ({ value: f, label: f })),
-        initialValues: suggested,
+        options: baseline.map((f) => ({ value: f, label: f })),
+        initialValues: baseline,
         required: false,
       });
-      features = Array.isArray(picked) ? (picked as string[]) : suggested;
+      features = Array.isArray(picked) ? (picked as string[]) : baseline;
+
+      // Платёжный провайдер — только для Payload-магазина (на Vendure оплата нативная,
+      // checkout-* фичи Payload-специфичны). Взаимоисключающий выбор.
+      const wizardBackend = (opts.backend as Backend | undefined) ?? defaultBackend(tier);
+      if (tier !== 'catalog' && wizardBackend === 'payload') {
+        const labels: Record<string, string> = {
+          'checkout-stripe': 'Stripe',
+          'checkout-paddle': 'Paddle',
+          'checkout-yookassa': 'ЮKassa',
+        };
+        const available = PAYMENT_PROVIDER_FEATURES.filter((f) => registry.hasFeature(f));
+        if (available.length > 0) {
+          const provider = await p.select({
+            message: 'Платёжный провайдер',
+            options: [
+              { value: 'none', label: 'Нет (добавить позже: vitrine add checkout-<provider>)' },
+              ...available.map((f) => ({ value: f, label: labels[f] ?? f })),
+            ],
+            initialValue: available[0],
+          });
+          if (typeof provider === 'string' && provider !== 'none') features.push(provider);
+        }
+      }
       p.outro('Поехали');
     }
 
