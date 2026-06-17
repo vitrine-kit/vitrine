@@ -85,6 +85,29 @@ describe('init + примитив установки (DoD)', () => {
     expect(existsSync(join(root, '.vitrine/originals/catalog@0.0.0/components/catalog/ProductCard.tsx'))).toBe(true);
   });
 
+  it('скаффолдит агентские артефакты: справочник в CLAUDE.md, слэш-команды, AGENTS.md', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
+
+    // расширенный CLAUDE.md: справочник команд + границы, дизайн-блок и таблица фич на месте
+    const claude = read(root, 'CLAUDE.md');
+    expect(claude).toContain('## Команды vitrine CLI');
+    expect(claude).toContain('vitrine add');
+    expect(claude).toContain('vitrine doctor');
+    expect(claude).toContain('## Границы');
+    expect(claude).toContain('ИНСТРУКЦИЯ: применить дизайн'); // контракт doctor/design сохранён
+    expect(claude).toContain('| `catalog` |'); // управляемая таблица фич
+
+    // слэш-команды Claude Code (статика из templates/base)
+    for (const cmd of ['setup', 'add-feature', 'design', 'update', 'doctor']) {
+      expect(existsSync(join(root, '.claude/commands', `${cmd}.md`))).toBe(true);
+    }
+
+    // AGENTS.md для кросс-тул агентов, со ссылкой на канонический CLAUDE.md
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(true);
+    expect(read(root, 'AGENTS.md')).toContain('CLAUDE.md');
+  });
+
   it('README генерируется backend-aware (Payload) с полным жизненным циклом', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
@@ -405,7 +428,9 @@ describe('design apply (M6)', () => {
     const md = read(scaffold(), 'CLAUDE.md');
     const instr = extractDesignInstruction(md);
     expect(instr).toContain('ИНСТРУКЦИЯ: применить дизайн');
-    expect(instr).not.toContain('## Установленные фичи');
+    expect(instr).not.toContain('## Установленные фичи'); // секция до дизайн-блока
+    expect(instr).not.toContain('## Команды vitrine CLI'); // секция до
+    expect(instr).not.toContain('## Границы'); // секция после: срез обрывается следующим ##
   });
 
   it('buildDesignPrompt включает инструкцию, целевой файл и набор токенов', () => {
