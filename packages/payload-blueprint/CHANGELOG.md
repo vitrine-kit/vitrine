@@ -1,5 +1,19 @@
 # @vitrine-kit/payload-blueprint
 
+## 0.2.0
+
+### Minor Changes
+
+- 9d4ae82: Перенос в организацию `vitrine-kit`: пакеты переименованы со scope `@maks417/*` на
+  `@vitrine-kit/*` и публикуются в **публичный npm** (npmjs.com, с provenance) вместо приватного
+  GitHub Packages. Лицензия — **MIT**. Установка больше не требует токена/PAT: ни клиентским репо,
+  ни CI, ни Docker-сборке. Внутри монорепо пакеты по-прежнему линкуются через `workspace:*`.
+
+### Patch Changes
+
+- Updated dependencies [9d4ae82]
+  - @vitrine-kit/contracts@1.1.0
+
 ## 0.1.0
 
 ### Minor Changes
