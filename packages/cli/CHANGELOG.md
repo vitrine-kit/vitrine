@@ -1,5 +1,14 @@
 # @vitrine-kit/vitrine
 
+## 0.2.0
+
+### Minor Changes
+
+- 29f419a: init теперь скаффолдит агентские артефакты в репозиторий клиента, чтобы вести проект через
+  ИИ-агента: расширенный `CLAUDE.md` (полный справочник команд CLI + типовые сценарии + границы),
+  слэш-команды Claude Code в `.claude/commands/` (`/setup`, `/add-feature`, `/design`, `/update`,
+  `/doctor`) и `AGENTS.md` для кросс-тул агентов. README CLI расширен до getting-started.
+
 ## 0.1.2
 
 ### Patch Changes
