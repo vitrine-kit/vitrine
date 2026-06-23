@@ -50,5 +50,8 @@ jobs:
           publish: pnpm release # turbo build && changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PR "Version Packages" + GitHub Releases
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # публикация в npm
+          # changesets/action ищет именно NPM_TOKEN; без него уходит в OIDC trusted publishing
+          # (которое у нас не настроено) и публикация молча не доезжает до npm.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # токен-аутентификация для npm publish
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # .npmrc от setup-node
           NPM_CONFIG_PROVENANCE: true # подпись provenance (требует id-token: write)
