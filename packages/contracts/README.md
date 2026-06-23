@@ -1,4 +1,4 @@
-# @maks417/contracts
+# @vitrine-kit/contracts
 
 Пять стабильных контрактов Vitrine, от которых зависит каждая фича реестра: **Tokens · Data · Slots · Config · Blueprint**.
 

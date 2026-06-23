@@ -2,7 +2,7 @@
 
 Провайдер Stripe Hosted Checkout для каркаса `checkout` (от него зависит). Ставится
 вместо `checkout-paddle` / `checkout-yookassa` (взаимоисключающие). Критическая
-логика (диспетчер вебхука, заказ из корзины) — в `@maks417/core`.
+логика (диспетчер вебхука, заказ из корзины) — в `@vitrine-kit/core`.
 
 - **Провайдер:** `lib/checkout-stripe/provider.ts` → `stripeProvider`
   (`PaymentProvider`): `createCheckout` создаёт Stripe-сессию; `verifyWebhook`

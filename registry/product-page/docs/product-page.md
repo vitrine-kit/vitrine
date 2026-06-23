@@ -13,4 +13,4 @@
 Фича не регистрирует слоты, а **предоставляет** их: значит, добавление reviews/cart не требует правки `ProductView`.
 
 ## Контракты
-Только `@maks417/contracts` (типы) и `@maks417/core/react` (`<Slot>`).
+Только `@vitrine-kit/contracts` (типы) и `@vitrine-kit/core/react` (`<Slot>`).

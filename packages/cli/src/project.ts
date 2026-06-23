@@ -2,7 +2,7 @@
 // загрузка/доступ к лок-файлу.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { vitrineLockSchema, type VitrineLock } from '@maks417/contracts';
+import { vitrineLockSchema, type VitrineLock } from '@vitrine-kit/contracts';
 import { readText } from './util.js';
 
 export interface Project {

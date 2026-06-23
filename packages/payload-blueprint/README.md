@@ -1,4 +1,4 @@
-# @maks417/payload-blueprint
+# @vitrine-kit/payload-blueprint
 
 Базовые Payload-коллекции Vitrine и API `extend()` для **аддитивного** расширения их полей фичами (контракт 5, §5 спеки).
 

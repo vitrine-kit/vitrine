@@ -1,8 +1,8 @@
 {
-  "name": "@maks417/payload-blueprint",
+  "name": "@vitrine-kit/payload-blueprint",
   "version": "0.1.0",
   "description": "Vitrine — базовые Payload-коллекции + аддитивный extend().",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
@@ -17,12 +17,11 @@
     "dist"
   ],
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maks417/vitrine.git",
+    "url": "git+https://github.com/vitrine-kit/vitrine.git",
     "directory": "packages/payload-blueprint"
   },
   "scripts": {
@@ -31,6 +30,6 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@maks417/contracts": "workspace:*"
+    "@vitrine-kit/contracts": "workspace:*"
   }
 }

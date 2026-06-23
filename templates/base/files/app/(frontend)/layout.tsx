@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import '../globals.css';
 import { siteConfig } from '@/site.config';
 import { registerSlots } from '@/lib/slots';
-import { Slot } from '@maks417/core/react';
+import { Slot } from '@vitrine-kit/core/react';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 

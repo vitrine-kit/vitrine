@@ -1,7 +1,7 @@
 // Итоги корзины. Хостит слот cart.summary (туда checkout-stripe монтирует кнопку
 // оформления) и передаёт ему cartId.
-import type { Cart } from '@maks417/contracts';
-import { Slot } from '@maks417/core/react';
+import type { Cart } from '@vitrine-kit/contracts';
+import { Slot } from '@vitrine-kit/core/react';
 import { formatMoney } from '../../lib/cart/data.js';
 
 export interface CartSummaryProps {

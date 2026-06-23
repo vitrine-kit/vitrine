@@ -1,17 +1,17 @@
 // Идемпотентное создание заказа из нормализованного платёжного события — общий код
 // для всех роутов вебхуков (checkout-stripe/paddle/yookassa). Провайдер уже
 // верифицировал и нормализовал событие; здесь только персистентность Payload.
-// Критлогика (дедуп, снимок заказа) — в @maks417/core (shouldCreateOrder,
+// Критлогика (дедуп, снимок заказа) — в @vitrine-kit/core (shouldCreateOrder,
 // buildOrderFromCart). Next/Payload-glue, не типизируется в монорепо.
 import { getPayload } from 'payload';
 import config from '@payload-config';
-import type { Cart } from '@maks417/contracts';
+import type { Cart } from '@vitrine-kit/contracts';
 import {
   buildOrderFromCart,
   shouldCreateOrder,
   type NormalizedPaymentEvent,
   type PaymentProviderName,
-} from '@maks417/core';
+} from '@vitrine-kit/core';
 
 /** Создаёт заказ из корзины по событию оплаты и помечает корзину converted. */
 export async function fulfillOrderFromEvent(

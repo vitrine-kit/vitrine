@@ -4,7 +4,7 @@ name: Release
 #   1) есть неучтённые changesets → бот открывает/обновляет PR "Version Packages"
 #      (бамп версий + сборка CHANGELOG);
 #   2) этот PR влит (changesets израсходованы) → запускается publish:
-#      `pnpm release` публикует изменённые @maks417/* в GitHub Packages,
+#      `pnpm release` публикует изменённые @vitrine-kit/* в публичный npm (registry.npmjs.org),
 #      changeset publish ставит git-теги, а createGithubReleases делает GitHub Releases.
 # Source-архив каждого релиза — это то, что тянет `vitrine kit update`
 # (gh release download --archive=tar.gz, см. packages/cli/src/kit-update.ts).
@@ -19,7 +19,7 @@ concurrency:
 permissions:
   contents: write # git-теги + GitHub Releases
   pull-requests: write # PR "Version Packages"
-  packages: write # публикация в GitHub Packages
+  id-token: write # npm provenance (OIDC)
 
 jobs:
   release:
@@ -37,8 +37,8 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          registry-url: https://npm.pkg.github.com
-          scope: '@maks417'
+          registry-url: https://registry.npmjs.org
+          scope: '@vitrine-kit'
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -49,5 +49,6 @@ jobs:
           version: pnpm version-packages # bump версий из changesets
           publish: pnpm release # turbo build && changeset publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PR "Version Packages" + GitHub Releases
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # публикация в npm
+          NPM_CONFIG_PROVENANCE: true # подпись provenance (требует id-token: write)

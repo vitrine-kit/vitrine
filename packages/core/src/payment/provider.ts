@@ -2,7 +2,7 @@
 // (Stripe/Paddle/YooKassa) живут в registry-фичах checkout-<provider> и тащат свой
 // SDK; ядро лишь описывает форму. startCheckout отдаёт redirectUrl (как и
 // CommerceBackend), verifyWebhook верифицирует подпись и нормализует событие.
-import type { Cart } from '@maks417/contracts';
+import type { Cart } from '@vitrine-kit/contracts';
 
 /** Совпадает с integrations.payments в site.config (контракт 4). */
 export type PaymentProviderName = 'stripe' | 'paddle' | 'yookassa';

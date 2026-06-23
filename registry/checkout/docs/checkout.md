@@ -11,7 +11,7 @@
 - **Общий код вебхуков:** `lib/checkout/fulfill.ts` → `fulfillOrderFromEvent` —
   идемпотентное создание заказа из нормализованного события (используют все роуты
   вебхуков провайдеров). Критлогика (дедуп по `paymentRef`, снимок заказа) — в
-  `@maks417/core` (`shouldCreateOrder`, `buildOrderFromCart`).
+  `@vitrine-kit/core` (`shouldCreateOrder`, `buildOrderFromCart`).
 
 Поток: корзина → `Оформить заказ` → `POST /api/checkout` → редирект к провайдеру →
 вебхук провайдера → `fulfillOrderFromEvent` → заказ в админке, корзина `converted`.

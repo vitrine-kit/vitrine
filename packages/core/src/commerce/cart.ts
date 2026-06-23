@@ -2,7 +2,7 @@
 // пакете, не в copy-in реестре: баг в подсчёте суммы = инцидент у всех клиентов.
 // Чистые функции (без I/O) — реализация CommerceBackend в шаблоне делегирует им,
 // храня только персистентность. Деньги — целое в минимальных единицах (копейки).
-import type { Cart, CartLine, CurrencyCode, Money } from '@maks417/contracts';
+import type { Cart, CartLine, CurrencyCode, Money } from '@vitrine-kit/contracts';
 
 export function computeLineTotal(unitPrice: Money, quantity: number): Money {
   return unitPrice * quantity;

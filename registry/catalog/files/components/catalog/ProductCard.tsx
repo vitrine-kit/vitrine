@@ -1,6 +1,6 @@
 // Карточка товара — презентационная, визуально нейтральная (классы → токены).
 // Структуру/a11y дизайн-шаг не трогает, только токены.
-import type { Product } from '@maks417/contracts';
+import type { Product } from '@vitrine-kit/contracts';
 import { formatPrice } from '../../lib/catalog/data.js';
 
 export interface ProductCardProps {

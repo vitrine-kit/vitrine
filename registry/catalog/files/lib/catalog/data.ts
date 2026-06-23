@@ -1,7 +1,7 @@
 // Доступ к каталогу через контракт CatalogSource. Источник (Payload*/Vendure*)
 // резолвится в данных страницы (template), сюда приходит готовый CatalogSource —
 // так фича зависит только от контракта и переносима между бэкендами.
-import type { CatalogSource, Category, Product, ProductQuery } from '@maks417/contracts';
+import type { CatalogSource, Category, Product, ProductQuery } from '@vitrine-kit/contracts';
 
 export async function loadProducts(
   source: CatalogSource,

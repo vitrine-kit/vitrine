@@ -1,8 +1,8 @@
 {
-  "name": "@maks417/core",
+  "name": "@vitrine-kit/core",
   "version": "0.1.0",
   "description": "Vitrine core — runtime слотов/адаптера, order pipeline, Stripe webhook. Критическая логика (баг = инцидент у всех).",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
@@ -21,12 +21,11 @@
     "dist"
   ],
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maks417/vitrine.git",
+    "url": "git+https://github.com/vitrine-kit/vitrine.git",
     "directory": "packages/core"
   },
   "scripts": {
@@ -35,7 +34,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@maks417/contracts": "workspace:*"
+    "@vitrine-kit/contracts": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18.0.0"

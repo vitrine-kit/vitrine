@@ -9,9 +9,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@maks417/contracts": "workspace:*",
-    "@maks417/core": "workspace:*",
-    "@maks417/payload-blueprint": "workspace:*"
+    "@vitrine-kit/contracts": "workspace:*",
+    "@vitrine-kit/core": "workspace:*",
+    "@vitrine-kit/payload-blueprint": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

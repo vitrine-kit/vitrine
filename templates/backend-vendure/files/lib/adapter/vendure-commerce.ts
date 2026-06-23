@@ -2,7 +2,7 @@
 // token). cartId == Vendure auth-token сессии. Денежные итоги отдаёт Vendure;
 // нормализация — в map.ts. Оплата — Stripe-плагин Vendure (startCheckout переводит
 // заказ в ArrangingPayment). Next-glue, валидируется на запущенном Vendure.
-import type { Cart, CommerceBackend, Order } from '@maks417/contracts';
+import type { Cart, CommerceBackend, Order } from '@vitrine-kit/contracts';
 import { shopQuery } from './graphql.js';
 import { mapVendureOrder, mapVendureOrderToCart } from './map.js';
 import type { VOrder } from './vendure-types.js';

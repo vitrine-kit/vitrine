@@ -1,5 +1,5 @@
 // Сетка товаров — презентационная, семантический список.
-import type { Product } from '@maks417/contracts';
+import type { Product } from '@vitrine-kit/contracts';
 import { ProductCard } from './ProductCard.js';
 
 export interface ProductGridProps {

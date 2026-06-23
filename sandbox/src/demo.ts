@@ -1,7 +1,7 @@
 // Демо: слоты + blueprint работают на одних контрактах.
 // Запуск: pnpm build && pnpm --filter sandbox demo
-import { createSlotRegistry } from '@maks417/core';
-import { createBlueprint } from '@maks417/payload-blueprint';
+import { createSlotRegistry } from '@vitrine-kit/core';
+import { createBlueprint } from '@vitrine-kit/payload-blueprint';
 
 // --- Слоты: регистрируем компоненты по имени, читаем в порядке order ---
 const slots = createSlotRegistry<string>();

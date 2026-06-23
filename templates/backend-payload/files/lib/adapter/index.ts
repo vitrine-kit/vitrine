@@ -2,7 +2,7 @@
 // API; коммерцию (CommerceBackend) включают фичи cart/checkout-stripe (M8).
 import { getPayload } from 'payload';
 import config from '@payload-config';
-import type { CatalogSource, CommerceBackend } from '@maks417/contracts';
+import type { CatalogSource, CommerceBackend } from '@vitrine-kit/contracts';
 import { siteConfig } from '@/site.config';
 import { registerPayments } from '@/lib/payments';
 import { PayloadCatalogSource } from './payload-catalog.js';

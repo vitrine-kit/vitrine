@@ -1,7 +1,7 @@
 // Реестр платёжных провайдеров — зеркало adapter/resolver.ts. Фичи
 // checkout-<provider> регистрируют свой провайдер (через lib/payments.ts,
 // генерируемый CLI); startCheckout резолвит активный по integrations.payments.
-import type { SiteConfig } from '@maks417/contracts';
+import type { SiteConfig } from '@vitrine-kit/contracts';
 import type { PaymentProvider, PaymentProviderName } from './provider.js';
 
 export interface PaymentRegistry {

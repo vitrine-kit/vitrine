@@ -1,4 +1,4 @@
-# @maks417/vitrine
+# @vitrine-kit/vitrine
 
 ## 0.1.2
 
@@ -8,7 +8,7 @@
   README покрывает весь рабочий поток разработчика — запуск/деплой под выбранный backend
   (Payload: `/admin` + `PAYLOAD_SECRET`; Vendure: `pnpm vendure` + Shop API `:3001` +
   `VENDURE_*`), а также жизненный цикл фич и обновлений (`add`/`remove`/`list`,
-  `update`/`diff`, `doctor`, `kit update`) и независимый апгрейд пакетов `@maks417/*`.
+  `update`/`diff`, `doctor`, `kit update`) и независимый апгрейд пакетов `@vitrine-kit/*`.
   Исправляет баг: прежний статичный README был Payload-специфичен и попадал в Vendure-проект.
 
 ## 0.1.1
@@ -69,24 +69,24 @@
   переносимости контрактов (на vendure `checkout-stripe` исключается из автонабора —
   оплата нативная Vendure-Stripe). Чистые мапперы Vendure→контракт покрыты тестами и
   `typecheck:templates`. ⚠ Юр-проверка лицензии Vendure (GPL-3.0) — отдельный трек.
-- d340824: Провайдер-агностичные платежи. `@maks417/core` получает абстракцию `PaymentProvider`
+- d340824: Провайдер-агностичные платежи. `@vitrine-kit/core` получает абстракцию `PaymentProvider`
 
   - реестр `payments` (зеркало adapter/resolver) и нейтральный `handlePaymentWebhook`;
     Stripe-специфичные `handleStripeWebhook`/`cartToStripeLineItems` удалены из ядра
     (переезжают в фичу `checkout-stripe`). `OrderCreationGuard` обобщён:
     `sessionId`→`providerRef`, `existingOrderSessionIds`→`existingOrderRefs`.
 
-  `@maks417/contracts`: `integrations.payments` → `stripe | paddle | yookassa`;
+  `@vitrine-kit/contracts`: `integrations.payments` → `stripe | paddle | yookassa`;
   у манифеста фичи появился блок `payment: { provider }`.
 
-  `@maks417/payload-blueprint`: поля `orders.stripeSessionId`/`carts.stripeSessionId`
+  `@vitrine-kit/payload-blueprint`: поля `orders.stripeSessionId`/`carts.stripeSessionId`
   переименованы в `paymentRef`, у `orders` добавлен `paymentProvider`.
 
-  `@maks417/vitrine` (CLI): генерирует `lib/payments.ts` (регистрация провайдеров) и
+  `@vitrine-kit/vitrine` (CLI): генерирует `lib/payments.ts` (регистрация провайдеров) и
   проставляет активный провайдер в `site.config` при установке фичи `checkout-<provider>`.
 
 ### Patch Changes
 
 - Updated dependencies [65062d9]
 - Updated dependencies [d340824]
-  - @maks417/contracts@1.0.0
+  - @vitrine-kit/contracts@1.0.0

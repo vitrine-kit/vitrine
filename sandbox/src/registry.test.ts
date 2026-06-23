@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { featureManifestSchema, registryIndexSchema } from '@maks417/contracts';
-import type { CatalogSource, Category, Product } from '@maks417/contracts';
+import { featureManifestSchema, registryIndexSchema } from '@vitrine-kit/contracts';
+import type { CatalogSource, Category, Product } from '@vitrine-kit/contracts';
 import {
   formatPrice,
   loadCategories,

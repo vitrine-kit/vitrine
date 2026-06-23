@@ -1,6 +1,6 @@
 // Главная витрины: листинг каталога. Данные — через контракт CatalogSource
 // (бэкенд-агностично), сетка — компонент фичи catalog.
-import { Slot } from '@maks417/core/react';
+import { Slot } from '@vitrine-kit/core/react';
 import { getCatalogSource } from '@/lib/adapter';
 import { loadProducts } from '@/lib/catalog/data';
 import { ProductGrid } from '@/components/catalog/ProductGrid';

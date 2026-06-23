@@ -1,7 +1,7 @@
 // Чистые генераторы управляемых/производных файлов из состояния установленных
 // фич. Регенерация из состояния (а не патчинг) делает шаги примитива
 // идемпотентными по построению.
-import { TOKEN_CSS_VARS, type FeatureManifest } from '@maks417/contracts';
+import { TOKEN_CSS_VARS, type FeatureManifest } from '@vitrine-kit/contracts';
 import { parseEnvKeys, pascalCase, parseNpmSpec, sortKeys } from './util.js';
 
 export interface FeatureState {
@@ -107,7 +107,7 @@ export function renderBlueprintFile(features: FeatureState[]): string {
   const calls = withBp.map((f) => `  extend${pascalCase(f.name)}Blueprint(blueprint);`);
   return [
     '// vitrine:generated — blueprint установленных фич. Не редактировать вручную.',
-    "import { createBlueprint } from '@maks417/payload-blueprint';",
+    "import { createBlueprint } from '@vitrine-kit/payload-blueprint';",
     ...imports,
     '',
     'const blueprint = createBlueprint();',

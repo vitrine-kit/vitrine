@@ -1,6 +1,6 @@
 // Навигация по категориям — презентационная. Данные приходят пропсом из хоста
 // слота (<Slot name="global.header-nav" categories={…} />).
-import type { Category } from '@maks417/contracts';
+import type { Category } from '@vitrine-kit/contracts';
 
 export interface CategoryNavProps {
   categories: Category[];

@@ -1,6 +1,6 @@
 // Сборка метаданных страницы из доменных типов. SiteMetadata структурно
 // совместима с Next Metadata — в клиенте generateMetadata() возвращает это.
-import type { Product } from '@maks417/contracts';
+import type { Product } from '@vitrine-kit/contracts';
 
 export interface SiteMetadata {
   title: string;

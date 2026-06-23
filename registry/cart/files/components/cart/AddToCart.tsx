@@ -2,7 +2,7 @@
 // (ProductView передаёт product). Мутация — через POST /api/cart (роут фичи).
 'use client';
 import { useState } from 'react';
-import type { Product } from '@maks417/contracts';
+import type { Product } from '@vitrine-kit/contracts';
 
 export interface AddToCartProps {
   product: Product;

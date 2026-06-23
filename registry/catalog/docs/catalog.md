@@ -15,4 +15,4 @@
 Все классы — токенные (`bg-surface`, `text-fg`, `text-price`, `rounded-md`, `gap-gutter`). Дизайн-шаг меняет только значения токенов, не структуру/a11y.
 
 ## Контракты
-Зависит только от `@maks417/contracts` (типы, `CatalogSource`) и `@maks417/core` (`registerSlot`). Переносима между Payload и Vendure.
+Зависит только от `@vitrine-kit/contracts` (типы, `CatalogSource`) и `@vitrine-kit/core` (`registerSlot`). Переносима между Payload и Vendure.

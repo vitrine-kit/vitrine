@@ -5,7 +5,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
-import { TOKEN_CSS_VARS } from '@maks417/contracts';
+import { TOKEN_CSS_VARS } from '@vitrine-kit/contracts';
 import type { Project } from './project.js';
 import { readText } from './util.js';
 

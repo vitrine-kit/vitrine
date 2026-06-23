@@ -1,7 +1,7 @@
 // Базовые коллекции Vitrine (нейтральная форма, переносимая в Payload-конфиг
 // клиента в M5). Поля описаны контрактным BlueprintFieldDef; доп. Payload-опции
 // (admin/access/hooks/upload/auth) идут через passthrough-ключи.
-import type { BlueprintFieldDef } from '@maks417/contracts';
+import type { BlueprintFieldDef } from '@vitrine-kit/contracts';
 
 export interface BlueprintCollectionConfig {
   slug: string;
@@ -98,7 +98,7 @@ export const cartsCollection: BlueprintCollectionConfig = {
   admin: { useAsTitle: 'id' },
   access: adminOnly,
   fields: [
-    f('lines', 'json'), // CartLine[] (контракт); арифметика — в @maks417/core
+    f('lines', 'json'), // CartLine[] (контракт); арифметика — в @vitrine-kit/core
     f('currency', 'text'),
     f('subtotal', 'number'),
     f('discountTotal', 'number'),

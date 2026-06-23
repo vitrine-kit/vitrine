@@ -1,6 +1,6 @@
 // Order pipeline (каркас, наполняется в M8). Критлогика заказа живёт в пакете,
 // не в copy-in реестре: баг здесь = инцидент у всех клиентов.
-import type { Cart, Order } from '@maks417/contracts';
+import type { Cart, Order } from '@vitrine-kit/contracts';
 
 export interface OrderPipelineContext {
   cart: Cart;

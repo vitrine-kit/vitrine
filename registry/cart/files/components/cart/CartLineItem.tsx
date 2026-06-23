@@ -1,5 +1,5 @@
 // Строка корзины — презентационная.
-import type { CartLine } from '@maks417/contracts';
+import type { CartLine } from '@vitrine-kit/contracts';
 import { formatMoney } from '../../lib/cart/data.js';
 
 export interface CartLineItemProps {

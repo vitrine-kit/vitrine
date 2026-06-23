@@ -1,7 +1,7 @@
 // Карточка товара (детальная). ХОСТИТ слоты product.* — другие фичи (reviews,
 // cart, wishlist) монтируются в них, не правя этот компонент.
-import type { Product } from '@maks417/contracts';
-import { Slot } from '@maks417/core/react';
+import type { Product } from '@vitrine-kit/contracts';
+import { Slot } from '@vitrine-kit/core/react';
 import { ProductGallery } from './ProductGallery.js';
 import { formatPrice } from '../../lib/product/data.js';
 

@@ -1,9 +1,9 @@
-// Инвариант переносимости (план §3/§8). Из @maks417/* copy-in фича реестра может
+// Инвариант переносимости (план §3/§8). Из @vitrine-kit/* copy-in фича реестра может
 // зависеть ТОЛЬКО от пакетов, которые ставит ЛЮБОЙ клиент независимо от движка:
-//   - @maks417/contracts — пять контрактов;
-//   - @maks417/core      — рантайм слотов (<Slot>/registerSlot) и критлогика
+//   - @vitrine-kit/contracts — пять контрактов;
+//   - @vitrine-kit/core      — рантайм слотов (<Slot>/registerSlot) и критлогика
 //                          (корзина/заказ/Stripe-webhook).
-// Запрещён в первую очередь @maks417/payload-blueprint (его НЕ ставит vendure-клиент —
+// Запрещён в первую очередь @vitrine-kit/payload-blueprint (его НЕ ставит vendure-клиент —
 // см. clientPackageJson в packages/cli/src/init.ts: blueprint только для backend=payload),
 // а заодно и сам CLI / любой будущий движок-специфичный пакет. Иначе фича перестаёт
 // быть переносимой между клиентскими репозиториями (ломает доказательство M10).
@@ -44,13 +44,13 @@ function importSpecifiers(source: string): string[] {
   return specs;
 }
 
-const isMaks = (spec: string) => spec === '@maks417' || spec.startsWith('@maks417/');
+const isMaks = (spec: string) => spec === '@vitrine-kit' || spec.startsWith('@vitrine-kit/');
 // Разрешены только движко-независимые пакеты (есть у любого клиента): contracts + core.
-const ALLOWED = ['@maks417/contracts', '@maks417/core'];
+const ALLOWED = ['@vitrine-kit/contracts', '@vitrine-kit/core'];
 const isAllowed = (spec: string) =>
   ALLOWED.some((pkg) => spec === pkg || spec.startsWith(`${pkg}/`));
 
-describe('инвариант: фичи реестра зависят только от @maks417/{contracts,core}', () => {
+describe('инвариант: фичи реестра зависят только от @vitrine-kit/{contracts,core}', () => {
   const featureDirs = readdirSync(registry, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => e.name);

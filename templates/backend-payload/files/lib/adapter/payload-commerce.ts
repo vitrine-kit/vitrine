@@ -1,10 +1,10 @@
 // Реализация контракта CommerceBackend поверх Payload (коллекции carts/orders).
-// Денежная арифметика и заказ — из @maks417/core (критлогика); здесь только
+// Денежная арифметика и заказ — из @vitrine-kit/core (критлогика); здесь только
 // персистентность. Создание оплаты делегируется активному платёжному провайдеру
 // (payments.resolve по site.config), поэтому модуль не тащит ни одного платёжного
 // SDK и грузится на любом уровне (включая catalog).
 import type { Payload } from 'payload';
-import type { Cart, CommerceBackend, Order, SiteConfig } from '@maks417/contracts';
+import type { Cart, CommerceBackend, Order, SiteConfig } from '@vitrine-kit/contracts';
 import {
   addCartLine,
   emptyCart,
@@ -12,7 +12,7 @@ import {
   recalcCart,
   removeCartLine,
   setCartLineQty,
-} from '@maks417/core';
+} from '@vitrine-kit/core';
 import type { ProductDoc, VariantDoc } from './payload-types.js';
 
 interface CartDoc {
