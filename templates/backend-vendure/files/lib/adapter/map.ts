@@ -1,8 +1,8 @@
 // Чистые мапперы Vendure Shop API → контрактные типы. Зависят только от
-// @maks417/contracts и локальных структурных типов. Это и есть доказательство
+// @vitrine-kit/contracts и локальных структурных типов. Это и есть доказательство
 // переносимости: те же типы Product/Category/Cart/Order, что отдаёт Payload-адаптер,
 // — значит фичи каталога/корзины работают на Vendure БЕЗ изменений.
-import type { Cart, Category, Money, Order, OrderStatus, Product, Variant } from '@maks417/contracts';
+import type { Cart, Category, Money, Order, OrderStatus, Product, Variant } from '@vitrine-kit/contracts';
 import type { VAsset, VCollection, VOrder, VProduct, VVariant } from './vendure-types.js';
 
 const asId = (v: string | number): string => String(v);

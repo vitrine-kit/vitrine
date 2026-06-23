@@ -1,5 +1,5 @@
-// @maks417/core — фреймворк-агностичный runtime Vitrine.
-// React-обёртка <Slot> вынесена в подпуть @maks417/core/react, чтобы не-React
+// @vitrine-kit/core — фреймворк-агностичный runtime Vitrine.
+// React-обёртка <Slot> вынесена в подпуть @vitrine-kit/core/react, чтобы не-React
 // потребители (например CLI) не тянули react.
 
 // Держать в синхроне с package.json version (бампится changeset'ом).

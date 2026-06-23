@@ -3,7 +3,7 @@
 Провайдер Paddle Billing для каркаса `checkout` (от него зависит). Ставится вместо
 `checkout-stripe` / `checkout-yookassa` (взаимоисключающие). Paddle — Merchant of
 Record: берёт на себя налоги/НДС. Критлогика (диспетчер вебхука, заказ из корзины) —
-в `@maks417/core`.
+в `@vitrine-kit/core`.
 
 - **Провайдер:** `lib/checkout-paddle/provider.ts` → `paddleProvider`
   (`PaymentProvider`): `createCheckout` создаёт Paddle transaction с non-catalog

@@ -1,4 +1,4 @@
-// @maks417/payload-blueprint
+// @vitrine-kit/payload-blueprint
 // Базовые Payload-коллекции + аддитивный extend() (контракт 5).
 // Финальная привязка к Payload buildConfig — в шаблоне backend-payload (M5).
 

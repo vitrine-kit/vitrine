@@ -2,7 +2,7 @@
 // монорепо (поиск вверх по дереву). Можно переопределить флагом/env.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { featureManifestSchema, type FeatureManifest } from '@maks417/contracts';
+import { featureManifestSchema, type FeatureManifest } from '@vitrine-kit/contracts';
 import { vitrineHome } from './cache.js';
 import { isDir, readText } from './util.js';
 

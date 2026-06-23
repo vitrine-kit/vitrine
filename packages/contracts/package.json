@@ -1,8 +1,8 @@
 {
-  "name": "@maks417/contracts",
+  "name": "@vitrine-kit/contracts",
   "version": "1.0.0",
   "description": "Vitrine — пять стабильных контрактов: Tokens, Data, Slots, Config, Blueprint.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
@@ -17,12 +17,11 @@
     "dist"
   ],
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maks417/vitrine.git",
+    "url": "git+https://github.com/vitrine-kit/vitrine.git",
     "directory": "packages/contracts"
   },
   "scripts": {

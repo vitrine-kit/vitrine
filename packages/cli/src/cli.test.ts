@@ -175,7 +175,7 @@ describe('init payload-шаблон (M5)', () => {
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'tailwind.config.ts'))).toBe(true);
     expect(existsSync(join(root, '.gitignore'))).toBe(true);
-    expect(existsSync(join(root, '.npmrc'))).toBe(true);
+    expect(existsSync(join(root, '.npmrc'))).toBe(false); // публичный npm — клиентский .npmrc не нужен
 
     // backend-payload: конфиг, адаптеры, zero-config, Docker
     expect(existsSync(join(root, 'payload.config.ts'))).toBe(true);
@@ -191,7 +191,7 @@ describe('init payload-шаблон (M5)', () => {
     const pkg = JSON.parse(read(root, 'package.json'));
     expect(pkg.dependencies.next).toBeDefined();
     expect(pkg.dependencies.payload).toBeDefined();
-    expect(pkg.dependencies['@maks417/payload-blueprint']).toBeDefined();
+    expect(pkg.dependencies['@vitrine-kit/payload-blueprint']).toBeDefined();
     expect(pkg.scripts.dev).toBe('next dev');
 
     // .env.example — ключи zero-config
@@ -483,7 +483,7 @@ describe('doctor (M7)', () => {
       join(dir, 'demo', 'feature.json'),
       JSON.stringify({
         name: 'demo', title: 'Demo', kitVersion: '0.0.0', requiresContracts: '>=1.0.0', tier: ['catalog'],
-        corePackages: { '@maks417/core': '>=0.1.0' }, npm: ['zod@^3'],
+        corePackages: { '@vitrine-kit/core': '>=0.1.0' }, npm: ['zod@^3'],
         files: [{ from: 'files/lib/demo/', to: 'lib/demo/' }],
         config: { set: { 'features.demo': true } },
         slots: [{ slot: 'home.hero', component: 'DemoHero', order: 10 }],
@@ -803,10 +803,10 @@ describe('генераторы (чистые)', () => {
   it('mergePackageDeps добавляет corePackages и npm', () => {
     const f: FeatureState = {
       name: 'reviews', version: '0.0.0',
-      manifest: fakeManifest({ corePackages: { '@maks417/core': '>=0.1.0' }, npm: ['zod@^3'] }),
+      manifest: fakeManifest({ corePackages: { '@vitrine-kit/core': '>=0.1.0' }, npm: ['zod@^3'] }),
     };
     const pkg = mergePackageDeps({ dependencies: {} }, [f]);
-    expect((pkg.dependencies as Record<string, string>)['@maks417/core']).toBe('>=0.1.0');
+    expect((pkg.dependencies as Record<string, string>)['@vitrine-kit/core']).toBe('>=0.1.0');
     expect((pkg.dependencies as Record<string, string>).zod).toBe('^3');
   });
 

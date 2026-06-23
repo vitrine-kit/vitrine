@@ -8,7 +8,7 @@
 - `components/seo/JsonLd` — `<JsonLd data={…} />` встраивает `<script type="application/ld+json">`.
 
 ## Контракты
-Только `@maks417/contracts` (типы `Product`). Слотов не регистрирует.
+Только `@vitrine-kit/contracts` (типы `Product`). Слотов не регистрирует.
 
 ## Заметка
 Цена в JSON-LD приводится из минимальных единиц (`price/100`).

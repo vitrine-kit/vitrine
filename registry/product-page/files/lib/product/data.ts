@@ -1,4 +1,4 @@
-import type { CatalogSource, Product } from '@maks417/contracts';
+import type { CatalogSource, Product } from '@vitrine-kit/contracts';
 
 export async function loadProduct(source: CatalogSource, slug: string): Promise<Product | null> {
   return source.getProduct(slug);

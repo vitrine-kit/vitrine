@@ -1,5 +1,5 @@
 // Галерея товара — презентационная, нейтральная.
-import type { ProductImage } from '@maks417/contracts';
+import type { ProductImage } from '@vitrine-kit/contracts';
 
 export interface ProductGalleryProps {
   images: ProductImage[];

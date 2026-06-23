@@ -1,5 +1,5 @@
 // Подвал витрины. Хостит слот global.footer.
-import { Slot } from '@maks417/core/react';
+import { Slot } from '@vitrine-kit/core/react';
 
 export function SiteFooter() {
   return (

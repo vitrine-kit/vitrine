@@ -7,7 +7,7 @@
 // String(unitPrice) передаём как есть. Для hosted-checkout в дашборде Paddle нужен
 // default payment link ИЛИ задайте PADDLE_CHECKOUT_URL (override).
 import { Environment, Paddle, type EventEntity } from '@paddle/paddle-node-sdk';
-import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@maks417/core';
+import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@vitrine-kit/core';
 
 function client(): Paddle {
   return new Paddle(process.env.PADDLE_API_KEY ?? '', {

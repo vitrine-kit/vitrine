@@ -1,5 +1,5 @@
 # Эталонный деплой Vitrine на VPS: app (Next+Payload) + Postgres.
-# Запуск: GITHUB_TOKEN=... PAYLOAD_SECRET=... docker compose up --build
+# Запуск: PAYLOAD_SECRET=... docker compose up --build
 services:
   db:
     image: postgres:16-alpine
@@ -19,8 +19,6 @@ services:
   app:
     build:
       context: .
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
     restart: unless-stopped
     environment:
       NODE_ENV: production

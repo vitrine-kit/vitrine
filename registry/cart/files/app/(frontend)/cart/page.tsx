@@ -2,7 +2,7 @@
 // CommerceBackend (адаптер бэкенда в lib/adapter). Не типизируется в монорепо
 // (Next-glue), проверяется при инстанцировании клиента.
 import { cookies } from 'next/headers';
-import { emptyCart } from '@maks417/core';
+import { emptyCart } from '@vitrine-kit/core';
 import { getCommerceBackend } from '@/lib/adapter';
 import { CartView } from '@/components/cart/CartView';
 import { siteConfig } from '@/site.config';

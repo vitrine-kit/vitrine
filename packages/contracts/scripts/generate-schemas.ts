@@ -1,5 +1,5 @@
 // Генерация JSON Schema из zod-схем контрактов (единый источник истины, §13).
-// Запуск: pnpm --filter @maks417/contracts schemas  (или turbo run schemas).
+// Запуск: pnpm --filter @vitrine-kit/contracts schemas  (или turbo run schemas).
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -19,7 +19,7 @@ export const BLUEPRINT_FIELD_TYPES = [
 export type BlueprintFieldType = (typeof BLUEPRINT_FIELD_TYPES)[number];
 
 /**
- * Определение добавляемого поля (рантайм-форма для @maks417/payload-blueprint).
+ * Определение добавляемого поля (рантайм-форма для @vitrine-kit/payload-blueprint).
  * Допускает доп. ключи Payload-поля (options, relationTo, …) через passthrough.
  */
 export const blueprintFieldDefSchema = z
@@ -39,7 +39,7 @@ export interface BlueprintExtension {
 }
 
 /**
- * Сигнатура extend(), реализуемая в @maks417/payload-blueprint.
+ * Сигнатура extend(), реализуемая в @vitrine-kit/payload-blueprint.
  * Аддитивна по контракту: добавляет поля в коллекцию.
  */
 export type Extend = (

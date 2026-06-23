@@ -37,7 +37,7 @@ describe('feature.json (пример reviews из §8 спеки)', () => {
       requiresContracts: '>=1.0.0 <2.0.0',
       tier: ['simple-store', 'full-store'],
       registryDependencies: ['rating-stars'],
-      corePackages: { '@maks417/core': '>=1.0.0' },
+      corePackages: { '@vitrine-kit/core': '>=1.0.0' },
       npm: ['zod@^3'],
       files: [
         { from: 'files/components/reviews/', to: 'components/reviews/' },

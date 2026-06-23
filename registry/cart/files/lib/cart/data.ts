@@ -1,6 +1,6 @@
 // Доступ к корзине через контракт CommerceBackend + форматирование цены.
-// Арифметика корзины — в @maks417/core (критлогика), сюда приходит готовый Cart.
-import type { Cart, CommerceBackend } from '@maks417/contracts';
+// Арифметика корзины — в @vitrine-kit/core (критлогика), сюда приходит готовый Cart.
+import type { Cart, CommerceBackend } from '@vitrine-kit/contracts';
 
 export async function loadCart(commerce: CommerceBackend, cartId: string): Promise<Cart | null> {
   return commerce.getCart(cartId);

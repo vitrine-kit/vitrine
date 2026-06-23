@@ -1,7 +1,7 @@
 # Фича: cart (корзина)
 
 Корзина для уровней `simple-store` / `full-store`. Зависит только от контрактов:
-данные — через `CommerceBackend`, арифметика — в `@maks417/core` (критлогика).
+данные — через `CommerceBackend`, арифметика — в `@vitrine-kit/core` (критлогика).
 
 - **Компоненты:** `CartView`, `CartLineItem`, `CartSummary` (хостит слот `cart.summary`),
   `AddToCart` (клиентский, слот `product.purchase`), `CartIndicator` (слот `global.header-actions`).

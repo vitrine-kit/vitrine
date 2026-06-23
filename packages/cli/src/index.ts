@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// @maks417/vitrine — CLI. Команды-обёртки над примитивом установки.
+// @vitrine-kit/vitrine — CLI. Команды-обёртки над примитивом установки.
 // Поверхность §9: init/add/remove/list реализованы (M4); update/diff/doctor/
 // kit/design — M7+/M9.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 import * as p from '@clack/prompts';
-import type { Backend, Tier } from '@maks417/contracts';
+import type { Backend, Tier } from '@vitrine-kit/contracts';
 import {
   addFeatures,
   designApplyCmd,
@@ -128,7 +128,7 @@ kit
 
 program
   .command('self-update')
-  .description('Обновить сам CLI (@maks417/vitrine)')
+  .description('Обновить сам CLI (@vitrine-kit/vitrine)')
   .option('--dry-run', 'показать команду без запуска')
   .action((opts: { dryRun?: boolean }) => {
     const code = selfUpdate({ dryRun: opts.dryRun });

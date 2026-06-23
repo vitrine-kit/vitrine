@@ -24,7 +24,7 @@ export const featureManifestSchema = z.object({
   requiresContracts: z.string().min(1),
   tier: z.array(tierSchema).nonempty(),
   registryDependencies: z.array(z.string()).default([]),
-  /** Версионируемые пакеты: { "@maks417/core": ">=1.0.0" }. */
+  /** Версионируемые пакеты: { "@vitrine-kit/core": ">=1.0.0" }. */
   corePackages: z.record(z.string(), z.string()).default({}),
   npm: z.array(z.string()).default([]),
   files: z.array(featureFileMapSchema).default([]),

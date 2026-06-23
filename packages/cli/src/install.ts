@@ -4,7 +4,7 @@
 // Идемпотентен (повтор той же версии = no-op), транзакционен (откат при ошибке),
 // снапшотит pristine-оригиналы в .vitrine/originals (база для 3-way merge, M9).
 import { join } from 'node:path';
-import type { FeatureManifest } from '@maks417/contracts';
+import type { FeatureManifest } from '@vitrine-kit/contracts';
 import type { Project } from './project.js';
 import { projectPaths } from './project.js';
 import type { RegistrySource } from './registry.js';

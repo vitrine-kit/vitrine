@@ -1,6 +1,6 @@
 // Шапка витрины. Хостит слот global.header-nav (туда монтируется CategoryNav
 // фичи catalog) и передаёт ему категории из активного CatalogSource.
-import { Slot } from '@maks417/core/react';
+import { Slot } from '@vitrine-kit/core/react';
 import { getCatalogSource } from '@/lib/adapter';
 
 export async function SiteHeader() {

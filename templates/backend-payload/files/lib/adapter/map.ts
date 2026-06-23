@@ -1,8 +1,8 @@
 // Чистые мапперы Payload-документ → контрактный тип. Зависят только от
-// @maks417/contracts и локальных структурных типов — поэтому типизируются и
+// @vitrine-kit/contracts и локальных структурных типов — поэтому типизируются и
 // покрываются тестами без установленного Payload. Это критический шов
 // переносимости (тот же контракт на Payload и Vendure).
-import type { Category, Money, Product, ProductImage, Variant } from '@maks417/contracts';
+import type { Category, Money, Product, ProductImage, Variant } from '@vitrine-kit/contracts';
 import type { CategoryDoc, Id, MediaDoc, ProductDoc, VariantDoc } from './payload-types.js';
 
 const asId = (v: Id): string => String(v);

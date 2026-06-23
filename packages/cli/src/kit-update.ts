@@ -10,7 +10,7 @@ import { KIT_VERSION } from './kit.js';
 import { cachePaths, populateCache, readKitMeta, vitrineHome, type PopulateResult } from './cache.js';
 import { exists, readJson } from './util.js';
 
-const REPO = 'Maks417/vitrine';
+const REPO = 'vitrine-kit/vitrine';
 
 function hasBin(bin: string): boolean {
   const probe = process.platform === 'win32' ? 'where' : 'which';
@@ -32,7 +32,7 @@ function acquireFromGh(version?: string): string {
     { stdio: 'inherit' },
   );
   if (dl.status !== 0) {
-    throw new Error('[vitrine] gh release download не удался (приватный репо — авторизуйтесь: gh auth login)');
+    throw new Error('[vitrine] gh release download не удался (проверьте доступ/авторизацию: gh auth status, при необходимости gh auth login)');
   }
   const tarball = readdirSync(tmp).find((f) => f.endsWith('.tar.gz'));
   if (!tarball) throw new Error('[vitrine] release-tarball не найден после загрузки');
@@ -82,7 +82,7 @@ export function kitStatus(home: string = vitrineHome()): KitStatusReport {
 }
 
 export function selfUpdate(opts: { dryRun?: boolean } = {}): number {
-  const args = ['install', '-g', '@maks417/vitrine@latest'];
+  const args = ['install', '-g', '@vitrine-kit/vitrine@latest'];
   if (opts.dryRun) {
     console.log(`[vitrine] npm ${args.join(' ')}`);
     return 0;

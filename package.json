@@ -5,9 +5,9 @@
   "description": "Vitrine — реестр фич + контракты для быстрой сборки клиентских интернет-магазинов.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maks417/vitrine.git"
+    "url": "git+https://github.com/vitrine-kit/vitrine.git"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20"
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
     "@changesets/cli": "^2.27.10",
-    "@maks417/contracts": "workspace:*",
-    "@maks417/core": "workspace:*",
+    "@vitrine-kit/contracts": "workspace:*",
+    "@vitrine-kit/core": "workspace:*",
     "@types/node": "^20.17.0",
     "@types/react": "^18.3.12",
     "react": "^18.3.1",

@@ -6,7 +6,7 @@
   "requiresContracts": ">=1.0.0 <2.0.0",
   "tier": ["simple-store", "full-store"],
   "registryDependencies": ["checkout"],
-  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
   "npm": ["stripe@^17.0.0"],
   "files": [
     { "from": "files/lib/checkout-stripe/", "to": "lib/checkout-stripe/" },

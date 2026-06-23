@@ -7,7 +7,7 @@ import type {
   Product,
   ProductQuery,
   ProductSort,
-} from '@maks417/contracts';
+} from '@vitrine-kit/contracts';
 import { mapCategory, mapProduct } from './map.js';
 import type { ProductDoc, VariantDoc } from './payload-types.js';
 

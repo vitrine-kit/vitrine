@@ -1,13 +1,13 @@
 // React-обёртка слотов: <Slot name="product.below-description" />.
 // Рендерит зарегистрированные компоненты слота по порядку (order). React —
-// опциональный peer; импортируется из подпути @maks417/core/react.
+// опциональный peer; импортируется из подпути @vitrine-kit/core/react.
 import {
   createElement,
   Fragment,
   type ComponentType,
   type ReactNode,
 } from 'react';
-import type { SlotId } from '@maks417/contracts';
+import type { SlotId } from '@vitrine-kit/contracts';
 import { slotRegistry, type SlotRegistry } from './slots/registry.js';
 
 type SlotComponentRegistry = SlotRegistry<ComponentType<Record<string, unknown>>>;

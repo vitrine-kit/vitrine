@@ -1,4 +1,4 @@
-# @maks417/core
+# @vitrine-kit/core
 
 Критическая логика Vitrine: runtime слотов и адаптера, order pipeline, обработчик Stripe-вебхука.
 

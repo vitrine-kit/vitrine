@@ -1,9 +1,9 @@
 // API корзины: POST добавить, PATCH изменить количество, DELETE удалить строку.
 // Cart-id в httpOnly cookie. Мутации делегируются CommerceBackend (lib/adapter),
-// арифметика — в @maks417/core. Next-glue, не типизируется в монорепо.
+// арифметика — в @vitrine-kit/core. Next-glue, не типизируется в монорепо.
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import type { CommerceBackend } from '@maks417/contracts';
+import type { CommerceBackend } from '@vitrine-kit/contracts';
 import { getCommerceBackend } from '@/lib/adapter';
 
 const COOKIE = 'vitrine_cart';

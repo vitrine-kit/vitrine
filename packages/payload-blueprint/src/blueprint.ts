@@ -1,7 +1,7 @@
 // Реализация контракта 5 (Blueprint): фичи аддитивно расширяют коллекции через
 // extend('product', { addFields }); build() собирает финальные коллекции,
 // проверяя, что ни одно добавленное поле не перетирает существующее.
-import type { BlueprintCollection, BlueprintFieldDef, Extend } from '@maks417/contracts';
+import type { BlueprintCollection, BlueprintFieldDef, Extend } from '@vitrine-kit/contracts';
 import { baseCollections, type BlueprintCollectionConfig } from './collections.js';
 
 /** Имя контракта-коллекции → slug базовой коллекции. */

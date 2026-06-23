@@ -1,6 +1,6 @@
 // Регистрация слотов фичи cart. Клиент вызывает это из lib/slots.ts.
 // AddToCart — на странице товара (product.purchase), CartIndicator — в шапке.
-import { registerSlot } from '@maks417/core';
+import { registerSlot } from '@vitrine-kit/core';
 import { AddToCart } from '../../components/cart/AddToCart.js';
 import { CartIndicator } from '../../components/cart/CartIndicator.js';
 

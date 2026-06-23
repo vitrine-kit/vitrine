@@ -1,7 +1,7 @@
 // Paddle webhook: paddleProvider.verifyWebhook (подпись Paddle-Signature) →
 // нормализованное событие → handlePaymentWebhook → общий fulfillOrderFromEvent.
 import { NextResponse } from 'next/server';
-import { handlePaymentWebhook } from '@maks417/core';
+import { handlePaymentWebhook } from '@vitrine-kit/core';
 import { paddleProvider } from '@/lib/checkout-paddle/provider';
 import { fulfillOrderFromEvent } from '@/lib/checkout/fulfill';
 

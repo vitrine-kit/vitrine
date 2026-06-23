@@ -12,7 +12,7 @@
 
 | Линчпин | Почему критичен | Где в спеке |
 |---|---|---|
-| **`@maks417/contracts` — 5 контрактов** | Сломанный контракт ломает `add` у всех клиентов. Должны быть зафиксированы рано и расти **только аддитивно** под semver. | §5, §13 |
+| **`@vitrine-kit/contracts` — 5 контрактов** | Сломанный контракт ломает `add` у всех клиентов. Должны быть зафиксированы рано и расти **только аддитивно** под semver. | §5, §13 |
 | **Примитив установки фичи** | Сердце CLI. `init` и `add` — тонкие обёртки над ним. Должен быть идемпотентным, частично-транзакционным, декларативным. | §8, §9 |
 | **Zero-config dev** | Делает любой сгенерированный сайт демонстрируемым одной командой без Postgres. Это то, что превращает «скаффолд» в «работающий продукт». | §10, §18 |
 | **`update` + 3-way merge** | Единственная «цена» copy-in модели. Самый тяжёлый отложенный кусок; требует хранения pristine-оригиналов. | §7, §9 |
@@ -39,9 +39,9 @@
 | App-стек шаблона | **Next.js (App Router) + Tailwind + shadcn-стиль + Payload 3** | прямо из §14 ADR; Payload 3 — Next-native, один деплой |
 | БД | **Postgres (prod) / SQLite (dev-fallback)** через `@payloadcms/db-postgres` + `@payloadcms/db-sqlite` | §18 даёт готовый код `resolveDbAdapter` |
 | Тесты | **vitest** (unit), **playwright** (e2e эталонного клиента), CLI-интеграции против temp-директорий | примитив установки обязан иметь интеграционные тесты «на временном репо» |
-| Платежи | **Stripe hosted checkout** + вебхук в `@maks417/core` | §14; минимальная PCI-нагрузка |
+| Платежи | **Stripe hosted checkout** + вебхук в `@vitrine-kit/core` | §14; минимальная PCI-нагрузка |
 
-> ⚠️ Решения, требующие подтверждения стейкхолдеров до кода — см. §10 этого плана (имя npm-scope `@org`, приватный реестр = GitHub Packages, минимальные версии Node/PM, юр-проверка лицензий Vendure GPL-3.0).
+> ⚠️ Решения, требующие подтверждения стейкхолдеров до кода — см. §10 этого плана (имя npm-scope `@vitrine-kit`, публичный реестр = npm (npmjs.com), минимальные версии Node/PM, юр-проверка лицензий Vendure GPL-3.0).
 
 ---
 
@@ -50,10 +50,10 @@
 ```
 vitrine/                       # github.com/org/vitrine
 ├─ packages/
-│  ├─ contracts/               # @maks417/contracts
-│  ├─ core/                    # @maks417/core
-│  ├─ payload-blueprint/       # @maks417/payload-blueprint
-│  └─ cli/                     # @maks417/vitrine
+│  ├─ contracts/               # @vitrine-kit/contracts
+│  ├─ core/                    # @vitrine-kit/core
+│  ├─ payload-blueprint/       # @vitrine-kit/payload-blueprint
+│  └─ cli/                     # @vitrine-kit/vitrine
 ├─ registry/                   # copy-in фичи (+ _index.json)
 ├─ templates/                  # base, backend-payload, (позже) backend-vendure
 ├─ sandbox/                    # площадка core-разработки на контрактах
@@ -75,7 +75,7 @@ vitrine/                       # github.com/org/vitrine
 **Deliverables:** скелет из §2; pnpm/turbo/tsconfig base; Changesets; CI-каркас (lint+typecheck+test на PR); пустые пакеты с `package.json` и `publishConfig` под приватный реестр.
 **DoD:** `pnpm i && pnpm build && pnpm test` зелёные на пустом каркасе; CI гоняет на PR.
 
-### M1 — `@maks417/contracts` (5 контрактов) · `L` · *роадмап п.1*
+### M1 — `@vitrine-kit/contracts` (5 контрактов) · `L` · *роадмап п.1*
 Самый важный пакет. Здесь только **типы и API-поверхности**, минимум рантайма.
 **Deliverables:**
 - **1 · Tokens** — имена CSS-переменных / Tailwind-preset (палитра, типографика, отступы, радиусы, тени, плотность). Контракт = список имён токенов + типизированный preset; значения живут в `theme/<client>.css` клиента.
@@ -88,12 +88,12 @@ vitrine/                       # github.com/org/vitrine
 **DoD:** типы компилируются; JSON Schema сгенерированы и провалидированы примером; v1-список слотов/токенов утверждён на ревью; первый changeset `1.0.0`; README с гарантией semver (аддитивность).
 **Риск-гейт:** ревью контрактов всеми ролями — это API, который потом нельзя ломать.
 
-### M2 — `@maks417/core` + `@maks417/payload-blueprint` · `L` · *роадмап п.2*
-**`@maks417/core` deliverables:**
+### M2 — `@vitrine-kit/core` + `@vitrine-kit/payload-blueprint` · `L` · *роадмап п.2*
+**`@vitrine-kit/core` deliverables:**
 - Runtime слотов: реестр `registerSlot()` + серверный компонент `<Slot name=… />`, рендерящий зарегистрированное по `order`.
 - Runtime адаптера: фабрика/DI, отдающая активный `CatalogSource`/`CommerceBackend` по `site.config`.
 - Order pipeline + Stripe webhook handler (используется в M8, но каркас здесь — критлогика обязана жить в пакете).
-**`@maks417/payload-blueprint` deliverables:**
+**`@vitrine-kit/payload-blueprint` deliverables:**
 - Базовые Payload-коллекции: `products`, `variants`, `categories`, `media`, `users`, `orders`.
 - Реализация `extend()`: централизованный реестр расширений, который Payload-конфиг клиента собирает в финальные коллекции.
 **DoD:** в `sandbox/` слот рендерит тестовый компонент; `extend('product',{addFields})` аддитивно добавляет поле без поломки базовой коллекции; unit-тесты пайплайна заказа (моки Stripe).
@@ -103,7 +103,7 @@ vitrine/                       # github.com/org/vitrine
 **Deliverables на фичу:** `feature.json` (по схеме из §8) + `files/` (wireframe-компоненты: функционально полные, a11y-полные, визуально нейтральные — токены стартуют пустыми) + биндинг к `CatalogSource` + регистрация слотов + `docs/*.md` для `CLAUDE.md`.
 **DoD:** каждая фича устанавливается в sandbox вручную (до CLI) и работает на `PayloadCatalog*`-адаптере; `feature.json` валиден против схемы.
 
-### M4 — `@maks417/vitrine` CLI: примитив установки → `init` + `add` · `XL` · *роадмап п.4*
+### M4 — `@vitrine-kit/vitrine` CLI: примитив установки → `init` + `add` · `XL` · *роадмап п.4*
 **Сердце системы.** Сначала примитив, потом обёртки. Детали примитива — §4 этого плана.
 **Deliverables:**
 - **Feature-install primitive** (7 шагов §9): резолв зависимостей (registry+core+npm) → копирование `files` → флаг в `site.config` → регистрация слотов → аддитивный blueprint-extend → сбор env+npm → запись `vitrine.json`+`CLAUDE.md`. Идемпотентный, с откатом при падении.
@@ -136,7 +136,7 @@ vitrine/                       # github.com/org/vitrine
 **DoD:** офлайн-`add` после `kit update`; `doctor` ловит подброшенный рассинхрон (удалённый файл, версия не та, пропавший env) и предлагает фикс.
 
 ### M8 — Коммерция: `cart`, `checkout-stripe` → простой магазин · `L` · *роадмап п.8*
-**Deliverables:** фичи `cart`, `checkout-stripe` в реестре; реализация `CommerceBackend` на Payload (`PayloadCommerce*`); Stripe Checkout (redirect) + вебхук-обработчик в `@maks417/core` (критлогика!) + создание заказа.
+**Deliverables:** фичи `cart`, `checkout-stripe` в реестре; реализация `CommerceBackend` на Payload (`PayloadCommerce*`); Stripe Checkout (redirect) + вебхук-обработчик в `@vitrine-kit/core` (критлогика!) + создание заказа.
 **DoD:** e2e (playwright + Stripe test mode): добавление в корзину → checkout → редирект Stripe → вебхук → заказ в админке. `tier=simple-store` собирается визардом.
 
 ### M9 — `update` с 3-way merge + `diff` · `L` · *роадмап п.9*
@@ -227,7 +227,7 @@ installFeature(repo, feature, version):
 ## 8. CI/CD и релизы
 
 - **PR-гейт:** lint + typecheck + unit + валидация всех `feature.json`/`schemas` + интеграционные тесты примитива установки. **Ревью-гейт §3 спеки:** новая фича обязана зависеть только от контрактов (линт-правило/проверка импортов в `registry/*`).
-- **Release (Changesets):** merge в main → CI публикует изменённые пакеты в приватный npm (GitHub Packages) **и** прикладывает immutable tarball реестра к GitHub-релизу (тег). `kit update` тянет именно его.
+- **Release (Changesets):** merge в main → CI публикует изменённые пакеты в публичный npm (npmjs.com, с provenance) **и** прикладывает immutable tarball реестра к GitHub-релизу (тег). `kit update` тянет именно его.
 - **Каналы:** `stable` (теги) по умолчанию; `main` (bleeding-edge) под флагом `--channel main`.
 
 ---
@@ -248,16 +248,16 @@ installFeature(repo, feature, version):
 
 | # | Решение | **Выбор** | Последствие для плана | Из спеки |
 |---|---|---|---|---|
-| 1 | Приватный реестр пакетов | **GitHub Packages** | `publishConfig.registry` = npm.pkg.github.com; авторизация `gh`/git-creds; kit-релизы и пакеты на одной платформе. **scope** = `@maks417`, репо `github.com/Maks417/vitrine` (приватный, личный аккаунт) | §6 |
+| 1 | Реестр пакетов | **npm (npmjs.com), публичный** | `publishConfig.access` = public; публикация из CI (`NPM_TOKEN`) с provenance; установка без токена. **scope** = `@vitrine-kit` (npm-орг), репо `github.com/vitrine-kit/vitrine` | §6 |
 | 2 | Рантайм-базис | **Node 20 LTS + pnpm-first** | `engines.node >=20`; preflight (шаг 0 визарда) проверяет Node 20; CI на Node 20; pnpm основной, npm/yarn best-effort | §10 |
 | 3 | Первый хостинг-таргет эталона | **VPS + Docker** | M5 генерит `Dockerfile` + `docker-compose.yml` (app + Postgres); пул-коннектор для serverless-Postgres понижен в приоритете; деплой-заметки под VPS | §10, §16 |
 | 4 | Полный магазин (Vendure, GPL-3.0) | **Закоммитились в M10 сейчас** | Vendure в основном плане, не за флагом. ⚠️ Юр-проверка GPL-3.0 (§3/§15, **TBD**) запускается **параллельно** как отдельный трек — выбор «делаем» не снимает лицензионный риск, а только фиксирует последовательность | §3, §15 |
 | 5 | `vitrine design apply` | **Обёртка над Claude Code** | CLI шеллит в установленный Claude Code с инструкцией из `CLAUDE.md` + `/design`; своя Anthropic-интеграция/ключ не нужны; M6 = тонкий запуск + проверка идемпотентности | §11 |
 | 6 | Имена слотов/токенов v1 | **Зафиксировать набор сейчас** | Замкнутый минимальный список слотов и токенов — артефакт M1 (предложу при старте M1), замораживается под semver | §5 |
 
-> **Scope зафиксирован:** `@maks417` (личный аккаунт `github.com/Maks417`, пакеты приватные). `.npmrc` всех репо (kit + клиентских): `@maks417:registry=https://npm.pkg.github.com`.
+> **Scope зафиксирован:** `@vitrine-kit` (npm-организация на npmjs.com, пакеты публичны). Внутри монорепо пакеты линкуются через `workspace:*`; внешний реестр не задействован.
 >
-> **Следствие для клиентских репозиториев:** приватные `@maks417/*` пакеты требуют авторизации и **на установке тоже** — каждому клиентскому репо (dev-машина + CI + Docker-build на VPS) нужен GitHub PAT со scope `read:packages`. Заложить в M0/M5: `.npmrc` с `${GITHUB_TOKEN}`, заметка в `.env.example` и в `CLAUDE.md` клиента, и build-arg для Docker. Это единственная «цена» приватного личного scope против публичного.
+> **Следствие для клиентских репозиториев:** публичные `@vitrine-kit/*` ставятся без авторизации — ни dev-машине, ни CI, ни Docker-build на VPS токен не нужен. Клиентскому репо не нужен ни `.npmrc`, ни PAT.
 
 ---
 

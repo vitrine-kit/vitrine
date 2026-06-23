@@ -33,7 +33,7 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
   const paymentsText = exists(paths.payments) ? readText(paths.payments) : '';
 
   // Глобальные пакеты-контракты.
-  for (const core of ['@maks417/contracts', '@maks417/core']) {
+  for (const core of ['@vitrine-kit/contracts', '@vitrine-kit/core']) {
     if (!deps[core]) {
       add({ severity: 'error', scope: 'packages', message: `нет зависимости ${core}`, fix: 'добавьте в package.json' });
     }

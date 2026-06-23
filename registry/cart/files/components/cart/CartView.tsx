@@ -1,6 +1,6 @@
 // Содержимое корзины — презентационное. Хостит слоты cart.items-bottom / cart.below.
-import type { Cart } from '@maks417/contracts';
-import { Slot } from '@maks417/core/react';
+import type { Cart } from '@vitrine-kit/contracts';
+import { Slot } from '@vitrine-kit/core/react';
 import { CartLineItem } from './CartLineItem.js';
 import { CartSummary } from './CartSummary.js';
 

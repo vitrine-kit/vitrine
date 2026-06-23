@@ -6,7 +6,7 @@
   "requiresContracts": ">=1.0.0 <2.0.0",
   "tier": ["simple-store", "full-store"],
   "registryDependencies": ["cart"],
-  "corePackages": { "@maks417/core": ">=0.1.0" },
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
   "npm": [],
   "files": [
     { "from": "files/components/checkout/", "to": "components/checkout/" },

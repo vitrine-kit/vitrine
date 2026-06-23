@@ -7,7 +7,7 @@ vitrine.json, CLAUDE.md, package.json, lib/slots.ts, lib/blueprint.ts, theme/cli
 
 - `base` — ✅ M5. Next.js (App Router, route group `(frontend)`) + Tailwind (пресет
   Vitrine), роуты витрины (главная/каталог, товар, категория), шапка/подвал с хостингом
-  слотов, `.gitignore` (с `.vitrine/`), `.npmrc` (scope `@maks417`), `/design` README.
+  слотов, `.gitignore` (с `.vitrine/`), `/design` README.
 - `backend-payload` — ✅ M5. Payload-конфиг, админка `(payload)`, адаптер
   `PayloadCatalogSource` поверх контракта `CatalogSource`, zero-config dev
   (SQLite-fallback + демо-сид + dev-админ, §18), `Dockerfile` + `docker-compose.yml`

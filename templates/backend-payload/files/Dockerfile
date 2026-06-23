@@ -1,21 +1,17 @@
 # syntax=docker/dockerfile:1
 # Образ эталонного клиента Vitrine (Next standalone + Payload). Таргет — VPS.
-# Приватные пакеты @maks417/* требуют GITHUB_TOKEN (build-arg).
+# Пакеты @vitrine-kit/* публичны в npm — токен для установки не нужен.
 FROM node:20-alpine AS base
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app
 
 # --- зависимости -----------------------------------------------------------
 FROM base AS deps
-ARG GITHUB_TOKEN
-ENV GITHUB_TOKEN=${GITHUB_TOKEN}
-COPY package.json pnpm-lock.yaml* .npmrc ./
+COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile || pnpm install
 
 # --- сборка -----------------------------------------------------------------
 FROM base AS build
-ARG GITHUB_TOKEN
-ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

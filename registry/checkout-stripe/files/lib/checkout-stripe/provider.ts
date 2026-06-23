@@ -2,13 +2,13 @@
 // не в ядре: createCheckout создаёт сессию, verifyWebhook проверяет подпись и
 // нормализует событие в NormalizedPaymentEvent. Маппинг корзины в line items Stripe
 // (price_data — динамические цены, unit_amount в минимальных единицах) — тоже здесь.
-import type { Cart } from '@maks417/contracts';
+import type { Cart } from '@vitrine-kit/contracts';
 import type {
   CreateCheckoutArgs,
   NormalizedPaymentEvent,
   PaymentProvider,
   PaymentWebhookRequest,
-} from '@maks417/core';
+} from '@vitrine-kit/core';
 
 interface StripeLineItem {
   quantity: number;

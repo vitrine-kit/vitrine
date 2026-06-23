@@ -2,7 +2,7 @@
 // событие → handlePaymentWebhook → общий fulfillOrderFromEvent создаёт заказ из
 // корзины и помечает её converted. Провайдер-специфичного кода тут нет — только склейка.
 import { NextResponse } from 'next/server';
-import { handlePaymentWebhook } from '@maks417/core';
+import { handlePaymentWebhook } from '@vitrine-kit/core';
 import { stripeProvider } from '@/lib/checkout-stripe/provider';
 import { fulfillOrderFromEvent } from '@/lib/checkout/fulfill';
 

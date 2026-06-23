@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { isValidElement, type ComponentType, type ReactElement } from 'react';
-import type { CatalogSource, CommerceBackend, Order, SiteConfig } from '@maks417/contracts';
+import type { CatalogSource, CommerceBackend, Order, SiteConfig } from '@vitrine-kit/contracts';
 import { createSlotRegistry } from './slots/registry.js';
 import { createAdapterRegistry, type AdapterFactory } from './adapter/resolver.js';
 import { runPipeline, type OrderStage } from './order/pipeline.js';

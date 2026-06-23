@@ -1,7 +1,7 @@
 // Runtime слотов (контракт 3). Фреймворк-агностичный реестр: хранит привязки
 // имя-компонент и отдаёт их по слоту, упорядоченные по order (меньше = выше).
-// React-обёртка <Slot> — в @maks417/core/react.
-import type { SlotId, SlotMount } from '@maks417/contracts';
+// React-обёртка <Slot> — в @vitrine-kit/core/react.
+import type { SlotId, SlotMount } from '@vitrine-kit/contracts';
 
 export interface SlotRegistry<C = unknown> {
   register(mount: SlotMount<C>): void;

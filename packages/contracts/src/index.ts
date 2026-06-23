@@ -1,4 +1,4 @@
-// @maks417/contracts
+// @vitrine-kit/contracts
 // Пять стабильных контрактов Vitrine под semver. Расширять ТОЛЬКО аддитивно.
 //
 // 1 · Tokens     → ./tokens

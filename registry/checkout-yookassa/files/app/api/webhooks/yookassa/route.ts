@@ -2,7 +2,7 @@
 // перепроверяет платёж через API (доверяем только succeeded) → нормализованное
 // событие → handlePaymentWebhook → общий fulfillOrderFromEvent.
 import { NextResponse } from 'next/server';
-import { handlePaymentWebhook } from '@maks417/core';
+import { handlePaymentWebhook } from '@vitrine-kit/core';
 import { yookassaProvider } from '@/lib/checkout-yookassa/provider';
 import { fulfillOrderFromEvent } from '@/lib/checkout/fulfill';
 

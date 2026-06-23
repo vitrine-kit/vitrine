@@ -44,7 +44,7 @@ export const slotRegistrationSchema = z.object({
 export type SlotRegistration = z.infer<typeof slotRegistrationSchema>;
 
 /**
- * Рантайм-привязка имени к фактическому компоненту (используется @maks417/core
+ * Рантайм-привязка имени к фактическому компоненту (используется @vitrine-kit/core
  * в lib/slots.ts клиента). Дженерик по типу компонента, чтобы контракт не
  * зависел от React.
  */

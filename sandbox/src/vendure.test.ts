@@ -3,7 +3,7 @@
 // значит фичи каталога/корзины работают на Vendure БЕЗ изменений. Импорт по
 // относительному пути (как остальные кросс-граничные тесты); зависит только от контрактов.
 import { describe, expect, it } from 'vitest';
-import type { Cart, Product } from '@maks417/contracts';
+import type { Cart, Product } from '@vitrine-kit/contracts';
 import {
   mapOrderState,
   mapVendureCollection,

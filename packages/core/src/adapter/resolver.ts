@@ -6,7 +6,7 @@ import type {
   CatalogSource,
   CommerceBackend,
   SiteConfig,
-} from '@maks417/contracts';
+} from '@vitrine-kit/contracts';
 
 export interface AdapterFactory {
   backend: Backend;

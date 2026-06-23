@@ -1,7 +1,7 @@
 // Построение заказа из корзины. Денежная/заказная логика — в пакете (критично).
 // Маппинг в формат конкретного платёжного провайдера живёт в самой фиче
 // checkout-<provider> (вместе с её SDK), а не здесь.
-import type { Cart, Order, OrderLine, OrderStatus } from '@maks417/contracts';
+import type { Cart, Order, OrderLine, OrderStatus } from '@vitrine-kit/contracts';
 
 export interface BuildOrderOptions {
   id: string;

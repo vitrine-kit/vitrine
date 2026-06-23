@@ -8,7 +8,7 @@
 // ЮKassa ждёт сумму десятичной строкой ("1990.00"); наш Money — минимальные единицы,
 // поэтому делим на 100 (RUB и большинство валют — 2 знака).
 import { randomUUID } from 'node:crypto';
-import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@maks417/core';
+import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@vitrine-kit/core';
 
 const API = 'https://api.yookassa.ru/v3/payments';
 const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP']);
