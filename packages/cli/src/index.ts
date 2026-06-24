@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// @vitrine-kit/vitrine — CLI. Command wrappers over the install primitive.
-// Surface §9: init/add/remove/list are implemented (M4); update/diff/doctor/
-// kit/design — M7+/M9.
+// @vitrine-kit/vitrine — CLI. Command wrappers over the install primitive:
+// init/add/remove/list plus update/diff/doctor/kit/design.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';

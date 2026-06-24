@@ -2,7 +2,7 @@
 // 7 declarative steps: resolve dependencies → copy files → flag in
 // site.config → slots → blueprint → env+npm → vitrine.json + CLAUDE.md.
 // Idempotent (re-running the same version = no-op), transactional (rollback on error),
-// snapshots pristine originals into .vitrine/originals (the base for 3-way merge, M9).
+// snapshots pristine originals into .vitrine/originals (the base for 3-way merge).
 import { join } from 'node:path';
 import type { FeatureManifest } from '@vitrine-kit/contracts';
 import type { Project } from './project.js';
@@ -76,7 +76,7 @@ function copyFeatureFiles(
     for (const file of eachFeatureFile(featDir, map)) {
       const content = readText(file.srcAbs);
       tx.write(safeJoin(project.root, file.repoRel), content); // into the repo
-      tx.write(safeJoin(originalsBase, file.repoRel), content); // pristine for M9
+      tx.write(safeJoin(originalsBase, file.repoRel), content); // pristine base for 3-way merge
     }
   }
 }

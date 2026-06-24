@@ -9,7 +9,7 @@ build/
 .env.local
 .env.*.local
 
-# zero-config dev: local SQLite + pristine feature originals (M9)
+# zero-config dev: local SQLite + pristine feature originals
 .vitrine/
 
 # generated

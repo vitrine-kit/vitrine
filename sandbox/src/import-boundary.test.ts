@@ -6,7 +6,7 @@
 // Forbidden first and foremost is @vitrine-kit/payload-blueprint (a vendure client does NOT install it —
 // see clientPackageJson in packages/cli/src/init.ts: blueprint is for backend=payload only),
 // and likewise the CLI itself / any future engine-specific package. Otherwise a feature stops
-// being portable between client repositories (breaks the M10 proof).
+// being portable between client repositories (breaks the portability proof).
 // We scan ALL of registry/*/files/** (including the app/** Next glue, which is not covered by
 // typecheck:registry). Runs in a regular `pnpm test` → already in CI.
 import { describe, expect, it } from 'vitest';

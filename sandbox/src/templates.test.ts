@@ -1,4 +1,4 @@
-// M5: a check of the backend-payload template's pure critical logic without installing
+// A check of the backend-payload template's pure critical logic without installing
 // Next/Payload — the DB selection table (§18.1), Payload→contract mappers, demo-seed
 // invariants and dev-procedure guards. Files are imported by relative path
 // (like registry.test.ts) — proof that the logic depends only on the contracts.

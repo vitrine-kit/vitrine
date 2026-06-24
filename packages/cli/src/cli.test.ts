@@ -81,7 +81,7 @@ describe('init + install primitive (DoD)', () => {
     // CLAUDE.md table
     expect(read(root, 'CLAUDE.md')).toContain('| `catalog` |');
 
-    // pristine snapshots for M9
+    // pristine snapshots for 3-way merge
     expect(existsSync(join(root, '.vitrine/originals/catalog@0.0.0/components/catalog/ProductCard.tsx'))).toBe(true);
   });
 
@@ -159,7 +159,7 @@ describe('init + install primitive (DoD)', () => {
   });
 });
 
-describe('init payload template (M5)', () => {
+describe('init payload template', () => {
   it('scaffolds base + backend-payload (zero-config + Docker) and the stack in package.json', () => {
     const root = join(tmp(), 'shop');
     initProject({
@@ -405,7 +405,7 @@ describe('payment providers (multi-provider)', () => {
   });
 });
 
-describe('design apply (M6)', () => {
+describe('design apply', () => {
   function scaffold(features: string[] = ['catalog']): string {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features, registry });
@@ -464,7 +464,7 @@ describe('design apply (M6)', () => {
   });
 });
 
-describe('doctor (M7)', () => {
+describe('doctor', () => {
   // Synthetic registry with a feature declaring files+env+npm+slots — to control for drift.
   function featureRegistry(): string {
     const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
@@ -527,7 +527,7 @@ describe('doctor (M7)', () => {
   });
 });
 
-describe('kit cache (M7)', () => {
+describe('kit cache', () => {
   const repoRoot = join(here, '..', '..', '..'); // monorepo: registry/ + templates/
 
   it('populateCache fills ~/.vitrine (registry + templates) and writes meta', () => {
@@ -584,7 +584,7 @@ describe('kit cache (M7)', () => {
   });
 });
 
-describe('init vendure / portability (M10)', () => {
+describe('init vendure / portability', () => {
   it('full-store → vendure: backend-vendure + the same storefront and features, without Payload', () => {
     const root = join(tmp(), 'shop');
     initProject({
@@ -623,7 +623,7 @@ describe('init vendure / portability (M10)', () => {
   });
 });
 
-describe('merge3 (3-way, M9)', () => {
+describe('merge3 (3-way)', () => {
   it('theirs-only change → take theirs', () => {
     const r = merge3('a\nb\nc', 'a\nb\nc', 'a\nb\nc\nd');
     expect(r.clean).toBe(true);
@@ -666,7 +666,7 @@ describe('merge3 (3-way, M9)', () => {
   });
 });
 
-describe('vitrine update (M9)', () => {
+describe('vitrine update', () => {
   function demoReg(version: string, content: string): string {
     const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
     tmps.push(dir);

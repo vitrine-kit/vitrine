@@ -1,4 +1,4 @@
-// M10: proof of contract portability. The Vendure mappers produce the same
+// Proof of contract portability. The Vendure mappers produce the same
 // contract types (Product/Category/Cart/Order) as the Payload adapter —
 // meaning the catalog/cart features work on Vendure WITHOUT changes. Imported by
 // relative path (like the other cross-boundary tests); depends only on the contracts.

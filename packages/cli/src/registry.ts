@@ -1,4 +1,4 @@
-// The feature registry source. In prod — the ~/.vitrine/registry cache (M7); in dev — the
+// The feature registry source. In prod — the ~/.vitrine/registry cache; in dev — the
 // monorepo registry (search up the tree). Can be overridden by flag/env.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';

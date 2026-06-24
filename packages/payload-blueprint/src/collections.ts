@@ -1,5 +1,5 @@
 // Vitrine's base collections (a neutral form, ported into the client's Payload
-// config in M5). Fields are described by the contract BlueprintFieldDef; extra Payload options
+// config). Fields are described by the contract BlueprintFieldDef; extra Payload options
 // (admin/access/hooks/upload/auth) go through passthrough keys.
 import type { BlueprintFieldDef } from '@vitrine-kit/contracts';
 

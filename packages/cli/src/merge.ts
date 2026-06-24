@@ -1,7 +1,7 @@
 // Line-based 3-way merge (diff3) for `vitrine update`. Base = the pristine original
 // of the version (.vitrine/originals), ours = the client repo (styled), theirs =
 // the version from the registry. Pure, dependency-free — hence covered by tests as
-// the only non-trivial M9 logic. A clean merge is silent; a conflict — git markers.
+// the only non-trivial update logic. A clean merge is silent; a conflict — git markers.
 
 function splitLines(s: string): string[] {
   return s.split('\n');

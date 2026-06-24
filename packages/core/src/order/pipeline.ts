@@ -1,4 +1,4 @@
-// Order pipeline (scaffold, filled in M8). The order's critical logic lives in the package,
+// Order pipeline. The order's critical logic lives in the package,
 // not the copy-in registry: a bug here = an incident for every client.
 import type { Cart, Order } from '@vitrine-kit/contracts';
 
@@ -14,7 +14,7 @@ export type OrderStage<T = OrderPipelineContext> = (ctx: T) => T | Promise<T>;
 
 /**
  * Runs the context through the stages sequentially. Any stage error aborts the
- * pipeline (rollback/idempotency are the responsibility of specific stages in M8).
+ * pipeline (rollback/idempotency are the responsibility of specific stages).
  */
 export async function runPipeline<T>(
   ctx: T,

@@ -58,6 +58,6 @@ pnpm changeset          # describe a change (locally)
 
 ## Status
 
-Phases **M0–M10** are implemented; the offline gate (build/typecheck/tests/schemas) is green. Live
-stack runs (Next/Payload/Vendure/Stripe, e2e) and package publishing happen in CI / on a machine
-with the full stack; the Vendure license (GPL-3.0) legal review is a separate parallel track.
+The kit is complete and published: the `@vitrine-kit/*` packages are on npm, the copy-in feature
+registry and the `base` / `backend-payload` / `backend-vendure` templates are in place, and the
+build/typecheck/tests/schemas gate is green.

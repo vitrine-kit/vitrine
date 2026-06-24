@@ -1,4 +1,4 @@
-// Registry check M3: manifests are valid against the schema, and the catalog data
+// Registry check: manifests are valid against the schema, and the catalog data
 // layer works on any CatalogSource (a portability proof via the contract).
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';

@@ -1,5 +1,5 @@
 // Resolver for the storefront's active backend. The catalog is served via the
-// Payload local API; commerce (CommerceBackend) is enabled by the cart/checkout-stripe features (M8).
+// Payload local API; commerce (CommerceBackend) is enabled by the cart/checkout-stripe features.
 import { getPayload } from 'payload';
 import config from '@payload-config';
 import type { CatalogSource, CommerceBackend } from '@vitrine-kit/contracts';

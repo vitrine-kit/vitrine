@@ -5,14 +5,14 @@
 then the CLI generates managed files on top of it (site.config.ts, vitrine.json, CLAUDE.md,
 package.json, lib/slots.ts, lib/blueprint.ts, theme/client.css).
 
-- `base` — ✅ M5. Next.js (App Router, route group `(frontend)`) + Tailwind (Vitrine preset),
+- `base` — Next.js (App Router, route group `(frontend)`) + Tailwind (Vitrine preset),
   storefront routes (home/catalog, product, category), header/footer hosting slots,
   `.gitignore` (with `.vitrine/`), `/design` README.
-- `backend-payload` — ✅ M5. Payload config, the `(payload)` admin, a `PayloadCatalogSource`
+- `backend-payload` — Payload config, the `(payload)` admin, a `PayloadCatalogSource`
   adapter over the `CatalogSource` contract, zero-config dev
   (SQLite fallback + demo seed + dev admin, §18), `Dockerfile` + `docker-compose.yml`
   (app + Postgres, VPS hosting target).
-- `backend-vendure` — ✅ M10. A Vendure server (`vendure-config.ts`, Postgres/SQLite-dev db,
+- `backend-vendure` — A Vendure server (`vendure-config.ts`, Postgres/SQLite-dev db,
   superadmin from env), `VendureCatalogSource`/`VendureCommerceBackend` adapters over the Shop
   GraphQL API, a populate guard (§18 equivalent), `Dockerfile` + `docker-compose.yml` (db + server + web).
   The storefront (`app/(frontend)`) and the catalog/cart features are the same as on Payload

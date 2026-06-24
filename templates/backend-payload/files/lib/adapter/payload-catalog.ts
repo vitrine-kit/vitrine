@@ -14,7 +14,7 @@ import type { ProductDoc, VariantDoc } from './payload-types.js';
 function sortExpr(sort?: ProductSort): string {
   switch (sort) {
     case 'price-asc':
-      return 'createdAt'; // price lives in the variants collection — price sorting is provided by the filters feature (M8+)
+      return 'createdAt'; // price lives in the variants collection — price sorting is provided by the filters feature
     case 'price-desc':
       return '-createdAt';
     default: // newest and unspecified sort
