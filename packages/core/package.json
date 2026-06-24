@@ -1,6 +1,6 @@
 {
   "name": "@vitrine-kit/core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Vitrine core — slot/adapter runtime, order pipeline, Stripe webhook. Critical logic (a bug = an incident for everyone).",
   "license": "MIT",
   "type": "module",
