@@ -1,14 +1,14 @@
 ---
-description: Применить дизайн из /design к токенам (vitrine design apply)
+description: Apply the design from /design to the tokens (vitrine design apply)
 ---
 
-Примени клиентский дизайн:
+Apply the client design:
 
-1. Проверь, что в папке `/design` есть экспорт бренда (что-то кроме `README.md`: токены,
-   скриншоты, ассеты). Если пусто — попроси пользователя положить экспорт и остановись.
-2. `vitrine design apply` — обёртка над Claude Code: задаёт ТОЛЬКО значения CSS-переменных
-   в `theme/client.css`, не трогая логику/данные/роутинг/структуру. Набор токенов замкнут.
-3. Покажи диф `theme/client.css` и кратко опиши изменения палитры/типографики/отступов.
-4. Шаг идемпотентен — повторный прогон сходится. При необходимости запусти ещё раз.
+1. Check that the `/design` folder has a brand export (something besides `README.md`: tokens,
+   screenshots, assets). If it's empty — ask the user to add the export and stop.
+2. `vitrine design apply` — a wrapper over Claude Code: it sets ONLY the CSS variable values
+   in `theme/client.css`, without touching logic/data/routing/structure. The token set is closed.
+3. Show the `theme/client.css` diff and briefly describe the palette/typography/spacing changes.
+4. The step is idempotent — re-running converges. Run it again if needed.
 
-Если Claude Code не найден в PATH — укажи путь через `--bin` или `VITRINE_CLAUDE_BIN`.
+If Claude Code isn't found in PATH — point to it via `--bin` or `VITRINE_CLAUDE_BIN`.

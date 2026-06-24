@@ -1,4 +1,4 @@
-// Листинг категории. Фильтрация по slug категории через контракт CatalogSource.
+// Category listing. Filtered by category slug via the CatalogSource contract.
 import { notFound } from 'next/navigation';
 import { Slot } from '@vitrine-kit/core/react';
 import { getCatalogSource } from '@/lib/adapter';

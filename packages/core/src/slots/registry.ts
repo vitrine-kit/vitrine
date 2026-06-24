@@ -1,12 +1,12 @@
-// Runtime слотов (контракт 3). Фреймворк-агностичный реестр: хранит привязки
-// имя-компонент и отдаёт их по слоту, упорядоченные по order (меньше = выше).
-// React-обёртка <Slot> — в @vitrine-kit/core/react.
+// The slot runtime (contract 3). A framework-agnostic registry: stores name→component
+// bindings and returns them by slot, ordered by `order` (lower = higher).
+// The React <Slot> wrapper lives in @vitrine-kit/core/react.
 import type { SlotId, SlotMount } from '@vitrine-kit/contracts';
 
 export interface SlotRegistry<C = unknown> {
   register(mount: SlotMount<C>): void;
   registerMany(mounts: ReadonlyArray<SlotMount<C>>): void;
-  /** Привязки слота, отсортированные по order (стабильно по порядку регистрации). */
+  /** A slot's bindings, sorted by order (stable by registration order). */
   get(slot: SlotId): SlotMount<C>[];
   clear(): void;
 }
@@ -40,7 +40,7 @@ export function createSlotRegistry<C = unknown>(): SlotRegistry<C> {
   return { register, registerMany, get, clear };
 }
 
-/** Глобальный реестр по умолчанию (клиент регистрирует слоты в lib/slots.ts). */
+/** The default global registry (the client registers slots in lib/slots.ts). */
 export const slotRegistry: SlotRegistry = createSlotRegistry();
 
 export function registerSlot<C = unknown>(mount: SlotMount<C>): void {

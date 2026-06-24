@@ -1,13 +1,13 @@
 name: Release
 
-# Двухшаговый поток Changesets на push в main:
-#   1) есть неучтённые changesets → бот открывает/обновляет PR "Version Packages"
-#      (бамп версий + сборка CHANGELOG);
-#   2) этот PR влит (changesets израсходованы) → запускается publish:
-#      `pnpm release` публикует изменённые @vitrine-kit/* в публичный npm (registry.npmjs.org),
-#      changeset publish ставит git-теги, а createGithubReleases делает GitHub Releases.
-# Source-архив каждого релиза — это то, что тянет `vitrine kit update`
-# (gh release download --archive=tar.gz, см. packages/cli/src/kit-update.ts).
+# Two-step Changesets flow on push to main:
+#   1) there are unconsumed changesets → the bot opens/updates the "Version Packages" PR
+#      (version bump + CHANGELOG assembly);
+#   2) that PR is merged (changesets consumed) → publish runs:
+#      `pnpm release` publishes the changed @vitrine-kit/* to the public npm (registry.npmjs.org),
+#      changeset publish sets git tags, and createGithubReleases makes GitHub Releases.
+# The source archive of each release is what `vitrine kit update` pulls
+# (gh release download --archive=tar.gz, see packages/cli/src/kit-update.ts).
 on:
   push:
     branches: [main]
@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write # git-теги + GitHub Releases
-  pull-requests: write # PR "Version Packages"
+  contents: write # git tags + GitHub Releases
+  pull-requests: write # "Version Packages" PR
   id-token: write # npm provenance (OIDC)
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # changesets нужна история/теги
+          fetch-depth: 0 # changesets needs history/tags
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -46,12 +46,12 @@ jobs:
       - name: Version PR / Publish
         uses: changesets/action@v1
         with:
-          version: pnpm version-packages # bump версий из changesets
+          version: pnpm version-packages # version bump from changesets
           publish: pnpm release # turbo build && changeset publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PR "Version Packages" + GitHub Releases
-          # changesets/action ищет именно NPM_TOKEN; без него уходит в OIDC trusted publishing
-          # (которое у нас не настроено) и публикация молча не доезжает до npm.
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # токен-аутентификация для npm publish
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # .npmrc от setup-node
-          NPM_CONFIG_PROVENANCE: true # подпись provenance (требует id-token: write)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # "Version Packages" PR + GitHub Releases
+          # changesets/action specifically looks for NPM_TOKEN; without it, it falls back to OIDC trusted publishing
+          # (which we have not configured) and publishing silently never reaches npm.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # token auth for npm publish
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # .npmrc from setup-node
+          NPM_CONFIG_PROVENANCE: true # provenance signing (requires id-token: write)

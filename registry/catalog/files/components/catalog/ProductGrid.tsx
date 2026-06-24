@@ -1,4 +1,4 @@
-// Сетка товаров — презентационная, семантический список.
+// Product grid — presentational, semantic list.
 import type { Product } from '@vitrine-kit/contracts';
 import { ProductCard } from './ProductCard.js';
 
@@ -8,7 +8,7 @@ export interface ProductGridProps {
 
 export function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) {
-    return <p className="text-muted-fg">Товары не найдены.</p>;
+    return <p className="text-muted-fg">No products found.</p>;
   }
   return (
     <ul

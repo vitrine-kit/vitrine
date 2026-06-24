@@ -23,21 +23,21 @@ const A: ComponentType<Record<string, unknown>> = () => null;
 const B: ComponentType<Record<string, unknown>> = () => null;
 
 describe('slot registry', () => {
-  it('сортирует по order, затем по порядку регистрации', () => {
+  it('sorts by order, then by registration order', () => {
     const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
     reg.register({ slot: 'product.below-description', component: B, order: 20 });
     reg.register({ slot: 'product.below-description', component: A, order: 10 });
     expect(reg.get('product.below-description').map((m) => m.component)).toEqual([A, B]);
   });
 
-  it('пустой слот → []', () => {
+  it('empty slot → []', () => {
     const reg = createSlotRegistry();
     expect(reg.get('home.hero')).toEqual([]);
   });
 });
 
 describe('<Slot>', () => {
-  it('рендерит компоненты слота по порядку', () => {
+  it('renders slot components in order', () => {
     const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
     reg.register({ slot: 'home.hero', component: B, order: 2 });
     reg.register({ slot: 'home.hero', component: A, order: 1 });
@@ -47,7 +47,7 @@ describe('<Slot>', () => {
     expect(children.map((c) => c.type)).toEqual([A, B]);
   });
 
-  it('пустой слот → fallback', () => {
+  it('empty slot → fallback', () => {
     const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
     expect(Slot({ name: 'home.hero', registry: reg, fallback: 'empty' })).toBe('empty');
   });
@@ -61,19 +61,19 @@ describe('adapter registry', () => {
     createCommerce: () => ({}) as CommerceBackend,
   };
 
-  it('резолвит каталог и коммерцию по backend', () => {
+  it('resolves catalog and commerce by backend', () => {
     const reg = createAdapterRegistry();
     reg.register(factory);
     expect(reg.resolveCatalog(config)).toBeDefined();
     expect(reg.resolveCommerce(config)).toBeDefined();
   });
 
-  it('бросает для незарегистрированного backend', () => {
+  it('throws for an unregistered backend', () => {
     const reg = createAdapterRegistry();
     expect(() => reg.resolveCatalog(config)).toThrow();
   });
 
-  it('бросает на commerce для tier=catalog', () => {
+  it('throws on commerce for tier=catalog', () => {
     const reg = createAdapterRegistry();
     reg.register(factory);
     const catalogCfg = { backend: 'payload', tier: 'catalog' } as unknown as SiteConfig;
@@ -82,7 +82,7 @@ describe('adapter registry', () => {
 });
 
 describe('order pipeline', () => {
-  it('прогоняет шаги по порядку', async () => {
+  it('runs the stages in order', async () => {
     const steps: string[] = [];
     const stages: OrderStage<{ n: number }>[] = [
       (ctx) => { steps.push('a'); return { n: ctx.n + 1 }; },
@@ -103,7 +103,7 @@ describe('payment registry', () => {
   const cfg = (payments?: PaymentProviderName) =>
     ({ integrations: { payments } }) as unknown as SiteConfig;
 
-  it('register + resolve по integrations.payments', () => {
+  it('register + resolve by integrations.payments', () => {
     const reg = createPaymentRegistry();
     reg.register(provider('stripe'));
     reg.register(provider('yookassa'));
@@ -111,10 +111,10 @@ describe('payment registry', () => {
     expect(reg.get('stripe')?.name).toBe('stripe');
   });
 
-  it('бросает, если провайдер не задан или не зарегистрирован', () => {
+  it('throws if the provider is not set or not registered', () => {
     const reg = createPaymentRegistry();
-    expect(() => reg.resolve(cfg(undefined))).toThrow(/не задан/);
-    expect(() => reg.resolve(cfg('paddle'))).toThrow(/не зарегистрирован/);
+    expect(() => reg.resolve(cfg(undefined))).toThrow(/not set/);
+    expect(() => reg.resolve(cfg('paddle'))).toThrow(/is not registered/);
   });
 });
 
@@ -130,7 +130,7 @@ describe('payment webhook (provider-agnostic)', () => {
     verifyWebhook: async () => { throw new Error('bad signature'); },
   };
 
-  it('диспатчит checkout_completed → запускает пайплайн заказа', async () => {
+  it('dispatches checkout_completed → runs the order pipeline', async () => {
     const onCheckoutCompleted = vi.fn(async () => {
       await runPipeline({ created: false }, [(c) => ({ ...c, created: true })]);
     });
@@ -141,23 +141,23 @@ describe('payment webhook (provider-agnostic)', () => {
     expect(res).toEqual({ received: true, kind: 'checkout_completed', handled: true });
   });
 
-  it('бросает при неверной подписи', async () => {
+  it('throws on an invalid signature', async () => {
     await expect(
       handlePaymentWebhook({ provider: badProvider, req: { rawBody: '{}', headers: {} } }),
     ).rejects.toThrow('bad signature');
   });
 });
 
-describe('корзинная арифметика (commerce)', () => {
+describe('cart arithmetic (commerce)', () => {
   const line = (over: Partial<Parameters<typeof addCartLine>[1]> = {}) => ({
-    id: 'l1', variantId: 'v1', productId: 'p1', title: 'Футболка', unitPrice: 199000, quantity: 1, ...over,
+    id: 'l1', variantId: 'v1', productId: 'p1', title: 'T-Shirt', unitPrice: 199000, quantity: 1, ...over,
   });
 
-  it('addCartLine: новая строка и слияние того же варианта', () => {
-    let cart = addCartLine(emptyCart('c1', 'RUB'), line());
+  it('addCartLine: new line and merging the same variant', () => {
+    let cart = addCartLine(emptyCart('c1', 'USD'), line());
     expect(cart.lines).toHaveLength(1);
     expect(cart.subtotal).toBe(199000);
-    cart = addCartLine(cart, line({ id: 'l2', quantity: 2 })); // тот же variantId → слияние
+    cart = addCartLine(cart, line({ id: 'l2', quantity: 2 })); // same variantId → merge
     expect(cart.lines).toHaveLength(1);
     expect(cart.lines[0]?.quantity).toBe(3);
     expect(cart.subtotal).toBe(597000);
@@ -165,20 +165,20 @@ describe('корзинная арифметика (commerce)', () => {
     expect(cartItemCount(cart)).toBe(3);
   });
 
-  it('addCartLine отвергает нецелое/неположительное количество', () => {
-    const empty = emptyCart('c1', 'RUB');
-    expect(() => addCartLine(empty, line({ quantity: 0 }))).toThrow(/недопустимое количество/);
-    expect(() => addCartLine(empty, line({ quantity: -1 }))).toThrow(/недопустимое количество/);
-    expect(() => addCartLine(empty, line({ quantity: 2.5 }))).toThrow(/недопустимое количество/);
+  it('addCartLine rejects a non-integer/non-positive quantity', () => {
+    const empty = emptyCart('c1', 'USD');
+    expect(() => addCartLine(empty, line({ quantity: 0 }))).toThrow(/invalid line quantity/);
+    expect(() => addCartLine(empty, line({ quantity: -1 }))).toThrow(/invalid line quantity/);
+    expect(() => addCartLine(empty, line({ quantity: 2.5 }))).toThrow(/invalid line quantity/);
   });
 
-  it('setCartLineQty отвергает нецелое количество', () => {
-    const cart = addCartLine(emptyCart('c1', 'RUB'), line());
-    expect(() => setCartLineQty(cart, 'l1', 1.5)).toThrow(/недопустимое количество/);
+  it('setCartLineQty rejects a non-integer quantity', () => {
+    const cart = addCartLine(emptyCart('c1', 'USD'), line());
+    expect(() => setCartLineQty(cart, 'l1', 1.5)).toThrow(/invalid quantity/);
   });
 
-  it('setCartLineQty меняет количество, qty=0 удаляет', () => {
-    let cart = addCartLine(emptyCart('c1', 'RUB'), line());
+  it('setCartLineQty changes the quantity, qty=0 removes', () => {
+    let cart = addCartLine(emptyCart('c1', 'USD'), line());
     cart = setCartLineQty(cart, 'l1', 4);
     expect(cart.lines[0]?.quantity).toBe(4);
     expect(cart.subtotal).toBe(796000);
@@ -187,7 +187,7 @@ describe('корзинная арифметика (commerce)', () => {
     expect(cart.subtotal).toBe(0);
   });
 
-  it('removeCartLine и скидка в recalcCart', () => {
+  it('removeCartLine and discount in recalcCart', () => {
     let cart = addCartLine(emptyCart('c1', 'USD'), line({ unitPrice: 1000, quantity: 2 }));
     cart = recalcCart({ ...cart, discountTotal: 500 });
     expect(cart.subtotal).toBe(2000);
@@ -196,15 +196,15 @@ describe('корзинная арифметика (commerce)', () => {
     expect(cart.lines).toHaveLength(0);
   });
 
-  it('shouldCreateOrder: converted/существующий ref → false, свежий → true', () => {
+  it('shouldCreateOrder: converted/existing ref → false, fresh → true', () => {
     expect(shouldCreateOrder({ cartStatus: 'converted' })).toBe(false);
     expect(shouldCreateOrder({ providerRef: 'cs_1', existingOrderRefs: ['cs_1'] })).toBe(false);
     expect(shouldCreateOrder({ cartStatus: 'active', providerRef: 'cs_2', existingOrderRefs: ['cs_1'] })).toBe(true);
     expect(shouldCreateOrder({})).toBe(true);
   });
 
-  it('двойная доставка webhook (ретрай провайдера) → ровно один заказ', async () => {
-    const cart = addCartLine(emptyCart('cart1', 'RUB'), line({ quantity: 1 }));
+  it('double webhook delivery (provider retry) → exactly one order', async () => {
+    const cart = addCartLine(emptyCart('cart1', 'USD'), line({ quantity: 1 }));
     const cartStore = new Map([[cart.id, { ...cart, status: 'active' as string }]]);
     const orders: Order[] = [];
     const provider: PaymentProvider = {
@@ -234,13 +234,13 @@ describe('корзинная арифметика (commerce)', () => {
       });
 
     await deliver();
-    await deliver(); // провайдер ретраит то же событие
+    await deliver(); // the provider retries the same event
     expect(orders).toHaveLength(1);
     expect(orders[0]?.number).toBe('cs_test');
   });
 
-  it('checkout_completed → заказ из корзины (полная цепочка)', async () => {
-    const cart = addCartLine(emptyCart('cart1', 'RUB'), line({ quantity: 2 }));
+  it('checkout_completed → order from cart (full chain)', async () => {
+    const cart = addCartLine(emptyCart('cart1', 'USD'), line({ quantity: 2 }));
     const carts = new Map([[cart.id, cart]]);
     const created: Order[] = [];
     const provider: PaymentProvider = {

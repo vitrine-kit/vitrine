@@ -1,7 +1,7 @@
-// init: создаёт скелет клиентского репозитория из шаблонов (templates/base +
-// templates/backend-<backend>) и ставит выбранные фичи ТЕМ ЖЕ примитивом, что и
-// add (гарантия эквивалентности). Шаблон даёт статический каркас (Next/Payload,
-// конфиги, адаптеры, zero-config dev, Docker); CLI генерирует управляемые файлы
+// init: creates the client repository skeleton from templates (templates/base +
+// templates/backend-<backend>) and installs the chosen features with the SAME primitive as
+// add (equivalence guarantee). The template provides the static skeleton (Next/Payload,
+// configs, adapters, zero-config dev, Docker); the CLI generates the managed files
 // (site.config.ts, vitrine.json, CLAUDE.md, package.json, slots/blueprint/theme).
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -38,9 +38,9 @@ export function defaultBackend(tier: Tier): Backend {
 }
 
 /**
- * Фичи платёжных провайдеров — взаимоисключающие (conflicts). Провайдер выбирается
- * отдельным шагом мастера (single-select), поэтому из общего списка фич их убирают.
- * Порядок = порядок в меню мастера; первый — провайдер по умолчанию.
+ * Payment-provider features are mutually exclusive (conflicts). The provider is chosen
+ * in a separate wizard step (single-select), so they're removed from the general feature list.
+ * Order = order in the wizard menu; the first is the default provider.
  */
 export const PAYMENT_PROVIDER_FEATURES: string[] = [
   'checkout-stripe',
@@ -54,13 +54,13 @@ export function suggestFeatures(
   backend: Backend = defaultBackend(tier),
 ): string[] {
   const core = ['catalog', 'product-page', 'seo'];
-  // На Vendure оформление — нативное (Stripe-плагин Vendure); фича checkout-stripe Payload-специфична.
+  // On Vendure, checkout is native (Vendure's Stripe plugin); the checkout-stripe feature is Payload-specific.
   const shop = backend === 'vendure' ? ['cart'] : ['cart', 'checkout-stripe', 'reviews'];
   const desired = tier === 'catalog' ? core : [...core, ...shop];
   return desired.filter((name) => registry.hasFeature(name));
 }
 
-/** package.json клиента под backend (deps/scripts). Feature-deps домержит примитив. */
+/** The client's package.json per backend (deps/scripts). Feature deps are merged by the primitive. */
 function clientPackageJson(name: string, backend: Backend): Record<string, unknown> {
   const dependencies: Record<string, string> = {
     '@vitrine-kit/contracts': CONTRACTS_RANGE,
@@ -140,58 +140,58 @@ function clientPackageJson(name: string, backend: Backend): Record<string, unkno
   };
 }
 
-/** Базовый .env.example под backend (feature-env домержит примитив). */
+/** Base .env.example per backend (feature env merged by the primitive). */
 function clientEnvExample(backend: Backend): string {
   if (backend === 'vendure') {
     return [
-      '# Окружение проекта.',
+      '# Project environment.',
       '',
-      '# БД. Пусто в dev — встроенный SQLite (.vitrine/vendure.sqlite).',
+      '# DB. Empty in dev — built-in SQLite (.vitrine/vendure.sqlite).',
       'DATABASE_URL=',
       '',
-      '# Vendure Shop API (витрина → сервер).',
+      '# Vendure Shop API (storefront → server).',
       'VENDURE_SHOP_API_URL=http://localhost:3001/shop-api',
       '',
-      '# Суперадмин Vendure (dev-дефолт superadmin/superadmin; смените для прода).',
+      '# Vendure superadmin (dev default superadmin/superadmin; change it for prod).',
       'VENDURE_SUPERADMIN_USERNAME=',
       'VENDURE_SUPERADMIN_PASSWORD=',
       'VENDURE_COOKIE_SECRET=',
       '',
-      '# Базовый URL витрины.',
+      '# Storefront base URL.',
       'NEXT_PUBLIC_SITE_URL=http://localhost:3000',
       '',
     ].join('\n');
   }
   if (backend !== 'payload') {
-    return '# Окружение проекта.\nDATABASE_URL=\n';
+    return '# Project environment.\nDATABASE_URL=\n';
   }
   return [
-    '# Окружение проекта.',
+    '# Project environment.',
     '',
-    '# БД. Для локального dev можно оставить пустым — будет SQLite-fallback (.vitrine/dev.sqlite).',
+    '# DB. For local dev you can leave it empty — a SQLite fallback is used (.vitrine/dev.sqlite).',
     'DATABASE_URL=',
     '',
-    '# Секрет Payload (обязателен; сгенерируйте случайный для прода).',
+    '# Payload secret (required; generate a random one for prod).',
     'PAYLOAD_SECRET=',
     '',
-    '# Dev-админ (создаётся только в dev при пустой БД; пароль печатается в консоль).',
+    '# Dev admin (created only in dev when the DB is empty; the password is printed to the console).',
     'DEV_ADMIN_EMAIL=',
     'DEV_ADMIN_PASSWORD=',
     '',
-    '# Базовый URL сайта (canonical, OG).',
+    '# Site base URL (canonical, OG).',
     'NEXT_PUBLIC_SITE_URL=http://localhost:3000',
     '',
-    '# Отключить SQLite-fallback даже в dev (ловить опечатки конфига):',
+    '# Disable the SQLite fallback even in dev (to catch config typos):',
     '# VITRINE_DB_STRICT=1',
     '',
   ].join('\n');
 }
 
 /**
- * README клиентского репозитория — генерируется (не статичный файл шаблона), потому
- * что запуск/деплой backend-специфичны (Payload: /admin + PAYLOAD_SECRET; Vendure:
- * pnpm vendure + Shop API :3001 + VENDURE_*). Создаётся один раз при init; маркеров
- * нет, add/update его НЕ переписывают — клиент владеет файлом и правит свободно.
+ * The client repository's README — generated (not a static template file), because
+ * running/deploying is backend-specific (Payload: /admin + PAYLOAD_SECRET; Vendure:
+ * pnpm vendure + Shop API :3001 + VENDURE_*). Created once at init; there are no markers,
+ * add/update do NOT rewrite it — the client owns the file and edits it freely.
  */
 function clientReadme(name: string, backend: Backend, tier: Tier): string {
   const run =
@@ -200,13 +200,13 @@ function clientReadme(name: string, backend: Backend, tier: Tier): string {
           '```bash',
           'pnpm install',
           'cp .env.example .env',
-          'pnpm vendure   # Vendure-сервер (Shop API на :3001) — в отдельном терминале',
-          'pnpm dev       # витрина на :3000',
+          'pnpm vendure   # Vendure server (Shop API on :3001) — in a separate terminal',
+          'pnpm dev       # storefront on :3000',
           '```',
           '',
-          'Без Postgres dev поднимает встроенный SQLite (`.vitrine/vendure.sqlite`) и',
-          'populate-сид. Суперадмин — из `VENDURE_SUPERADMIN_*` (dev-дефолт',
-          'superadmin/superadmin; смените для прода).',
+          'Without Postgres, dev starts a built-in SQLite (`.vitrine/vendure.sqlite`) and',
+          'the populate seed. The superadmin comes from `VENDURE_SUPERADMIN_*` (dev default',
+          'superadmin/superadmin; change it for prod).',
         ].join('\n')
       : [
           '```bash',
@@ -215,74 +215,74 @@ function clientReadme(name: string, backend: Backend, tier: Tier): string {
           'pnpm dev',
           '```',
           '',
-          '- Витрина: http://localhost:3000',
-          '- Админка: http://localhost:3000/admin',
+          '- Storefront: http://localhost:3000',
+          '- Admin: http://localhost:3000/admin',
           '',
-          'Без Postgres dev поднимает встроенный SQLite (`.vitrine/dev.sqlite`), заполняет',
-          'демо-каталог (5 товаров, 2 категории) и заводит dev-админа (логин/пароль печатаются',
-          'в консоль один раз). Отключить fallback и в dev — `VITRINE_DB_STRICT=1`.',
+          'Without Postgres, dev starts a built-in SQLite (`.vitrine/dev.sqlite`), seeds a',
+          'demo catalog (5 products, 2 categories) and creates a dev admin (login/password printed',
+          'to the console once). Disable the fallback in dev too with `VITRINE_DB_STRICT=1`.',
         ].join('\n');
 
   const deploySecret =
     backend === 'vendure'
-      ? 'export VENDURE_COOKIE_SECRET=...  # секрет cookie Vendure'
-      : 'export PAYLOAD_SECRET=...         # случайный секрет Payload';
+      ? 'export VENDURE_COOKIE_SECRET=...  # Vendure cookie secret'
+      : 'export PAYLOAD_SECRET=...         # random Payload secret';
 
   return `# ${name}
 
-Клиентский проект на Vitrine. Backend: \`${backend}\`, уровень: \`${tier}\`.
-Next.js + Tailwind; фичи скопированы из реестра Vitrine — вы владеете кодом и
-стилизуете его токенами (\`theme/client.css\`), не меняя логику.
+A client project on Vitrine. Backend: \`${backend}\`, tier: \`${tier}\`.
+Next.js + Tailwind; features are copied from the Vitrine registry — you own the code and
+style it with tokens (\`theme/client.css\`) without changing the logic.
 
-## 1. Предусловия
+## 1. Prerequisites
 
-Node >= 20 (LTS) и \`pnpm\`. Пакеты \`@vitrine-kit/*\` публичны в npm —
-токен для установки не нужен.
+Node >= 20 (LTS) and \`pnpm\`. The \`@vitrine-kit/*\` packages are public on npm —
+no token is needed to install them.
 
-## 2. Локальный запуск (zero-config)
+## 2. Local run (zero-config)
 
 ${run}
 
-## 3. Применить дизайн клиента
+## 3. Apply the client design
 
-1. Положите экспорт бренда (Figma export, скриншоты, ассеты) в \`/design\`.
-2. \`vitrine design apply\` — ИИ задаёт значения токенов в \`theme/client.css\`
-   (логику/данные/роутинг/a11y не трогает). Шаг идемпотентен.
+1. Put the brand export (Figma export, screenshots, assets) in \`/design\`.
+2. \`vitrine design apply\` — the AI sets token values in \`theme/client.css\`
+   (doesn't touch logic/data/routing/a11y). The step is idempotent.
 
-## 4. Фичи: добавить, убрать, посмотреть
-
-\`\`\`bash
-vitrine list             # установленные + доступные
-vitrine add reviews      # скопировать фичу: флаг, слоты, blueprint, env
-vitrine remove reviews   # убрать (если фича removable)
-vitrine design apply     # стилизовать новую фичу
-\`\`\`
-
-\`add\` идемпотентен и транзакционен (откат при ошибке); оригиналы версий пишутся в
-\`.vitrine/originals/\` — основа для 3-way merge при обновлении.
-
-## 5. Обновления и проверка
+## 4. Features: add, remove, view
 
 \`\`\`bash
-vitrine kit update       # обновить локальный кэш реестра/шаблонов с GitHub
-vitrine diff <feature>   # предпросмотр обновления фичи
-vitrine update [feature] # 3-way merge новой версии фичи (база = ваш снапшот)
-vitrine doctor           # консистентность vitrine.json ↔ файлы ↔ пакеты ↔ env
+vitrine list             # installed + available
+vitrine add reviews      # copy a feature: flag, slots, blueprint, env
+vitrine remove reviews   # remove (if the feature is removable)
+vitrine design apply     # style the new feature
 \`\`\`
 
-Пакеты \`@vitrine-kit/*\` версионируются независимо: фикс в \`core\` поднимает только
-\`@vitrine-kit/core\`, а \`@vitrine-kit/contracts\` остаётся на своей стабильной версии —
-обновляйте версии в \`package.json\` точечно.
+\`add\` is idempotent and transactional (rollback on error); version originals are written to
+\`.vitrine/originals/\` — the basis for 3-way merge on update.
 
-## 6. Деплой (VPS + Docker)
+## 5. Updates and checks
+
+\`\`\`bash
+vitrine kit update       # update the local registry/templates cache from GitHub
+vitrine diff <feature>   # preview a feature update
+vitrine update [feature] # 3-way merge of the new feature version (base = your snapshot)
+vitrine doctor           # consistency: vitrine.json ↔ files ↔ packages ↔ env
+\`\`\`
+
+The \`@vitrine-kit/*\` packages are versioned independently: a fix in \`core\` bumps only
+\`@vitrine-kit/core\`, while \`@vitrine-kit/contracts\` stays at its stable version —
+update versions in \`package.json\` selectively.
+
+## 6. Deploy (VPS + Docker)
 
 \`\`\`bash
 ${deploySecret}
 docker compose up --build
 \`\`\`
 
-Production требует реальный \`DATABASE_URL\` — без него старт прерывается
-(SQLite-fallback только в dev).
+Production requires a real \`DATABASE_URL\` — without it the start aborts
+(the SQLite fallback is dev-only).
 `;
 }
 
@@ -290,18 +290,18 @@ function scaffoldBase(opts: InitOptions): void {
   const { root, name, backend, tier } = opts;
   const tRoot = templatesRoot(opts.registry.root);
 
-  // 1) статический каркас из шаблонов (мирроит корень клиента).
+  // 1) static skeleton from templates (mirrors the client root).
   const baseCopied = hasTemplate(tRoot, 'base');
   if (baseCopied) copyTemplate(tRoot, 'base', root);
   const backendTemplate = `backend-${backend}`;
   if (hasTemplate(tRoot, backendTemplate)) copyTemplate(tRoot, backendTemplate, root);
 
-  // fallback на случай отсутствия шаблона (минимально валидный репозиторий).
+  // fallback if the template is missing (a minimally valid repository).
   if (!baseCopied) {
     writeText(join(root, '.gitignore'), 'node_modules/\n.next/\ndist/\n.env\n.env.local\n.vitrine/\n');
   }
 
-  // 2) управляемые/генерируемые файлы.
+  // 2) managed/generated files.
   writeText(
     join(root, 'vitrine.json'),
     `${JSON.stringify(
@@ -326,7 +326,7 @@ export const siteConfig: SiteConfig = {
   // vitrine:integrations:start
   integrations: {},
   // vitrine:integrations:end
-  i18n: { defaultLocale: 'ru', locales: ['ru'], currency: 'RUB' },
+  i18n: { defaultLocale: 'en', locales: ['en'], currency: 'USD' },
 };
 
 export default siteConfig;
@@ -337,67 +337,67 @@ export default siteConfig;
     join(root, 'CLAUDE.md'),
     `# ${name}
 
-Проект на Vitrine. Backend: \`${backend}\`, уровень: \`${tier}\`.
-Этот файл — операционный гайд для ИИ-агента (Claude Code) и разработчика. Все операции со
-стартер-китом выполняются через CLI \`vitrine\`; готовые потоки — слэш-командами в \`.claude/commands/\`.
+A Vitrine project. Backend: \`${backend}\`, tier: \`${tier}\`.
+This file is the operational guide for the AI agent (Claude Code) and the developer. All
+starter-kit operations go through the \`vitrine\` CLI; ready-made flows are the slash commands in \`.claude/commands/\`.
 
-## Установленные фичи
+## Installed features
 <!-- vitrine:features:start -->
-_Фичи ещё не установлены._
+_No features installed yet._
 <!-- vitrine:features:end -->
 
-## Команды vitrine CLI
+## vitrine CLI commands
 
-| Команда | Назначение | Когда звать | Флаги |
+| Command | Purpose | When to use | Flags |
 |---|---|---|---|
-| \`vitrine list\` | Установленные и доступные фичи | перед добавлением фичи | — |
-| \`vitrine add <features…>\` | Скопировать фичу(и): файлы, флаг, слоты, blueprint, env, deps | «добавь фичу X» | \`--registry\` |
-| \`vitrine remove <feature>\` | Убрать фичу (если \`removable\`) | «убери фичу X» | \`--registry\` |
-| \`vitrine update [features…]\` | Обновить фичи 3-way merge (без аргументов — все) | после \`kit update\` | \`--dry-run\`, \`--registry\` |
-| \`vitrine diff <feature>\` | Предпросмотр обновления (без записи) | перед \`update\` | \`--registry\` |
-| \`vitrine doctor\` | Консистентность: \`vitrine.json\` ↔ файлы ↔ пакеты ↔ env | после правок, при сомнениях | \`--registry\` |
-| \`vitrine design apply\` | Применить дизайн из \`/design\` к токенам (через Claude Code) | после \`add\` или смены бренда | \`--bin\`, \`--dry-run\` |
-| \`vitrine kit update\` | Обновить локальный кэш реестра/шаблонов с GitHub | перед обновлением фич | \`--from\`, \`--version\`, \`--channel\` |
-| \`vitrine kit status\` | Версия кэша vs ожидаемая CLI | диагностика | — |
-| \`vitrine self-update\` | Обновить сам CLI | редко | \`--dry-run\` |
+| \`vitrine list\` | Installed and available features | before adding a feature | — |
+| \`vitrine add <features…>\` | Copy feature(s): files, flag, slots, blueprint, env, deps | "add feature X" | \`--registry\` |
+| \`vitrine remove <feature>\` | Remove a feature (if \`removable\`) | "remove feature X" | \`--registry\` |
+| \`vitrine update [features…]\` | Update features via 3-way merge (all if no arguments) | after \`kit update\` | \`--dry-run\`, \`--registry\` |
+| \`vitrine diff <feature>\` | Preview an update (without writing) | before \`update\` | \`--registry\` |
+| \`vitrine doctor\` | Consistency: \`vitrine.json\` ↔ files ↔ packages ↔ env | after edits, when in doubt | \`--registry\` |
+| \`vitrine design apply\` | Apply the design from \`/design\` to tokens (via Claude Code) | after \`add\` or a rebrand | \`--bin\`, \`--dry-run\` |
+| \`vitrine kit update\` | Update the local registry/templates cache from GitHub | before updating features | \`--from\`, \`--version\`, \`--channel\` |
+| \`vitrine kit status\` | Cache version vs the CLI's expected one | diagnostics | — |
+| \`vitrine self-update\` | Update the CLI itself | rarely | \`--dry-run\` |
 
-\`init\` запускается один раз при создании репозитория (визард \`vitrine init\`). \`add\`/\`update\`
-идемпотентны и транзакционны (откат при ошибке); оригиналы версий пишутся в \`.vitrine/originals/\`
-— база для 3-way merge.
+\`init\` runs once when the repository is created (the \`vitrine init\` wizard). \`add\`/\`update\`
+are idempotent and transactional (rollback on error); version originals are written to \`.vitrine/originals/\`
+— the base for 3-way merge.
 
-## Типовые сценарии
+## Common scenarios
 
-- **Настройка проекта** → \`/setup\`: зависимости, GitHub PAT, \`.env\`, запуск dev-сервера.
-- **Добавить и стилизовать фичу** → \`/add-feature <имя>\`: \`list\` → \`add\` → \`design apply\` → проверка.
-- **Применить/обновить дизайн** → \`/design\`: положить экспорт в \`/design\`, \`design apply\`.
-- **Обновить фичи** → \`/update\`: \`kit update\` → \`diff\` → \`update\` → разрулить конфликты → \`doctor\`.
-- **Проверить консистентность** → \`/doctor\`.
+- **Project setup** → \`/setup\`: dependencies, \`.env\`, start the dev server.
+- **Add and style a feature** → \`/add-feature <name>\`: \`list\` → \`add\` → \`design apply\` → check.
+- **Apply/update the design** → \`/design\`: put the export in \`/design\`, \`design apply\`.
+- **Update features** → \`/update\`: \`kit update\` → \`diff\` → \`update\` → resolve conflicts → \`doctor\`.
+- **Check consistency** → \`/doctor\`.
 
-Полный гайд для человека — в \`README.md\`.
+The full human guide is in \`README.md\`.
 
-## ИНСТРУКЦИЯ: применить дизайн из /design
-Вход: всё в \`/design\`.
-Задача: извлечь визуальный язык (палитра, типографика, отступы, радиусы, тени,
-вид конкретных компонентов) и применить к проекту.
-Применять так:
-  1) задать значения токенов в \`theme/client.css\` — основной рычаг;
-  2) только если токен не выражает нужное — добавить презентационные классы
-     конкретному компоненту, НЕ меняя его структуру.
-НЕ менять: логику компонентов, выборку данных, вызовы адаптера, роутинг,
-a11y-роли/лейблы, публичные пропсы. Токены — это интерфейс.
-Если дизайн требует иной структуры секции — создать override секции в репозитории
-(композиция), а не править общий wireframe.
-Шаг идемпотентен: повторный прогон сходится, не накапливает мусор.
+## INSTRUCTION: apply the design from /design
+Input: everything in \`/design\`.
+Task: extract the visual language (palette, typography, spacing, radii, shadows,
+the look of specific components) and apply it to the project.
+Apply it like this:
+  1) set token values in \`theme/client.css\` — the main lever;
+  2) only if a token can't express what's needed — add presentational classes
+     to a specific component WITHOUT changing its structure.
+Do NOT change: component logic, data fetching, adapter calls, routing,
+a11y roles/labels, public props. Tokens are the interface.
+If the design requires a different section structure — create a section override in the repo
+(composition) rather than editing the shared wireframe.
+The step is idempotent: re-running converges and doesn't accumulate cruft.
 
-## Границы (что агенту нельзя трогать)
-- **Генерируемые/управляемые файлы — руками не править** (CLI перезатрёт из состояния):
-  \`lib/slots.ts\`, \`lib/payments.ts\`, \`lib/blueprint.ts\`, управляемые регионы \`site.config.ts\`
-  (\`features\`/\`integrations\`), \`vitrine.json\`, таблица фич в этом \`CLAUDE.md\`, \`.env*\`.
-  Набор фич/интеграций меняется через \`vitrine add/remove\`, а не правкой файлов.
-- **Дизайн — только значения токенов** в \`theme/client.css\` (через \`vitrine design apply\`):
-  логику/данные/роутинг/a11y/структуру компонентов не менять.
-- **Контракты расширяются аддитивно** (\`@vitrine-kit/contracts\`): ломать форму существующих полей нельзя.
-- **Коммиты делает пользователь** — не запускай \`git commit\`/\`git push\` без явной просьбы.
+## Boundaries (what the agent must not touch)
+- **Generated/managed files — do not edit by hand** (the CLI overwrites them from state):
+  \`lib/slots.ts\`, \`lib/payments.ts\`, \`lib/blueprint.ts\`, the managed regions of \`site.config.ts\`
+  (\`features\`/\`integrations\`), \`vitrine.json\`, the feature table in this \`CLAUDE.md\`, \`.env*\`.
+  The set of features/integrations is changed via \`vitrine add/remove\`, not by editing files.
+- **Design — token values only** in \`theme/client.css\` (via \`vitrine design apply\`):
+  don't change logic/data/routing/a11y/component structure.
+- **Contracts are extended additively** (\`@vitrine-kit/contracts\`): you must not break the shape of existing fields.
+- **The user makes commits** — don't run \`git commit\`/\`git push\` without an explicit request.
 `,
   );
 
@@ -411,7 +411,7 @@ a11y-роли/лейблы, публичные пропсы. Токены — э
 
 export function initProject(opts: InitOptions): InstallResult {
   if (exists(opts.root) && readdirSync(opts.root).length > 0) {
-    throw new Error(`[vitrine] каталог "${opts.root}" не пустой`);
+    throw new Error(`[vitrine] directory "${opts.root}" is not empty`);
   }
   scaffoldBase(opts);
   const project = loadProject(opts.root);

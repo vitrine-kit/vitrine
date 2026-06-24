@@ -1,7 +1,7 @@
-// Единый обход файлов, которые фича отображает в репозиторий (manifest.files[*]).
-// Раньше блок "isDir(src) ? walkRelFiles(src) : ['']" + сборка repoRel/toRel был
-// продублирован в install/update/doctor; здесь он один — источник правды (устраняет
-// расхождения, которые приводили к багу удаления, см. removeFeature).
+// A single pass over the files a feature maps into the repository (manifest.files[*]).
+// The "isDir(src) ? walkRelFiles(src) : ['']" block + repoRel/toRel assembly used to be
+// duplicated across install/update/doctor; here it's one source of truth (eliminates
+// the divergences that caused the deletion bug, see removeFeature).
 import { join } from 'node:path';
 import { exists, isDir, toPosix, walkRelFiles } from './util.js';
 
@@ -11,17 +11,17 @@ export interface FeatureFileMap {
 }
 
 export interface FeatureFile {
-  /** Абсолютный путь источника в реестре. */
+  /** Absolute source path in the registry. */
   srcAbs: string;
-  /** Путь назначения относительно корня репо (с разделителями ОС). */
+  /** Destination path relative to the repo root (with OS separators). */
   repoRel: string;
-  /** То же назначение в POSIX-виде (для лок-файла, вывода, сравнений). */
+  /** The same destination in POSIX form (for the lock file, output, comparisons). */
   toRel: string;
 }
 
 /**
- * Перечисляет каждый конкретный файл отображения фичи. Если источник отсутствует —
- * не отдаёт ничего (вызывающий сам решает, ошибка это или пропуск).
+ * Enumerates each concrete file of a feature's mapping. If the source is missing,
+ * yields nothing (the caller decides whether that's an error or a skip).
  */
 export function* eachFeatureFile(featDir: string, map: FeatureFileMap): Generator<FeatureFile> {
   const src = join(featDir, map.from);

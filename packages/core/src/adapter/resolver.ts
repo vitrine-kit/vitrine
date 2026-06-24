@@ -1,6 +1,6 @@
-// Runtime адаптера (контракт 2). Реестр фабрик по backend; отдаёт активный
-// CatalogSource / CommerceBackend по site.config. Реализации (Payload*/Vendure*)
-// регистрируются в lib/adapter клиента.
+// The adapter runtime (contract 2). A registry of factories by backend; returns the active
+// CatalogSource / CommerceBackend by site.config. Implementations (Payload*/Vendure*)
+// are registered in the client's lib/adapter.
 import type {
   Backend,
   CatalogSource,
@@ -11,7 +11,7 @@ import type {
 export interface AdapterFactory {
   backend: Backend;
   createCatalog(config: SiteConfig): CatalogSource;
-  /** Отсутствует для чисто-каталожных бэкендов. */
+  /** Absent for catalog-only backends. */
   createCommerce?(config: SiteConfig): CommerceBackend;
 }
 
@@ -32,7 +32,7 @@ export function createAdapterRegistry(): AdapterRegistry {
   function factoryFor(config: SiteConfig): AdapterFactory {
     const f = factories.get(config.backend);
     if (!f) {
-      throw new Error(`[vitrine] не зарегистрирован адаптер для backend "${config.backend}"`);
+      throw new Error(`[vitrine] no adapter registered for backend "${config.backend}"`);
     }
     return f;
   }
@@ -43,11 +43,11 @@ export function createAdapterRegistry(): AdapterRegistry {
 
   function resolveCommerce(config: SiteConfig): CommerceBackend {
     if (config.tier === 'catalog') {
-      throw new Error('[vitrine] CommerceBackend недоступен на уровне tier "catalog"');
+      throw new Error('[vitrine] CommerceBackend is unavailable at tier "catalog"');
     }
     const f = factoryFor(config);
     if (!f.createCommerce) {
-      throw new Error(`[vitrine] backend "${config.backend}" не реализует CommerceBackend`);
+      throw new Error(`[vitrine] backend "${config.backend}" does not implement CommerceBackend`);
     }
     return f.createCommerce(config);
   }
@@ -59,5 +59,5 @@ export function createAdapterRegistry(): AdapterRegistry {
   return { register, resolveCatalog, resolveCommerce, clear };
 }
 
-/** Глобальный реестр адаптеров по умолчанию. */
+/** The default global adapter registry. */
 export const adapters: AdapterRegistry = createAdapterRegistry();

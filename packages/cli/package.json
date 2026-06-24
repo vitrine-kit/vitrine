@@ -1,7 +1,7 @@
 {
   "name": "@vitrine-kit/vitrine",
   "version": "0.3.0",
-  "description": "Vitrine CLI — примитив установки фичи, init (визард), add, update, doctor, design apply.",
+  "description": "Vitrine CLI — feature install primitive, init (wizard), add, update, doctor, design apply.",
   "license": "MIT",
   "type": "module",
   "bin": {

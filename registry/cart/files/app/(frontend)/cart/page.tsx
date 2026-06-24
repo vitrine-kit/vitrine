@@ -1,6 +1,6 @@
-// Страница корзины. Cart-id хранится в cookie; данные — через контракт
-// CommerceBackend (адаптер бэкенда в lib/adapter). Не типизируется в монорепо
-// (Next-glue), проверяется при инстанцировании клиента.
+// Cart page. The cart id is stored in a cookie; data comes via the CommerceBackend
+// contract (the backend adapter in lib/adapter). Not typechecked in the monorepo
+// (Next glue), verified when the client is instantiated.
 import { cookies } from 'next/headers';
 import { emptyCart } from '@vitrine-kit/core';
 import { getCommerceBackend } from '@/lib/adapter';
@@ -14,7 +14,7 @@ export default async function CartPage() {
 
   return (
     <section className="flex flex-col gap-section">
-      <h1 className="font-heading text-fg">Корзина</h1>
+      <h1 className="font-heading text-fg">Cart</h1>
       <CartView cart={cart ?? emptyCart('', siteConfig.i18n.currency)} />
     </section>
   );

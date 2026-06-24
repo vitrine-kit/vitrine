@@ -1,4 +1,4 @@
-// Строка корзины — презентационная.
+// Cart line item — presentational.
 import type { CartLine } from '@vitrine-kit/contracts';
 import { formatMoney } from '../../lib/cart/data.js';
 

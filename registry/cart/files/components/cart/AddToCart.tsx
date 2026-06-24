@@ -1,5 +1,5 @@
-// Кнопка «В корзину» — клиентский компонент. Монтируется в слот product.purchase
-// (ProductView передаёт product). Мутация — через POST /api/cart (роут фичи).
+// "Add to cart" button — client component. Mounted into the product.purchase slot
+// (ProductView passes product). Mutation goes through POST /api/cart (the feature's route).
 'use client';
 import { useState } from 'react';
 import type { Product } from '@vitrine-kit/contracts';
@@ -34,7 +34,7 @@ export function AddToCart({ product }: AddToCartProps) {
       disabled={pending || !variantId}
       className="vt-add-to-cart rounded-md bg-primary px-gutter py-unit text-primary-fg transition hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 ring-ring"
     >
-      {pending ? 'Добавляем…' : 'В корзину'}
+      {pending ? 'Adding…' : 'Add to cart'}
     </button>
   );
 }

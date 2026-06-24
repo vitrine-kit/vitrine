@@ -1,7 +1,7 @@
-// vitrine design apply — ИИ-шаг дизайна (§11 спеки). Обёртка над установленным
-// Claude Code: CLI НЕ имеет своей Anthropic-интеграции/ключа, а шеллит в `claude`
-// с инструкцией из CLAUDE.md + указанием на /design. Агент задаёт ТОЛЬКО значения
-// токенов в theme/client.css. Шаг идемпотентен (повторный прогон сходится).
+// vitrine design apply — the AI design step (spec §11). A wrapper over an installed
+// Claude Code: the CLI has NO Anthropic integration/key of its own, it shells out to `claude`
+// with the instruction from CLAUDE.md + a pointer to /design. The agent sets ONLY the token
+// values in theme/client.css. The step is idempotent (re-running converges).
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
@@ -9,14 +9,14 @@ import { TOKEN_CSS_VARS } from '@vitrine-kit/contracts';
 import type { Project } from './project.js';
 import { readText } from './util.js';
 
-const DESIGN_HEADING = '## ИНСТРУКЦИЯ: применить дизайн из /design';
+const DESIGN_HEADING = '## INSTRUCTION: apply the design from /design';
 
-/** Находит бинарь Claude Code: явный путь → VITRINE_CLAUDE_BIN → поиск в PATH. */
+/** Finds the Claude Code binary: explicit path → VITRINE_CLAUDE_BIN → search in PATH. */
 export function findClaudeBin(explicit?: string): string {
   const pinned = explicit ?? process.env.VITRINE_CLAUDE_BIN;
   if (pinned) {
     if (existsSync(pinned)) return pinned;
-    throw new Error(`[vitrine] Claude Code не найден по пути "${pinned}"`);
+    throw new Error(`[vitrine] Claude Code not found at path "${pinned}"`);
   }
 
   const names =
@@ -31,20 +31,20 @@ export function findClaudeBin(explicit?: string): string {
   }
 
   throw new Error(
-    '[vitrine] Claude Code CLI не найден в PATH. Установите его ' +
-      '(npm i -g @anthropic-ai/claude-code) или укажите путь через --bin / VITRINE_CLAUDE_BIN. ' +
-      'design apply — обёртка над Claude Code, своего ключа Anthropic не требует.',
+    '[vitrine] Claude Code CLI not found in PATH. Install it ' +
+      '(npm i -g @anthropic-ai/claude-code) or pass the path via --bin / VITRINE_CLAUDE_BIN. ' +
+      'design apply is a wrapper over Claude Code; it needs no Anthropic key of its own.',
   );
 }
 
-/** Есть ли в /design что применять (что-то кроме README). */
+/** Whether /design has anything to apply (something besides README). */
 export function designHasInput(root: string): boolean {
   const dir = join(root, 'design');
   if (!existsSync(dir)) return false;
   return readdirSync(dir).some((entry) => !/^readme\.md$/i.test(entry));
 }
 
-/** Блок инструкции дизайна из CLAUDE.md (от заголовка до следующего ## или конца). */
+/** The design instruction block from CLAUDE.md (from the heading to the next ## or the end). */
 export function extractDesignInstruction(claudeMd: string): string | null {
   const start = claudeMd.indexOf(DESIGN_HEADING);
   if (start === -1) return null;
@@ -52,7 +52,7 @@ export function extractDesignInstruction(claudeMd: string): string | null {
   return claudeMd.slice(start, next === -1 ? undefined : next).trim();
 }
 
-/** Промпт для Claude Code: инструкция из CLAUDE.md + контекст + замкнутый набор токенов. */
+/** Prompt for Claude Code: the instruction from CLAUDE.md + context + the closed token set. */
 export function buildDesignPrompt(project: Project): string {
   const claudeMd = existsSync(join(project.root, 'CLAUDE.md'))
     ? readText(join(project.root, 'CLAUDE.md'))
@@ -63,21 +63,21 @@ export function buildDesignPrompt(project: Project): string {
   return [
     instruction,
     '',
-    'Контекст применения:',
-    '- Источник дизайна: папка `design/` (экспорт из Claude Design).',
-    '- Единственный редактируемый файл: `theme/client.css` — задайте значения CSS-переменных.',
-    '- Замкнутый набор имён токенов (других не вводить):',
+    'Application context:',
+    '- Design source: the `design/` folder (export from Claude Design).',
+    '- The only editable file: `theme/client.css` — set the CSS variable values.',
+    '- Closed set of token names (do not introduce others):',
     tokens,
     '',
-    'НЕ редактировать: компоненты, адаптеры, роуты, site.config, lib/*. Только значения',
-    'переменных в theme/client.css. Идемпотентность: повторный прогон не накапливает изменения.',
+    'Do NOT edit: components, adapters, routes, site.config, lib/*. Only the variable',
+    'values in theme/client.css. Idempotency: re-running does not accumulate changes.',
   ].join('\n');
 }
 
 export interface DesignApplyOptions {
   bin?: string;
   dryRun?: boolean;
-  /** Доп. аргументы для Claude Code (после стандартных). */
+  /** Extra arguments for Claude Code (after the standard ones). */
   extraArgs?: string[];
 }
 
@@ -96,7 +96,7 @@ const defaultRunner: DesignRunner = ({ bin, args, cwd }) => {
   return res.status ?? 0;
 };
 
-/** Собирает команду запуска Claude Code (без исполнения) — удобно для dry-run/тестов. */
+/** Builds the Claude Code launch command (without executing) — handy for dry-run/tests. */
 export function planDesignApply(project: Project, opts: DesignApplyOptions = {}): DesignCommand {
   const bin = findClaudeBin(opts.bin);
   const prompt = buildDesignPrompt(project);
@@ -111,12 +111,12 @@ export function designApply(
 ): number {
   if (!designHasInput(project.root)) {
     throw new Error(
-      '[vitrine] папка design/ пуста — положите экспорт из Claude Design и повторите.',
+      '[vitrine] the design/ folder is empty — add an export from Claude Design and retry.',
     );
   }
   const cmd = planDesignApply(project, opts);
   if (opts.dryRun) {
-    console.log(`[vitrine] dry-run: ${cmd.bin} -p <промпт ${cmd.prompt.length} симв.> --permission-mode acceptEdits`);
+    console.log(`[vitrine] dry-run: ${cmd.bin} -p <prompt ${cmd.prompt.length} chars> --permission-mode acceptEdits`);
     return 0;
   }
   return runner(cmd);

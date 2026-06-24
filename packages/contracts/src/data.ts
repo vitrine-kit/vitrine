@@ -1,14 +1,14 @@
-// Контракт 2 · Data
-// Нормализованные доменные типы + интерфейсы источников данных.
-// Делают фичи переносимыми между Payload и Vendure (§5 спеки).
+// Contract 2 · Data
+// Normalized domain types + data-source interfaces.
+// They make features portable between Payload and Vendure (spec §5).
 
 /**
- * Деньги — целое в минимальных единицах валюты (копейки/центы).
- * 199000 = 1990.00. Решение зафиксировано (см. демо-сид §18.2 спеки).
+ * Money — an integer in the currency's minor units (cents).
+ * 199000 = 1990.00. Decision is fixed (see the demo seed, spec §18.2).
  */
 export type Money = number;
 
-/** ISO 4217, напр. 'RUB', 'USD', 'EUR'. */
+/** ISO 4217, e.g. 'USD', 'EUR', 'GBP'. */
 export type CurrencyCode = string;
 
 export interface Category {
@@ -32,9 +32,9 @@ export interface Variant {
   title?: string;
   price: Money;
   currency: CurrencyCode;
-  /** null/undefined = склад не отслеживается. */
+  /** null/undefined = stock not tracked. */
   stock?: number | null;
-  /** Опции варианта, напр. { size: 'M', color: 'red' }. */
+  /** Variant options, e.g. { size: 'M', color: 'red' }. */
   options?: Record<string, string>;
 }
 
@@ -55,8 +55,8 @@ export interface Product {
   priceRange?: { min: Money; max: Money; currency: CurrencyCode };
   seo?: Seo;
   /**
-   * Поля, добавленные фичами через blueprint extend() (контракт 5),
-   * сюда мапит адаптер. Контракт остаётся стабильным — фичи читают свои ключи.
+   * Fields added by features via blueprint extend() (contract 5),
+   * mapped here by the adapter. The contract stays stable — features read their own keys.
    */
   extensions?: Record<string, unknown>;
 }
@@ -64,13 +64,13 @@ export interface Product {
 export type ProductSort = 'newest' | 'price-asc' | 'price-desc' | 'relevance';
 
 export interface ProductQuery {
-  /** slug категории. */
+  /** Category slug. */
   category?: string;
   search?: string;
   sort?: ProductSort;
   page?: number;
   perPage?: number;
-  /** Фасеты фильтров: { color: ['red','blue'], size: ['M'] }. */
+  /** Filter facets: { color: ['red','blue'], size: ['M'] }. */
   filters?: Record<string, string[]>;
 }
 
@@ -120,8 +120,8 @@ export interface Order {
 }
 
 /**
- * Источник каталога. Реализуется адаптерами PayloadCatalog* / VendureCatalog*.
- * Нужен на всех уровнях (каталог и выше).
+ * Catalog source. Implemented by the PayloadCatalog* / VendureCatalog* adapters.
+ * Needed at every tier (catalog and above).
  */
 export interface CatalogSource {
   listProducts(query: ProductQuery): Promise<Product[]>;
@@ -131,10 +131,10 @@ export interface CatalogSource {
 }
 
 /**
- * Коммерческий бэкенд. Только simple-store / full-store.
- * Реализуется PayloadCommerce* / VendureCommerce*.
- * Полная поверхность корзины зафиксирована в v1 (добавлять методы в интерфейс
- * позже = ломающее изменение для реализаций).
+ * Commerce backend. Only simple-store / full-store.
+ * Implemented by PayloadCommerce* / VendureCommerce*.
+ * The full cart surface is fixed in v1 (adding methods to the interface
+ * later = a breaking change for implementations).
  */
 export interface CommerceBackend {
   createCart(): Promise<Cart>;
@@ -142,7 +142,7 @@ export interface CommerceBackend {
   addItem(cartId: string, variantId: string, qty: number): Promise<Cart>;
   updateItem(cartId: string, lineId: string, qty: number): Promise<Cart>;
   removeItem(cartId: string, lineId: string): Promise<Cart>;
-  /** Hosted checkout активного платёжного провайдера → redirectUrl. */
+  /** Hosted checkout of the active payment provider → redirectUrl. */
   startCheckout(cartId: string): Promise<{ redirectUrl: string }>;
   getOrder(id: string): Promise<Order | null>;
 }

@@ -1,6 +1,6 @@
-// Кнопка оформления заказа — клиентский компонент. Монтируется в слот cart.summary.
-// POST /api/checkout создаёт платёжную сессию активного провайдера и возвращает URL
-// редиректа — компонент не знает, какой провайдер настроен (Stripe/Paddle/YooKassa).
+// Checkout button — client component. Mounted into the cart.summary slot.
+// POST /api/checkout creates a payment session with the active provider and returns the
+// redirect URL — the component doesn't know which provider is configured (Stripe/Paddle/YooKassa).
 'use client';
 import { useState } from 'react';
 
@@ -25,7 +25,7 @@ export function CheckoutButton() {
       disabled={pending}
       className="vt-checkout-button rounded-md bg-primary px-gutter py-unit text-primary-fg transition hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 ring-ring"
     >
-      {pending ? 'Переходим к оплате…' : 'Оформить заказ'}
+      {pending ? 'Redirecting to payment…' : 'Checkout'}
     </button>
   );
 }

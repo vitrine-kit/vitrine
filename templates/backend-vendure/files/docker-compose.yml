@@ -1,5 +1,5 @@
-# Эталонный деплой Vitrine на Vendure: db (Postgres) + server (Vendure) + web (Next).
-# Запуск: VENDURE_SUPERADMIN_PASSWORD=... docker compose up --build
+# Reference Vitrine deployment on Vendure: db (Postgres) + server (Vendure) + web (Next).
+# Run: VENDURE_SUPERADMIN_PASSWORD=... docker compose up --build
 services:
   db:
     image: postgres:16-alpine
@@ -25,7 +25,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://vitrine:${POSTGRES_PASSWORD:-vitrine}@db:5432/vitrine
       VENDURE_SUPERADMIN_USERNAME: ${VENDURE_SUPERADMIN_USERNAME:-superadmin}
-      VENDURE_SUPERADMIN_PASSWORD: ${VENDURE_SUPERADMIN_PASSWORD:?задайте VENDURE_SUPERADMIN_PASSWORD}
+      VENDURE_SUPERADMIN_PASSWORD: ${VENDURE_SUPERADMIN_PASSWORD:?set VENDURE_SUPERADMIN_PASSWORD}
     ports:
       - '3001:3001'
     depends_on:

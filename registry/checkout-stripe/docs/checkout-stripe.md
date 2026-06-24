@@ -1,17 +1,17 @@
-# Фича: checkout-stripe (платёжный провайдер Stripe)
+# Feature: checkout-stripe (Stripe payment provider)
 
-Провайдер Stripe Hosted Checkout для каркаса `checkout` (от него зависит). Ставится
-вместо `checkout-paddle` / `checkout-yookassa` (взаимоисключающие). Критическая
-логика (диспетчер вебхука, заказ из корзины) — в `@vitrine-kit/core`.
+A Stripe Hosted Checkout provider for the `checkout` scaffold (which it depends on). Installed
+instead of `checkout-paddle` / `checkout-yookassa` (mutually exclusive). The critical
+logic (webhook dispatcher, order from cart) lives in `@vitrine-kit/core`.
 
-- **Провайдер:** `lib/checkout-stripe/provider.ts` → `stripeProvider`
-  (`PaymentProvider`): `createCheckout` создаёт Stripe-сессию; `verifyWebhook`
-  проверяет подпись Stripe SDK и нормализует событие.
-- **Регистрация:** `registerCheckoutStripeProvider()` (зовётся из `lib/payments.ts`),
-  ставит `integrations.payments: "stripe"` в `site.config`.
-- **API (Next-glue):** `POST /api/webhooks/stripe` → `handlePaymentWebhook` →
-  `fulfillOrderFromEvent` (общий код фичи `checkout`).
-- **env:** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (обязательны).
+- **Provider:** `lib/checkout-stripe/provider.ts` → `stripeProvider`
+  (`PaymentProvider`): `createCheckout` creates a Stripe session; `verifyWebhook`
+  verifies the signature via the Stripe SDK and normalizes the event.
+- **Registration:** `registerCheckoutStripeProvider()` (called from `lib/payments.ts`),
+  sets `integrations.payments: "stripe"` in `site.config`.
+- **API (Next glue):** `POST /api/webhooks/stripe` → `handlePaymentWebhook` →
+  `fulfillOrderFromEvent` (the `checkout` feature's shared code).
+- **env:** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (required).
 
-Поток: корзина → `Оформить заказ` → редирект на Stripe → webhook
-`checkout.session.completed` → заказ в админке, корзина `converted`.
+Flow: cart → `Checkout` → redirect to Stripe → webhook
+`checkout.session.completed` → order in the admin, cart `converted`.

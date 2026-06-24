@@ -1,8 +1,8 @@
-// vitrine update / diff (§7, §9). Единственная «цена» copy-in модели: апдейт
-// фичи в реестре не прилетает в репо сам. update делает 3-way merge:
-// base = pristine-оригинал версии (.vitrine/originals), ours = репо клиента
-// (стилизованный), theirs = версия из реестра. Стиль клиента сохраняется, новое
-// вливается, неразрешимое — помечается git-маркерами. diff = тот же план в dry-run.
+// vitrine update / diff (§7, §9). The only "cost" of the copy-in model: a feature
+// update in the registry doesn't reach the repo on its own. update does a 3-way merge:
+// base = the pristine original of the version (.vitrine/originals), ours = the client repo
+// (styled), theirs = the version from the registry. The client's style is preserved, the new
+// content is merged in, the unresolvable is marked with git markers. diff = the same plan in dry-run.
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Project } from './project.js';
@@ -34,8 +34,8 @@ export interface UpdatePlan {
 
 export function planUpdate(project: Project, name: string, registry: RegistrySource): UpdatePlan {
   const pin = project.lock.features[name];
-  if (!pin) throw new Error(`[vitrine] фича "${name}" не установлена`);
-  if (!registry.hasFeature(name)) throw new Error(`[vitrine] фича "${name}" не найдена в реестре`);
+  if (!pin) throw new Error(`[vitrine] feature "${name}" is not installed`);
+  if (!registry.hasFeature(name)) throw new Error(`[vitrine] feature "${name}" not found in the registry`);
 
   const manifest = registry.loadManifest(name);
   const fromVersion = pin.version;
@@ -57,7 +57,7 @@ export function planUpdate(project: Project, name: string, registry: RegistrySou
       } else if (theirs === base || theirs === ours) {
         files.push({ to: file.toRel, status: 'unchanged', merged: ours, conflicts: 0 });
       } else if (base === null) {
-        // нет pristine-базы (фича стара) — безопасный 2-way: расхождение = конфликт
+        // no pristine base (the feature is old) — safe 2-way: a divergence = a conflict
         files.push({ to: file.toRel, status: 'conflict', merged: ours, conflicts: 1 });
       } else {
         const res = merge3(base, ours, theirs);
@@ -88,7 +88,7 @@ export function applyUpdate(project: Project, plan: UpdatePlan, registry: Regist
     for (const f of plan.files) {
       if (f.status !== 'unchanged') tx.write(safeJoin(project.root, f.to), f.merged);
     }
-    // новый pristine-снапшот = текущая версия реестра (theirs) целиком — база следующего update
+    // the new pristine snapshot = the current registry version (theirs) in full — the base for the next update
     for (const map of manifest.files) {
       for (const file of eachFeatureFile(featDir, map)) {
         tx.write(safeJoin(newOriginals, file.repoRel), readText(file.srcAbs));
@@ -107,7 +107,7 @@ export function applyUpdate(project: Project, plan: UpdatePlan, registry: Regist
   }
 }
 
-/** Текстовый план для diff/вывода update. */
+/** Text plan for diff/update output. */
 export function renderPlan(plan: UpdatePlan): string {
   const head =
     plan.fromVersion === plan.toVersion
@@ -116,8 +116,8 @@ export function renderPlan(plan: UpdatePlan): string {
   const lines = plan.files
     .filter((f) => f.status !== 'unchanged')
     .map((f) => {
-      const mark = f.status === 'conflict' ? '✗ конфликт' : f.status === 'new' ? '+ новый  ' : '~ слияние';
-      return `  ${mark} ${f.to}${f.conflicts ? ` (конфликтов: ${f.conflicts})` : ''}`;
+      const mark = f.status === 'conflict' ? '✗ conflict' : f.status === 'new' ? '+ new     ' : '~ merge   ';
+      return `  ${mark} ${f.to}${f.conflicts ? ` (conflicts: ${f.conflicts})` : ''}`;
     });
-  return lines.length === 0 ? `${head}: изменений нет` : [head, ...lines].join('\n');
+  return lines.length === 0 ? `${head}: no changes` : [head, ...lines].join('\n');
 }

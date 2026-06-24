@@ -1,8 +1,8 @@
-// Идемпотентное создание заказа из нормализованного платёжного события — общий код
-// для всех роутов вебхуков (checkout-stripe/paddle/yookassa). Провайдер уже
-// верифицировал и нормализовал событие; здесь только персистентность Payload.
-// Критлогика (дедуп, снимок заказа) — в @vitrine-kit/core (shouldCreateOrder,
-// buildOrderFromCart). Next/Payload-glue, не типизируется в монорепо.
+// Idempotent order creation from a normalized payment event — shared code
+// for all webhook routes (checkout-stripe/paddle/yookassa). The provider has already
+// verified and normalized the event; here it's only Payload persistence.
+// The critical logic (dedup, order snapshot) lives in @vitrine-kit/core (shouldCreateOrder,
+// buildOrderFromCart). Next/Payload glue, not typechecked in the monorepo.
 import { getPayload } from 'payload';
 import config from '@payload-config';
 import type { Cart } from '@vitrine-kit/contracts';
@@ -13,7 +13,7 @@ import {
   type PaymentProviderName,
 } from '@vitrine-kit/core';
 
-/** Создаёт заказ из корзины по событию оплаты и помечает корзину converted. */
+/** Creates an order from the cart on a payment event and marks the cart converted. */
 export async function fulfillOrderFromEvent(
   event: NormalizedPaymentEvent,
   providerName: PaymentProviderName,
@@ -26,8 +26,8 @@ export async function fulfillOrderFromEvent(
   const cartDoc = await payload.findByID({ collection: 'carts', id: cartId }).catch(() => null);
   if (!cartDoc) return;
 
-  // Идемпотентность: провайдер ретраит вебхук — не создаём заказ повторно
-  // (корзина уже converted или заказ по этому референсу платежа уже есть).
+  // Idempotency: the provider retries the webhook — don't create the order twice
+  // (the cart is already converted, or an order with this payment reference already exists).
   const prior = event.providerRef
     ? await payload
         .find({ collection: 'orders', where: { paymentRef: { equals: event.providerRef } }, limit: 1 })
@@ -43,7 +43,7 @@ export async function fulfillOrderFromEvent(
   const cart: Cart = {
     id: String(cartDoc.id),
     lines: (cartDoc.lines as Cart['lines']) ?? [],
-    currency: (cartDoc.currency as string) ?? 'RUB',
+    currency: (cartDoc.currency as string) ?? 'USD',
     subtotal: (cartDoc.subtotal as number) ?? 0,
     discountTotal: cartDoc.discountTotal as number | undefined,
     total: (cartDoc.total as number) ?? 0,

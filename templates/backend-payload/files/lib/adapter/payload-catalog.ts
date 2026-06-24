@@ -1,5 +1,5 @@
-// Реализация контракта CatalogSource поверх Payload local API.
-// Вся доменная нормализация — в чистых мапперах (map.ts). Здесь только запросы.
+// CatalogSource contract implementation on top of the Payload local API.
+// All domain normalization lives in the pure mappers (map.ts). Here — only queries.
 import type { Payload } from 'payload';
 import type {
   CatalogSource,
@@ -14,10 +14,10 @@ import type { ProductDoc, VariantDoc } from './payload-types.js';
 function sortExpr(sort?: ProductSort): string {
   switch (sort) {
     case 'price-asc':
-      return 'createdAt'; // цена в коллекции variants — сортировку по цене даёт фича filters (M8+)
+      return 'createdAt'; // price lives in the variants collection — price sorting is provided by the filters feature (M8+)
     case 'price-desc':
       return '-createdAt';
-    default: // newest и неуказанная сортировка
+    default: // newest and unspecified sort
       return '-createdAt';
   }
 }

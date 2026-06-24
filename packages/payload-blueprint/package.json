@@ -1,7 +1,7 @@
 {
   "name": "@vitrine-kit/payload-blueprint",
   "version": "0.2.0",
-  "description": "Vitrine — базовые Payload-коллекции + аддитивный extend().",
+  "description": "Vitrine — base Payload collections + additive extend().",
   "license": "MIT",
   "type": "module",
   "types": "./dist/index.d.ts",

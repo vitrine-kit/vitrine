@@ -1,20 +1,20 @@
-# Фича: checkout-yookassa (платёжный провайдер ЮKassa)
+# Feature: checkout-yookassa (YooKassa payment provider)
 
-Провайдер ЮKassa (yookassa.ru) — эквайринг РФ: карты, СБП, кошельки. Для каркаса
-`checkout` (от него зависит). Ставится вместо `checkout-stripe` / `checkout-paddle`
-(взаимоисключающие). SDK не нужен — REST `/v3/payments` + Basic-auth.
+A YooKassa (yookassa.ru) provider — Russian acquiring: cards, SBP, wallets. For the
+`checkout` scaffold (which it depends on). Installed instead of `checkout-stripe` / `checkout-paddle`
+(mutually exclusive). No SDK needed — REST `/v3/payments` + Basic auth.
 
-- **Провайдер:** `lib/checkout-yookassa/provider.ts` → `yookassaProvider`
-  (`PaymentProvider`): `createCheckout` создаёт платёж (`confirmation.redirect`) →
-  `confirmation_url`; `verifyWebhook` подтверждает платёж повторным запросом к API.
-- **Регистрация:** `registerCheckoutYookassaProvider()` (из `lib/payments.ts`),
-  ставит `integrations.payments: "yookassa"`.
-- **API (Next-glue):** `POST /api/webhooks/yookassa` → `handlePaymentWebhook` →
+- **Provider:** `lib/checkout-yookassa/provider.ts` → `yookassaProvider`
+  (`PaymentProvider`): `createCheckout` creates a payment (`confirmation.redirect`) →
+  `confirmation_url`; `verifyWebhook` confirms the payment with a follow-up request to the API.
+- **Registration:** `registerCheckoutYookassaProvider()` (from `lib/payments.ts`),
+  sets `integrations.payments: "yookassa"`.
+- **API (Next glue):** `POST /api/webhooks/yookassa` → `handlePaymentWebhook` →
   `fulfillOrderFromEvent`.
-- **env:** `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` (обязательны).
+- **env:** `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` (required).
 
-**Безопасность:** уведомления ЮKassa **не подписаны** — провайдер перепроверяет
-платёж через `GET /v3/payments/{id}` и доверяет только `status: "succeeded"`.
+**Security:** YooKassa notifications are **not signed** — the provider re-verifies the
+payment via `GET /v3/payments/{id}` and trusts only `status: "succeeded"`.
 
-**Деньги:** ЮKassa ждёт десятичную строку (`"1990.00"`); `Money` — минимальные
-единицы, поэтому делим на 100 (RUB и большинство валют — 2 знака).
+**Money:** YooKassa expects a decimal string (`"1990.00"`); `Money` is in minor
+units, so we divide by 100 (RUB and most currencies have 2 decimal places).

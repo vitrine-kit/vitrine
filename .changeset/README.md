@@ -1,9 +1,9 @@
 # Changesets
 
-Версии пакетов и релизы Vitrine управляются [Changesets](https://github.com/changesets/changesets).
+Vitrine package versions and releases are managed with [Changesets](https://github.com/changesets/changesets).
 
-- `pnpm changeset` — описать изменение (какие пакеты, тип bump).
-- `pnpm version-packages` — применить changeset'ы, поднять версии, собрать CHANGELOG.
-- `pnpm release` — собрать и опубликовать в npm (npmjs.com; CI на merge в `main`).
+- `pnpm changeset` — describe a change (which packages, bump type).
+- `pnpm version-packages` — apply changesets, bump versions, build the CHANGELOG.
+- `pnpm release` — build and publish to npm (npmjs.com; CI on merge to `main`).
 
-**Контракты:** `@vitrine-kit/contracts` меняем только аддитивно (см. §5 спеки). Ломающее изменение контракта = major bump и осознанное решение.
+**Contracts:** `@vitrine-kit/contracts` is changed additively only (see spec §5). A breaking contract change = a major bump and a deliberate decision.

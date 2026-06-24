@@ -1,22 +1,22 @@
-# Фича: checkout-paddle (платёжный провайдер Paddle)
+# Feature: checkout-paddle (Paddle payment provider)
 
-Провайдер Paddle Billing для каркаса `checkout` (от него зависит). Ставится вместо
-`checkout-stripe` / `checkout-yookassa` (взаимоисключающие). Paddle — Merchant of
-Record: берёт на себя налоги/НДС. Критлогика (диспетчер вебхука, заказ из корзины) —
-в `@vitrine-kit/core`.
+A Paddle Billing provider for the `checkout` scaffold (which it depends on). Installed instead of
+`checkout-stripe` / `checkout-yookassa` (mutually exclusive). Paddle is a Merchant of
+Record: it handles taxes/VAT. The critical logic (webhook dispatcher, order from cart) lives
+in `@vitrine-kit/core`.
 
-- **Провайдер:** `lib/checkout-paddle/provider.ts` → `paddleProvider`
-  (`PaymentProvider`): `createCheckout` создаёт Paddle transaction с non-catalog
-  line items (цены из корзины, `customData.cartId`); `verifyWebhook` проверяет
-  подпись `Paddle-Signature` через `@paddle/paddle-node-sdk`.
-- **Регистрация:** `registerCheckoutPaddleProvider()` (из `lib/payments.ts`), ставит
+- **Provider:** `lib/checkout-paddle/provider.ts` → `paddleProvider`
+  (`PaymentProvider`): `createCheckout` creates a Paddle transaction with non-catalog
+  line items (prices from the cart, `customData.cartId`); `verifyWebhook` verifies the
+  `Paddle-Signature` via `@paddle/paddle-node-sdk`.
+- **Registration:** `registerCheckoutPaddleProvider()` (from `lib/payments.ts`), sets
   `integrations.payments: "paddle"`.
-- **API (Next-glue):** `POST /api/webhooks/paddle` → `handlePaymentWebhook` →
-  `fulfillOrderFromEvent` (на `transaction.completed`/`transaction.paid`).
-- **env:** `PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET` (обязательны);
-  `PADDLE_ENVIRONMENT` (`sandbox`|`production`, по умолчанию `sandbox`),
-  `PADDLE_CHECKOUT_URL` (override hosted-checkout, иначе нужен default payment link
-  в дашборде Paddle) — опциональны.
+- **API (Next glue):** `POST /api/webhooks/paddle` → `handlePaymentWebhook` →
+  `fulfillOrderFromEvent` (on `transaction.completed`/`transaction.paid`).
+- **env:** `PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET` (required);
+  `PADDLE_ENVIRONMENT` (`sandbox`|`production`, default `sandbox`),
+  `PADDLE_CHECKOUT_URL` (override the hosted checkout, otherwise a default payment link
+  in the Paddle dashboard is required) — optional.
 
-Суммы Paddle ждёт строкой в минимальных единицах валюты — совпадает с `Money`,
-поэтому передаём `String(unitPrice)` как есть.
+Paddle expects amounts as a string in the currency's minor units — this matches `Money`,
+so we pass `String(unitPrice)` as-is.

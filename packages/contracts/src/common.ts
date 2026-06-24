@@ -1,4 +1,4 @@
-// Общие перечисления, используемые в нескольких контрактах/манифестах.
+// Shared enums used across several contracts/manifests.
 import { z } from 'zod';
 
 export const TIERS = ['catalog', 'simple-store', 'full-store'] as const;

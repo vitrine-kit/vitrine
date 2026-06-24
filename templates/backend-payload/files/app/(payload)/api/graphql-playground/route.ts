@@ -1,4 +1,4 @@
-/* GraphQL Playground Payload (эквивалент сгенерированного файла). */
+/* Payload GraphQL Playground (equivalent of the generated file). */
 import config from '@payload-config';
 import { GRAPHQL_PLAYGROUND_GET } from '@payloadcms/next/routes';
 

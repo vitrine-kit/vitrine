@@ -1,6 +1,6 @@
-// Провайдер-нейтральный диспетчер вебхуков. verify инъектируется провайдером
-// (verifyWebhook), поэтому ядро не тащит ни одного платёжного SDK. Бросает при
-// невалидной подписи — роут отдаёт 400. Заменяет прежний handleStripeWebhook.
+// A provider-neutral webhook dispatcher. verify is injected by the provider
+// (verifyWebhook), so the core pulls in no payment SDK. Throws on an
+// invalid signature — the route returns 400. Replaces the former handleStripeWebhook.
 import type { NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from './provider.js';
 
 export interface PaymentWebhookHandlers {
@@ -11,7 +11,7 @@ export interface PaymentWebhookHandlers {
 export interface PaymentWebhookResult {
   received: true;
   kind: NormalizedPaymentEvent['kind'];
-  /** Был ли зарегистрирован обработчик для этого вида события. */
+  /** Whether a handler was registered for this event kind. */
   handled: boolean;
 }
 
@@ -20,7 +20,7 @@ export async function handlePaymentWebhook(args: {
   req: PaymentWebhookRequest;
   handlers?: PaymentWebhookHandlers;
 }): Promise<PaymentWebhookResult> {
-  // Бросает при невалидной подписи/подлинности — наружу отдаём 400.
+  // Throws on an invalid signature/authenticity — we surface it as a 400.
   const event = await args.provider.verifyWebhook(args.req);
   const handlers = args.handlers ?? {};
   let handled = false;

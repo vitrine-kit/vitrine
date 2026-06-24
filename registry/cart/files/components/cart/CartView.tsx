@@ -1,4 +1,4 @@
-// Содержимое корзины — презентационное. Хостит слоты cart.items-bottom / cart.below.
+// Cart contents — presentational. Hosts the cart.items-bottom / cart.below slots.
 import type { Cart } from '@vitrine-kit/contracts';
 import { Slot } from '@vitrine-kit/core/react';
 import { CartLineItem } from './CartLineItem.js';
@@ -10,7 +10,7 @@ export interface CartViewProps {
 
 export function CartView({ cart }: CartViewProps) {
   if (cart.lines.length === 0) {
-    return <p className="text-muted-fg">Корзина пуста.</p>;
+    return <p className="text-muted-fg">Your cart is empty.</p>;
   }
   return (
     <div className="vt-cart grid gap-section md:grid-cols-[2fr_1fr]">

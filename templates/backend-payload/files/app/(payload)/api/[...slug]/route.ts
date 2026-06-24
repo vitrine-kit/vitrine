@@ -1,4 +1,4 @@
-/* REST API Payload (эквивалент сгенерированного файла). */
+/* Payload REST API (equivalent of the generated file). */
 import config from '@payload-config';
 import '@payloadcms/next/css';
 import {

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Образ клиента Vitrine на Vendure. Один образ, две команды (compose): Vendure-сервер
-# (`node dist/index.js`) и витрина Next (`next start`). Таргет — VPS.
+# Vitrine client image on Vendure. One image, two commands (compose): the Vendure server
+# (`node dist/index.js`) and the Next storefront (`next start`). Target — VPS.
 FROM node:20-alpine AS base
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app
@@ -20,5 +20,5 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app ./
 EXPOSE 3000 3001
-# Команда переопределяется в docker-compose (web / server).
+# The command is overridden in docker-compose (web / server).
 CMD ["pnpm", "start"]

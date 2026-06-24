@@ -1,7 +1,7 @@
-// Чистые мапперы Payload-документ → контрактный тип. Зависят только от
-// @vitrine-kit/contracts и локальных структурных типов — поэтому типизируются и
-// покрываются тестами без установленного Payload. Это критический шов
-// переносимости (тот же контракт на Payload и Vendure).
+// Pure mappers from Payload document → contract type. They depend only on
+// @vitrine-kit/contracts and local structural types — so they typecheck and are
+// covered by tests without Payload installed. This is the critical portability
+// seam (the same contract on Payload and Vendure).
 import type { Category, Money, Product, ProductImage, Variant } from '@vitrine-kit/contracts';
 import type { CategoryDoc, Id, MediaDoc, ProductDoc, VariantDoc } from './payload-types.js';
 
@@ -9,7 +9,7 @@ const asId = (v: Id): string => String(v);
 
 const relId = (v: Id | { id: Id }): string => (typeof v === 'object' ? asId(v.id) : asId(v));
 
-/** Известные базовые поля product — остальное уходит в Product.extensions. */
+/** Known base product fields — everything else goes into Product.extensions. */
 const BASE_PRODUCT_KEYS = new Set([
   'id', 'slug', 'title', 'description', 'categories', 'images', 'seo',
   'createdAt', 'updatedAt', '_status',
@@ -37,7 +37,7 @@ export function mapVariant(doc: VariantDoc, currency: string): Variant {
 }
 
 function mapImage(m: Id | MediaDoc): ProductImage | null {
-  // depth не раскрыл связь (пришёл id) или нет url — пропускаем.
+  // depth did not expand the relation (an id arrived) or there's no url — skip.
   if (typeof m !== 'object' || !m.url) return null;
   return {
     url: m.url,
@@ -47,7 +47,7 @@ function mapImage(m: Id | MediaDoc): ProductImage | null {
   };
 }
 
-/** Lexical richText (или строка) → плоский текст. Без HTML — для карточек/SEO. */
+/** Lexical richText (or string) → plain text. No HTML — for cards/SEO. */
 export function richTextToPlain(value: unknown): string | undefined {
   if (value == null) return undefined;
   if (typeof value === 'string') return value || undefined;

@@ -1,16 +1,16 @@
-# Фича: product-page
+# Feature: product-page
 
-Детальная страница товара. Зависит от `catalog` (registryDependencies).
+The product detail page. Depends on `catalog` (registryDependencies).
 
-## Компоненты
-- `components/product/ProductView` — детальная карточка. **Хостит слоты** `product.gallery`, `product.below-title`, `product.below-price`, `product.purchase`, `product.below-description`, `product.tabs` — сюда монтируются другие фичи (reviews, cart, wishlist).
-- `components/product/ProductGallery` — галерея изображений.
+## Components
+- `components/product/ProductView` — the detail card. **Hosts the slots** `product.gallery`, `product.below-title`, `product.below-price`, `product.purchase`, `product.below-description`, `product.tabs` — other features (reviews, cart, wishlist) mount here.
+- `components/product/ProductGallery` — the image gallery.
 
-## Данные
-- `lib/product/data` — `loadProduct(source, slug)` поверх `CatalogSource.getProduct`.
+## Data
+- `lib/product/data` — `loadProduct(source, slug)` over `CatalogSource.getProduct`.
 
-## Слоты
-Фича не регистрирует слоты, а **предоставляет** их: значит, добавление reviews/cart не требует правки `ProductView`.
+## Slots
+The feature doesn't register slots, it **provides** them: so adding reviews/cart doesn't require editing `ProductView`.
 
-## Контракты
-Только `@vitrine-kit/contracts` (типы) и `@vitrine-kit/core/react` (`<Slot>`).
+## Contracts
+Only `@vitrine-kit/contracts` (types) and `@vitrine-kit/core/react` (`<Slot>`).

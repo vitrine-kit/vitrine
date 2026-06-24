@@ -1,4 +1,4 @@
-/* Эквивалент сгенерированной Payload страницы админки. */
+/* Equivalent of the Payload-generated admin page. */
 import type { Metadata } from 'next';
 import config from '@payload-config';
 import { generatePageMetadata, RootPage } from '@payloadcms/next/views';

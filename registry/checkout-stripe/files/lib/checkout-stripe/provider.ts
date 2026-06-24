@@ -1,7 +1,7 @@
-// PaymentProvider поверх Stripe Hosted Checkout. Stripe SDK живёт здесь (в фиче),
-// не в ядре: createCheckout создаёт сессию, verifyWebhook проверяет подпись и
-// нормализует событие в NormalizedPaymentEvent. Маппинг корзины в line items Stripe
-// (price_data — динамические цены, unit_amount в минимальных единицах) — тоже здесь.
+// PaymentProvider over Stripe Hosted Checkout. The Stripe SDK lives here (in the feature),
+// not in the core: createCheckout creates a session, verifyWebhook verifies the signature and
+// normalizes the event into a NormalizedPaymentEvent. Mapping the cart into Stripe line items
+// (price_data — dynamic prices, unit_amount in minor units) also lives here.
 import type { Cart } from '@vitrine-kit/contracts';
 import type {
   CreateCheckoutArgs,
@@ -48,7 +48,7 @@ export const stripeProvider: PaymentProvider = {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '');
     const secret = process.env.STRIPE_WEBHOOK_SECRET ?? '';
     const signature = req.headers['stripe-signature'] ?? '';
-    // Бросает при неверной подписи — handlePaymentWebhook прокинет наружу как 400.
+    // Throws on an invalid signature — handlePaymentWebhook surfaces it as a 400.
     const event = stripe.webhooks.constructEvent(req.rawBody, signature, secret);
 
     if (event.type === 'checkout.session.completed') {

@@ -1,9 +1,9 @@
-// Демо: слоты + blueprint работают на одних контрактах.
-// Запуск: pnpm build && pnpm --filter sandbox demo
+// Demo: slots + blueprint work on the same contracts.
+// Run: pnpm build && pnpm --filter sandbox demo
 import { createSlotRegistry } from '@vitrine-kit/core';
 import { createBlueprint } from '@vitrine-kit/payload-blueprint';
 
-// --- Слоты: регистрируем компоненты по имени, читаем в порядке order ---
+// --- Slots: register components by name, read them in order ---
 const slots = createSlotRegistry<string>();
 slots.register({ slot: 'product.below-description', component: 'ReviewList', order: 20 });
 slots.register({ slot: 'product.below-description', component: 'QnA', order: 10 });
@@ -13,7 +13,7 @@ console.log(
   slots.get('product.below-description').map((m) => m.component),
 ); // ['QnA', 'ReviewList']
 
-// --- Blueprint: фича аддитивно расширяет коллекцию product ---
+// --- Blueprint: a feature additively extends the product collection ---
 const bp = createBlueprint();
 bp.extend('product', { addFields: [{ name: 'reviewsEnabled', type: 'checkbox' }] });
 

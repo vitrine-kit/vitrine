@@ -1,13 +1,13 @@
-// Построчный 3-way merge (diff3) для `vitrine update`. База = pristine-оригинал
-// версии (.vitrine/originals), ours = репо клиента (стилизованный), theirs =
-// версия из реестра. Чисто, без зависимостей — поэтому покрыто тестами как
-// единственная нетривиальная логика M9. Чистый merge тихий; конфликт — git-маркеры.
+// Line-based 3-way merge (diff3) for `vitrine update`. Base = the pristine original
+// of the version (.vitrine/originals), ours = the client repo (styled), theirs =
+// the version from the registry. Pure, dependency-free — hence covered by tests as
+// the only non-trivial M9 logic. A clean merge is silent; a conflict — git markers.
 
 function splitLines(s: string): string[] {
   return s.split('\n');
 }
 
-/** LCS-совпадения индексов (i в a, j в b), в порядке возрастания. */
+/** LCS index matches (i in a, j in b), in ascending order. */
 function lcsMatches(a: string[], b: string[]): Array<[number, number]> {
   const n = a.length;
   const m = b.length;
@@ -38,11 +38,11 @@ function lcsMatches(a: string[], b: string[]): Array<[number, number]> {
 
 interface Hunk {
   baseStart: number;
-  baseEnd: number; // заменить base[baseStart, baseEnd) на lines
+  baseEnd: number; // replace base[baseStart, baseEnd) with lines
   lines: string[];
 }
 
-/** Изменения base → other как ханки над индексами base. */
+/** Changes base → other as hunks over base indices. */
 function changeHunks(base: string[], other: string[]): Hunk[] {
   const matches = lcsMatches(base, other);
   const hunks: Hunk[] = [];
@@ -87,17 +87,17 @@ export interface MergeLabels {
   theirs?: string;
 }
 
-/** Потолок ячеек LCS-матрицы (O(n·m) памяти). Файлы фич крошечные; защита от патологии. */
+/** Ceiling on LCS matrix cells (O(n·m) memory). Feature files are tiny; a guard against pathology. */
 const MAX_LCS_CELLS = 4_000_000;
 
 export function merge3(base: string, ours: string, theirs: string, labels: MergeLabels = {}): MergeResult {
   const B = splitLines(base);
   const O = splitLines(ours);
   const T = splitLines(theirs);
-  const ourLabel = labels.ours ?? 'ours (репо клиента)';
-  const theirLabel = labels.theirs ?? 'theirs (реестр)';
+  const ourLabel = labels.ours ?? 'ours (client repo)';
+  const theirLabel = labels.theirs ?? 'theirs (registry)';
 
-  // Безопасный фолбэк без построения огромной DP-матрицы на гигантских входах.
+  // Safe fallback without building a huge DP matrix on giant inputs.
   if (B.length * Math.max(O.length, T.length) > MAX_LCS_CELLS) {
     if (ours === theirs || theirs === base) return { text: ours, clean: true, conflicts: 0 };
     if (ours === base) return { text: theirs, clean: true, conflicts: 0 };
@@ -126,7 +126,7 @@ export function merge3(base: string, ours: string, theirs: string, labels: Merge
       continue;
     }
 
-    // Группируем перекрывающиеся ханки обеих сторон в регион [p, end).
+    // Group overlapping hunks from both sides into the region [p, end).
     const groupO: Hunk[] = [];
     const groupT: Hunk[] = [];
     let end = p;

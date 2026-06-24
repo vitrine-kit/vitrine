@@ -1,5 +1,5 @@
-// Тонкий клиент Vendure Shop API (GraphQL по fetch, без зависимостей). Сессия
-// активного заказа — через bearer-токен (vendure-auth-token). Next-glue.
+// Thin Vendure Shop API client (GraphQL over fetch, no dependencies). The active
+// order's session uses a bearer token (vendure-auth-token). Next glue.
 const SHOP_API = process.env.VENDURE_SHOP_API_URL ?? 'http://localhost:3001/shop-api';
 
 export interface ShopResult<T> {

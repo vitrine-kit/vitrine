@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Классическая футболка">
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Classic T-Shirt">
   <rect width="600" height="600" fill="#e7e5e4"/>
   <rect x="40" y="40" width="520" height="520" rx="16" fill="#d6d3d1"/>
-  <text x="300" y="312" font-family="system-ui, sans-serif" font-size="40" fill="#57534e" text-anchor="middle">Футболка</text>
+  <text x="300" y="312" font-family="system-ui, sans-serif" font-size="40" fill="#57534e" text-anchor="middle">T-Shirt</text>
 </svg>

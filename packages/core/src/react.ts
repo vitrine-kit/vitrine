@@ -1,6 +1,6 @@
-// React-обёртка слотов: <Slot name="product.below-description" />.
-// Рендерит зарегистрированные компоненты слота по порядку (order). React —
-// опциональный peer; импортируется из подпути @vitrine-kit/core/react.
+// The React slot wrapper: <Slot name="product.below-description" />.
+// Renders the slot's registered components in order. React is an
+// optional peer; imported from the @vitrine-kit/core/react subpath.
 import {
   createElement,
   Fragment,
@@ -14,11 +14,11 @@ type SlotComponentRegistry = SlotRegistry<ComponentType<Record<string, unknown>>
 
 export interface SlotProps {
   name: SlotId;
-  /** Реестр (по умолчанию — глобальный). Для тестов/изоляции можно передать свой. */
+  /** The registry (global by default). Pass your own for tests/isolation. */
   registry?: SlotComponentRegistry;
-  /** Что рендерить, если слот пуст. */
+  /** What to render if the slot is empty. */
   fallback?: ReactNode;
-  /** Остальные пропсы прокидываются в каждый смонтированный компонент. */
+  /** The remaining props are forwarded to each mounted component. */
   [prop: string]: unknown;
 }
 

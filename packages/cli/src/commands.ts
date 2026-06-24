@@ -1,5 +1,5 @@
-// Тонкие обёртки команд над примитивом. Находят клиентский репозиторий (вверх
-// по дереву) и вызывают install/remove.
+// Thin command wrappers over the primitive. They find the client repository (up
+// the tree) and call install/remove.
 import { findProjectRoot, loadProject, type Project } from './project.js';
 import { createRegistrySource } from './registry.js';
 import { installFeatures, removeFeature, type InstallResult } from './install.js';
@@ -10,7 +10,7 @@ import { applyUpdate, planUpdate, type UpdatePlan } from './update.js';
 function requireProject(): Project {
   const root = findProjectRoot();
   if (!root) {
-    throw new Error('[vitrine] не найден vitrine.json — это не репозиторий клиента Vitrine');
+    throw new Error('[vitrine] vitrine.json not found — not a Vitrine client repository');
   }
   return loadProject(root);
 }

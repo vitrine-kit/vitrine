@@ -1,14 +1,14 @@
-# Фича: seo
+# Feature: seo
 
-Метаданные страниц и schema.org JSON-LD из доменных типов.
+Page metadata and schema.org JSON-LD from domain types.
 
-## Модули
-- `lib/seo/metadata` — `buildProductMetadata(product)` → `SiteMetadata` (структурно совместима с Next `Metadata`; в клиенте возвращается из `generateMetadata`).
-- `lib/seo/jsonld` — `productJsonLd(product)` → объект schema.org `Product`/`Offer`.
-- `components/seo/JsonLd` — `<JsonLd data={…} />` встраивает `<script type="application/ld+json">`.
+## Modules
+- `lib/seo/metadata` — `buildProductMetadata(product)` → `SiteMetadata` (structurally compatible with Next `Metadata`; in the client it's returned from `generateMetadata`).
+- `lib/seo/jsonld` — `productJsonLd(product)` → a schema.org `Product`/`Offer` object.
+- `components/seo/JsonLd` — `<JsonLd data={…} />` embeds a `<script type="application/ld+json">`.
 
-## Контракты
-Только `@vitrine-kit/contracts` (типы `Product`). Слотов не регистрирует.
+## Contracts
+Only `@vitrine-kit/contracts` (the `Product` type). Registers no slots.
 
-## Заметка
-Цена в JSON-LD приводится из минимальных единиц (`price/100`).
+## Note
+The price in JSON-LD is converted from minor units (`price/100`).

@@ -1,5 +1,5 @@
-/* Разметка админки Payload (route group (payload)). Эквивалент сгенерированного
-   Payload файла — рендерит свой <html> отдельно от витрины ((frontend)). */
+/* Payload admin layout (route group (payload)). Equivalent of the Payload-generated
+   file — renders its own <html> separately from the storefront ((frontend)). */
 import type { ServerFunctionClient } from 'payload';
 import config from '@payload-config';
 import '@payloadcms/next/css';
@@ -8,7 +8,7 @@ import type React from 'react';
 import { importMap } from './admin/importMap.js';
 import './custom.scss';
 
-// biome-ignore lint/complexity/useArrowFunction: повторяет сгенерированный Payload файл (граница 'use server').
+// biome-ignore lint/complexity/useArrowFunction: mirrors the Payload-generated file ('use server' boundary).
 const serverFunction: ServerFunctionClient = async function (args) {
   'use server';
   return handleServerFunctions({ ...args, config, importMap });

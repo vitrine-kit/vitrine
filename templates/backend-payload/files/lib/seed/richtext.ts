@@ -1,5 +1,5 @@
-// Минимальное значение Lexical richText из плоского текста — для description
-// демо-товаров при сиде.
+// Minimal Lexical richText value from plain text — for the description of
+// demo products during seeding.
 export function plainToRichText(text: string): unknown {
   return {
     root: {

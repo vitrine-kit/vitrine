@@ -1,5 +1,5 @@
-// Карточка товара (детальная). ХОСТИТ слоты product.* — другие фичи (reviews,
-// cart, wishlist) монтируются в них, не правя этот компонент.
+// Product detail card. HOSTS the product.* slots — other features (reviews,
+// cart, wishlist) mount into them without editing this component.
 import type { Product } from '@vitrine-kit/contracts';
 import { Slot } from '@vitrine-kit/core/react';
 import { ProductGallery } from './ProductGallery.js';

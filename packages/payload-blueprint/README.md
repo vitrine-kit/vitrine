@@ -1,7 +1,5 @@
 # @vitrine-kit/payload-blueprint
 
-Базовые Payload-коллекции Vitrine и API `extend()` для **аддитивного** расширения их полей фичами (контракт 5, §5 спеки).
+Vitrine's base Payload collections and the `extend()` API for **additively** extending their fields from features (contract 5, spec §5).
 
-Фича добавляет поля (`extend('product', { addFields })`), не ломая существующие. Версионируется как пакет.
-
-Скелет (M0). Наполняется в M2.
+A feature adds fields (`extend('product', { addFields })`) without breaking existing ones. Shipped as a versioned package.

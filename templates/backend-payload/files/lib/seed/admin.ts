@@ -1,6 +1,6 @@
-// Dev-админ (§18.3): только dev + пустая коллекция users. Пароль из
-// DEV_ADMIN_PASSWORD, иначе случайный (нет общеизвестного дефолта), печатается
-// один раз в консоль.
+// Dev admin (§18.3): dev only + empty users collection. Password from
+// DEV_ADMIN_PASSWORD, otherwise random (no well-known default), printed
+// to the console once.
 import { randomBytes } from 'node:crypto';
 import type { Payload } from 'payload';
 import { shouldRunDevTask } from './guards.js';
@@ -18,6 +18,6 @@ export async function ensureDevAdmin(payload: Payload): Promise<void> {
   const password = process.env.DEV_ADMIN_PASSWORD ?? randomPassword();
   await payload.create({ collection: 'users', data: { email, password } });
   payload.logger.warn(
-    `[vitrine] DEV ADMIN ${email} / ${password} — только для разработки, смените перед деплоем`,
+    `[vitrine] DEV ADMIN ${email} / ${password} — development only, change before deploying`,
   );
 }

@@ -1,26 +1,27 @@
-# templates/ — скелеты клиентского репозитория
+# templates/ — client repository skeletons
 
-Из них `vitrine init` собирает репозиторий клиента (§6 спеки). `templates/<name>/files`
-**зеркалит корень клиента** (как `registry/<feature>/files`): статический каркас
-копируется как есть, поверх него CLI генерирует управляемые файлы (site.config.ts,
-vitrine.json, CLAUDE.md, package.json, lib/slots.ts, lib/blueprint.ts, theme/client.css).
+`vitrine init` assembles the client repository from these (spec §6). `templates/<name>/files`
+**mirrors the client root** (like `registry/<feature>/files`): the static skeleton is copied as-is,
+then the CLI generates managed files on top of it (site.config.ts, vitrine.json, CLAUDE.md,
+package.json, lib/slots.ts, lib/blueprint.ts, theme/client.css).
 
-- `base` — ✅ M5. Next.js (App Router, route group `(frontend)`) + Tailwind (пресет
-  Vitrine), роуты витрины (главная/каталог, товар, категория), шапка/подвал с хостингом
-  слотов, `.gitignore` (с `.vitrine/`), `/design` README.
-- `backend-payload` — ✅ M5. Payload-конфиг, админка `(payload)`, адаптер
-  `PayloadCatalogSource` поверх контракта `CatalogSource`, zero-config dev
-  (SQLite-fallback + демо-сид + dev-админ, §18), `Dockerfile` + `docker-compose.yml`
-  (app + Postgres, хостинг-таргет VPS).
-- `backend-vendure` — ✅ M10. Vendure-сервер (`vendure-config.ts`, db Postgres/SQLite-dev,
-  суперадмин из env), адаптеры `VendureCatalogSource`/`VendureCommerceBackend` поверх Shop
-  GraphQL, populate-гард (§18-эквивалент), `Dockerfile` + `docker-compose.yml` (db + server + web).
-  Витрина (`app/(frontend)`) и фичи каталога/корзины — те же, что на Payload (переносимость
-  через контракты). Полная оплата — Stripe-плагин Vendure; юр-проверка GPL-3.0 — отдельный трек.
+- `base` — ✅ M5. Next.js (App Router, route group `(frontend)`) + Tailwind (Vitrine preset),
+  storefront routes (home/catalog, product, category), header/footer hosting slots,
+  `.gitignore` (with `.vitrine/`), `/design` README.
+- `backend-payload` — ✅ M5. Payload config, the `(payload)` admin, a `PayloadCatalogSource`
+  adapter over the `CatalogSource` contract, zero-config dev
+  (SQLite fallback + demo seed + dev admin, §18), `Dockerfile` + `docker-compose.yml`
+  (app + Postgres, VPS hosting target).
+- `backend-vendure` — ✅ M10. A Vendure server (`vendure-config.ts`, Postgres/SQLite-dev db,
+  superadmin from env), `VendureCatalogSource`/`VendureCommerceBackend` adapters over the Shop
+  GraphQL API, a populate guard (§18 equivalent), `Dockerfile` + `docker-compose.yml` (db + server + web).
+  The storefront (`app/(frontend)`) and the catalog/cart features are the same as on Payload
+  (portability via contracts). Full payments use the Vendure Stripe plugin; the GPL-3.0 legal review
+  is a separate track.
 
-## Что проверяется в монорепо
+## What is checked in the monorepo
 
-Файлы шаблона, зависящие от Next/Payload, типизируются **при инстанцировании**
-клиента (там стек установлен). Чистая критическая логика (мапперы Payload→контракт,
-таблица выбора БД §18.1, инварианты демо-сида, гарды dev-процедур) зависит только
-от контрактов и покрыта `pnpm typecheck:templates` + тестами в `sandbox/`.
+Template files that depend on Next/Payload are typechecked **when the client is instantiated**
+(the stack is installed there). The pure critical logic (Payload→contract mappers, the §18.1 DB
+selection table, demo-seed invariants, dev-procedure guards) depends only on the contracts and is
+covered by `pnpm typecheck:templates` + tests in `sandbox/`.

@@ -1,4 +1,4 @@
-// Галерея товара — презентационная, нейтральная.
+// Product gallery — presentational, neutral.
 import type { ProductImage } from '@vitrine-kit/contracts';
 
 export interface ProductGalleryProps {
@@ -25,7 +25,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
             <li key={img.url}>
               <img
                 src={img.url}
-                alt={img.alt ?? `${title} — изображение ${i + 2}`}
+                alt={img.alt ?? `${title} — image ${i + 2}`}
                 className="h-16 w-16 rounded-md object-cover"
               />
             </li>

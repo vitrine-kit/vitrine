@@ -1,7 +1,7 @@
 # @vitrine-kit/contracts
 
-Пять стабильных контрактов Vitrine, от которых зависит каждая фича реестра: **Tokens · Data · Slots · Config · Blueprint**.
+The five stable Vitrine contracts that every registry feature depends on: **Tokens · Data · Slots · Config · Blueprint**.
 
-Это API под semver. Сломанный контракт ломает `add` у всех клиентов → расширяем **только аддитивно** (§5, §13 спеки).
+This is a semver-governed API. A broken contract breaks `add` for every client → we extend it **additively only** (spec §5, §13).
 
-Скелет (M0). Содержимое контрактов наполняется в M1; предложение по именам слотов/токенов — [docs/contracts-v1-proposal.md](../../docs/contracts-v1-proposal.md).
+Source of truth is **zod**; the JSON Schemas in `schemas/` are generated from it. The v1 slot/token naming proposal lives in [docs/contracts-v1-proposal.md](../../docs/contracts-v1-proposal.md).

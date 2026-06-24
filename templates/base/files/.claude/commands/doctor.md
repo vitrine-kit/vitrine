@@ -1,15 +1,15 @@
 ---
-description: Проверить консистентность проекта и починить расхождения
+description: Check project consistency and fix discrepancies
 ---
 
-Проверь здоровье проекта:
+Check the project's health:
 
-1. `vitrine doctor` — сверяет `vitrine.json` ↔ файлы ↔ пакеты (`package.json`) ↔ env (`.env.example`).
-2. Разбери вывод. У каждого issue есть предложенный фикс:
-   - пропавший файл/слот/провайдер/зависимость → `vitrine add <feature>` (переустановит и регенерирует);
-   - версия в репо ≠ реестр → `vitrine update <feature>`;
-   - фича не найдена в реестре → `vitrine kit update`;
-   - нет ключа env → добавь в `.env.example`/`.env`;
-   - нет блока дизайн-инструкции в `CLAUDE.md` → освежи (приносит `kit update`).
-3. Применяй фиксы (предпочитай команды CLI правке руками), затем перезапусти `vitrine doctor`
-   до зелёного. Доложи, что осталось требующего решения пользователя (например, секреты).
+1. `vitrine doctor` — reconciles `vitrine.json` ↔ files ↔ packages (`package.json`) ↔ env (`.env.example`).
+2. Work through the output. Each issue has a suggested fix:
+   - missing file/slot/provider/dependency → `vitrine add <feature>` (reinstalls and regenerates);
+   - version in the repo ≠ registry → `vitrine update <feature>`;
+   - feature not found in the registry → `vitrine kit update`;
+   - missing env key → add it to `.env.example`/`.env`;
+   - no design-instruction block in `CLAUDE.md` → refresh it (`kit update` brings it).
+3. Apply the fixes (prefer CLI commands over hand edits), then re-run `vitrine doctor`
+   until it's green. Report anything left that needs a user decision (e.g. secrets).

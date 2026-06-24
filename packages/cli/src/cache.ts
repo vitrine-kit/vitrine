@@ -1,6 +1,6 @@
-// Локальный кэш kit (~/.vitrine): реестр + шаблоны + метаданные версии. Источник
-// для init/add (офлайн после kit update). VITRINE_HOME переопределяет корень
-// (для тестов и нестандартных установок).
+// The local kit cache (~/.vitrine): registry + templates + version metadata. The source
+// for init/add (offline after kit update). VITRINE_HOME overrides the root
+// (for tests and non-standard installs).
 import { cpSync, existsSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { exists, readJson, writeText } from './util.js';
@@ -26,7 +26,7 @@ interface RegistryIndex {
 export function vitrineHome(): string {
   if (process.env.VITRINE_HOME) return resolve(process.env.VITRINE_HOME);
   const home = process.env.USERPROFILE ?? process.env.HOME;
-  if (!home) throw new Error('[vitrine] не удалось определить домашний каталог (HOME/USERPROFILE)');
+  if (!home) throw new Error('[vitrine] could not determine the home directory (HOME/USERPROFILE)');
   return join(home, '.vitrine');
 }
 
@@ -60,7 +60,7 @@ export interface ChangelogEntry {
   to?: string;
 }
 
-/** Дифф наборов фич между старым и новым _index.json (для вывода kit update). */
+/** Diff of feature sets between the old and new _index.json (for kit update output). */
 export function computeChangelog(
   oldIndex: RegistryIndex | null,
   newIndex: RegistryIndex | null,
@@ -83,7 +83,7 @@ export function computeChangelog(
 }
 
 export function formatChangelog(entries: ChangelogEntry[]): string {
-  if (entries.length === 0) return 'без изменений набора фич';
+  if (entries.length === 0) return 'no changes to the feature set';
   return entries
     .map((e) => {
       if (e.kind === 'added') return `+ ${e.name}${e.to ? ` ${e.to}` : ''}`;
@@ -99,9 +99,9 @@ export interface PopulateResult {
 }
 
 /**
- * Заполняет кэш из дерева-источника (клон kit или распакованный release-tarball):
- * копирует <from>/registry и <from>/templates в ~/.vitrine, пишет kit.json,
- * возвращает changelog (старый кэш ↔ новый). Идемпотентно перезаписывает.
+ * Populates the cache from a source tree (a kit clone or an unpacked release tarball):
+ * copies <from>/registry and <from>/templates into ~/.vitrine, writes kit.json,
+ * returns the changelog (old cache ↔ new). Overwrites idempotently.
  */
 export function populateCache(
   fromDir: string,
@@ -111,7 +111,7 @@ export function populateCache(
   const srcRegistry = join(fromDir, 'registry');
   const srcTemplates = join(fromDir, 'templates');
   if (!existsSync(join(srcRegistry, '_index.json'))) {
-    throw new Error(`[vitrine] в "${fromDir}" нет registry/_index.json — это не дерево kit`);
+    throw new Error(`[vitrine] "${fromDir}" has no registry/_index.json — not a kit tree`);
   }
 
   const paths = cachePaths(home);

@@ -1,11 +1,11 @@
-// PaymentProvider поверх Paddle Billing. SDK живёт здесь (в фиче), не в ядре.
-// createCheckout создаёт transaction с non-catalog line items (цены задаются на лету
-// из корзины) и custom_data.cartId → возвращает hosted checkout URL. verifyWebhook
-// проверяет подпись Paddle-Signature (HMAC) и нормализует событие.
+// PaymentProvider over Paddle Billing. The SDK lives here (in the feature), not in the core.
+// createCheckout creates a transaction with non-catalog line items (prices set on the fly
+// from the cart) and custom_data.cartId → returns the hosted checkout URL. verifyWebhook
+// verifies the Paddle-Signature (HMAC) and normalizes the event.
 //
-// Paddle ожидает суммы строкой в минимальных единицах валюты (как наш Money), поэтому
-// String(unitPrice) передаём как есть. Для hosted-checkout в дашборде Paddle нужен
-// default payment link ИЛИ задайте PADDLE_CHECKOUT_URL (override).
+// Paddle expects amounts as a string in the currency's minor units (like our Money), so
+// we pass String(unitPrice) as-is. For hosted checkout, the Paddle dashboard needs a
+// default payment link OR set PADDLE_CHECKOUT_URL (override).
 import { Environment, Paddle, type EventEntity } from '@paddle/paddle-node-sdk';
 import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@vitrine-kit/core';
 
@@ -42,7 +42,7 @@ export const paddleProvider: PaymentProvider = {
     const paddle = client();
     const secret = process.env.PADDLE_WEBHOOK_SECRET ?? '';
     const signature = req.headers['paddle-signature'] ?? '';
-    // Бросает при неверной подписи — handlePaymentWebhook отдаст 400.
+    // Throws on an invalid signature — handlePaymentWebhook returns a 400.
     const event = (await paddle.webhooks.unmarshal(req.rawBody, secret, signature)) as EventEntity | null;
     if (!event) return { kind: 'unknown', raw: req.rawBody };
 

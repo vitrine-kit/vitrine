@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/feature.schema.json",
   "name": "checkout-paddle",
-  "title": "Оплата — Paddle",
+  "title": "Payment — Paddle",
   "kitVersion": "0.0.0",
   "requiresContracts": ">=1.0.0 <2.0.0",
   "tier": ["simple-store", "full-store"],

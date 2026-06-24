@@ -1,5 +1,5 @@
-// Выбор адаптера БД для Payload (§18.1). Решение — в чистой decideDbAdapter;
-// здесь только подключение реальных адаптеров и логирование выбора.
+// DB adapter selection for Payload (§18.1). The decision lives in the pure
+// decideDbAdapter; here we only wire up the real adapters and log the choice.
 import { postgresAdapter } from '@payloadcms/db-postgres';
 import { sqliteAdapter } from '@payloadcms/db-sqlite';
 import { decideDbAdapter } from './db-decision.js';
@@ -18,10 +18,10 @@ export async function resolveDbAdapter() {
   if (decision.warn) console.warn(decision.warn);
 
   if (decision.kind === 'postgres') {
-    console.info('[vitrine] БД: Postgres');
+    console.info('[vitrine] DB: Postgres');
     return postgresAdapter({ pool: { connectionString: url as string } });
   }
 
-  console.info('[vitrine] БД: SQLite (.vitrine/dev.sqlite)');
+  console.info('[vitrine] DB: SQLite (.vitrine/dev.sqlite)');
   return sqliteAdapter({ client: { url: 'file:./.vitrine/dev.sqlite' } });
 }

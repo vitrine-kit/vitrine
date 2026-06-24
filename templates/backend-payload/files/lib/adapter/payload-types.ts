@@ -1,7 +1,7 @@
-// Структурные формы документов Payload, как их отдаёт local API (с depth ≥ 1
-// связи раскрываются в объекты). Намеренно свободные и НЕ импортируют
-// сгенерированные payload-types — чтобы map.ts оставался чистым (только контракты)
-// и тестируемым без Payload.
+// Structural shapes of Payload documents as the local API returns them (with
+// depth ≥ 1 relations expand into objects). Intentionally loose and do NOT import
+// the generated payload-types — so that map.ts stays pure (contracts only)
+// and testable without Payload.
 
 export type Id = string | number;
 
@@ -40,11 +40,11 @@ export interface ProductDoc {
   id: Id;
   slug: string;
   title: string;
-  /** Lexical richText (или строка). Маппится в плоский текст. */
+  /** Lexical richText (or string). Mapped to plain text. */
   description?: unknown;
   categories?: Array<Id | CategoryDoc> | null;
   images?: Array<Id | MediaDoc> | null;
   seo?: ProductSeoGroup | null;
-  /** Поля, добавленные фичами через blueprint extend() → Product.extensions. */
+  /** Fields added by features via blueprint extend() → Product.extensions. */
   [key: string]: unknown;
 }

@@ -1,5 +1,5 @@
-// backend-payload: оборачиваем Next-конфиг в withPayload (монтирует админку и
-// API Payload в Next). output: 'standalone' — для Docker-образа (VPS).
+// backend-payload: wrap the Next config in withPayload (mounts the Payload admin and
+// API into Next). output: 'standalone' — for the Docker image (VPS).
 import { withPayload } from '@payloadcms/next/withPayload';
 
 /** @type {import('next').NextConfig} */

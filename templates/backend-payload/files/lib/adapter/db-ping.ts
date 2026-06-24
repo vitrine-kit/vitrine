@@ -1,6 +1,6 @@
-// Короткий TCP-ping Postgres с таймаутом (~2с), затем close. Через node:net,
-// без зависимости на драйвер — различать недоступность/таймаут/ошибку не нужно:
-// любая неудача в dev → fallback (см. db-decision.ts).
+// Short TCP ping to Postgres with a timeout (~2s), then close. Uses node:net,
+// no driver dependency — no need to distinguish unavailable/timeout/error:
+// any failure in dev → fallback (see db-decision.ts).
 import net from 'node:net';
 
 export function canConnectPostgres(url: string, timeoutMs = 2000): Promise<boolean> {

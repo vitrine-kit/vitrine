@@ -1,10 +1,10 @@
-// Реализация контракта 5 (Blueprint): фичи аддитивно расширяют коллекции через
-// extend('product', { addFields }); build() собирает финальные коллекции,
-// проверяя, что ни одно добавленное поле не перетирает существующее.
+// Implementation of contract 5 (Blueprint): features additively extend collections via
+// extend('product', { addFields }); build() assembles the final collections,
+// checking that no added field overwrites an existing one.
 import type { BlueprintCollection, BlueprintFieldDef, Extend } from '@vitrine-kit/contracts';
 import { baseCollections, type BlueprintCollectionConfig } from './collections.js';
 
-/** Имя контракта-коллекции → slug базовой коллекции. */
+/** Contract collection name → base collection slug. */
 const SLUG_BY_COLLECTION: Record<BlueprintCollection, string> = {
   product: 'products',
   variant: 'variants',
@@ -16,7 +16,7 @@ const SLUG_BY_COLLECTION: Record<BlueprintCollection, string> = {
 
 export interface Blueprint {
   extend: Extend;
-  /** Собирает базовые коллекции + аддитивные расширения. */
+  /** Assembles the base collections + additive extensions. */
   build(): BlueprintCollectionConfig[];
 }
 
@@ -39,7 +39,7 @@ export function createBlueprint(): Blueprint {
       for (const field of adds) {
         if (existing.has(field.name)) {
           throw new Error(
-            `[vitrine] blueprint: поле "${field.name}" уже есть в "${base.slug}" — extend() только аддитивен`,
+            `[vitrine] blueprint: field "${field.name}" already exists in "${base.slug}" — extend() is additive only`,
           );
         }
         existing.add(field.name);

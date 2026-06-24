@@ -47,8 +47,8 @@ afterEach(() => {
 
 const read = (root: string, rel: string) => readFileSync(join(root, rel), 'utf8');
 
-describe('init + примитив установки (DoD)', () => {
-  it('init каталога ставит catalog/product-page/seo и пишет всё консистентно', () => {
+describe('init + install primitive (DoD)', () => {
+  it('catalog init installs catalog/product-page/seo and writes everything consistently', () => {
     const root = join(tmp(), 'shop');
     const res = initProject({
       root,
@@ -60,7 +60,7 @@ describe('init + примитив установки (DoD)', () => {
     });
     expect(res.installed.sort()).toEqual(['catalog', 'product-page', 'seo']);
 
-    // файлы скопированы
+    // files copied
     expect(existsSync(join(root, 'components/catalog/ProductCard.tsx'))).toBe(true);
     expect(existsSync(join(root, 'components/product/ProductView.tsx'))).toBe(true);
     expect(existsSync(join(root, 'lib/seo/metadata.ts'))).toBe(true);
@@ -69,60 +69,60 @@ describe('init + примитив установки (DoD)', () => {
     const lock = JSON.parse(read(root, 'vitrine.json'));
     expect(Object.keys(lock.features).sort()).toEqual(['catalog', 'product-page', 'seo']);
 
-    // флаги в site.config
+    // flags in site.config
     const config = read(root, 'site.config.ts');
     expect(config).toContain('"catalog": true');
     expect(config).toContain('"seo": true');
 
-    // слоты: catalog регистрирует свой register
+    // slots: catalog registers its own register
     const slots = read(root, 'lib/slots.ts');
     expect(slots).toContain('registerCatalogSlots');
 
-    // CLAUDE.md таблица
+    // CLAUDE.md table
     expect(read(root, 'CLAUDE.md')).toContain('| `catalog` |');
 
-    // pristine-снапшоты для M9
+    // pristine snapshots for M9
     expect(existsSync(join(root, '.vitrine/originals/catalog@0.0.0/components/catalog/ProductCard.tsx'))).toBe(true);
   });
 
-  it('скаффолдит агентские артефакты: справочник в CLAUDE.md, слэш-команды, AGENTS.md', () => {
+  it('scaffolds agent artifacts: reference in CLAUDE.md, slash commands, AGENTS.md', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
 
-    // расширенный CLAUDE.md: справочник команд + границы, дизайн-блок и таблица фич на месте
+    // extended CLAUDE.md: command reference + boundaries, design block and feature table present
     const claude = read(root, 'CLAUDE.md');
-    expect(claude).toContain('## Команды vitrine CLI');
+    expect(claude).toContain('## vitrine CLI commands');
     expect(claude).toContain('vitrine add');
     expect(claude).toContain('vitrine doctor');
-    expect(claude).toContain('## Границы');
-    expect(claude).toContain('ИНСТРУКЦИЯ: применить дизайн'); // контракт doctor/design сохранён
-    expect(claude).toContain('| `catalog` |'); // управляемая таблица фич
+    expect(claude).toContain('## Boundaries');
+    expect(claude).toContain('INSTRUCTION: apply the design'); // doctor/design contract preserved
+    expect(claude).toContain('| `catalog` |'); // managed feature table
 
-    // слэш-команды Claude Code (статика из templates/base)
+    // Claude Code slash commands (static from templates/base)
     for (const cmd of ['setup', 'add-feature', 'design', 'update', 'doctor']) {
       expect(existsSync(join(root, '.claude/commands', `${cmd}.md`))).toBe(true);
     }
 
-    // AGENTS.md для кросс-тул агентов, со ссылкой на канонический CLAUDE.md
+    // AGENTS.md for cross-tool agents, linking to the canonical CLAUDE.md
     expect(existsSync(join(root, 'AGENTS.md'))).toBe(true);
     expect(read(root, 'AGENTS.md')).toContain('CLAUDE.md');
   });
 
-  it('README генерируется backend-aware (Payload) с полным жизненным циклом', () => {
+  it('README is generated backend-aware (Payload) with a full lifecycle', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
     const readme = read(root, 'README.md');
-    // запуск/деплой Payload-специфичны
+    // run/deploy are Payload-specific
     expect(readme).toContain('http://localhost:3000/admin');
     expect(readme).toContain('PAYLOAD_SECRET');
     expect(readme).not.toContain('pnpm vendure');
-    // жизненный цикл фич/обновлений (не только init→dev→deploy)
+    // feature/update lifecycle (not just init→dev→deploy)
     expect(readme).toContain('vitrine add');
     expect(readme).toContain('vitrine update');
     expect(readme).toContain('vitrine doctor');
   });
 
-  it('README генерируется backend-aware (Vendure) — без Payload-инструкций', () => {
+  it('README is generated backend-aware (Vendure) — without Payload instructions', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'vendure', tier: 'full-store', features: [], registry });
     const readme = read(root, 'README.md');
@@ -132,7 +132,7 @@ describe('init + примитив установки (DoD)', () => {
     expect(readme).not.toContain('/admin');
   });
 
-  it('повторный add той же версии — no-op', () => {
+  it('re-adding the same version — no-op', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
     const before = read(root, 'site.config.ts');
@@ -142,25 +142,25 @@ describe('init + примитив установки (DoD)', () => {
     expect(read(root, 'site.config.ts')).toBe(before);
   });
 
-  it('add тянет registryDependencies (product-page → catalog)', () => {
+  it('add pulls registryDependencies (product-page → catalog)', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: [], registry });
     const project = loadProject(root);
     const res = installFeatures(project, ['product-page'], registry);
-    expect(res.installed).toEqual(['catalog', 'product-page']); // зависимость раньше
+    expect(res.installed).toEqual(['catalog', 'product-page']); // dependency first
     expect(existsSync(join(root, 'components/catalog/ProductCard.tsx'))).toBe(true);
   });
 
-  it('removable: false нельзя удалить', () => {
+  it('removable: false cannot be removed', () => {
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
     const project = loadProject(root);
-    expect(() => removeFeature(project, 'catalog', registry)).toThrow(/не удаляема/);
+    expect(() => removeFeature(project, 'catalog', registry)).toThrow(/is not removable/);
   });
 });
 
-describe('init payload-шаблон (M5)', () => {
-  it('скаффолдит base + backend-payload (zero-config + Docker) и стек в package.json', () => {
+describe('init payload template (M5)', () => {
+  it('scaffolds base + backend-payload (zero-config + Docker) and the stack in package.json', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root,
@@ -171,13 +171,13 @@ describe('init payload-шаблон (M5)', () => {
       registry,
     });
 
-    // статический каркас base
+    // static base skeleton
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'tailwind.config.ts'))).toBe(true);
     expect(existsSync(join(root, '.gitignore'))).toBe(true);
-    expect(existsSync(join(root, '.npmrc'))).toBe(false); // публичный npm — клиентский .npmrc не нужен
+    expect(existsSync(join(root, '.npmrc'))).toBe(false); // public npm — client .npmrc not needed
 
-    // backend-payload: конфиг, адаптеры, zero-config, Docker
+    // backend-payload: config, adapters, zero-config, Docker
     expect(existsSync(join(root, 'payload.config.ts'))).toBe(true);
     expect(existsSync(join(root, 'lib/adapter/db.ts'))).toBe(true);
     expect(existsSync(join(root, 'lib/adapter/map.ts'))).toBe(true);
@@ -187,25 +187,25 @@ describe('init payload-шаблон (M5)', () => {
     expect(existsSync(join(root, 'Dockerfile'))).toBe(true);
     expect(existsSync(join(root, 'docker-compose.yml'))).toBe(true);
 
-    // package.json — стек Next + Payload + dev-скрипт
+    // package.json — Next + Payload stack + dev script
     const pkg = JSON.parse(read(root, 'package.json'));
     expect(pkg.dependencies.next).toBeDefined();
     expect(pkg.dependencies.payload).toBeDefined();
     expect(pkg.dependencies['@vitrine-kit/payload-blueprint']).toBeDefined();
     expect(pkg.scripts.dev).toBe('next dev');
 
-    // .env.example — ключи zero-config
+    // .env.example — zero-config keys
     const env = read(root, '.env.example');
     expect(env).toContain('DATABASE_URL=');
     expect(env).toContain('PAYLOAD_SECRET=');
 
-    // управляемые файлы по-прежнему консистентны
+    // managed files are still consistent
     expect(read(root, 'site.config.ts')).toContain('"catalog": true');
     expect(read(root, 'lib/slots.ts')).toContain('registerCatalogSlots');
   });
 });
 
-describe('откат при ошибке', () => {
+describe('rollback on error', () => {
   function brokenRegistry(): string {
     const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
     tmps.push(dir);
@@ -242,21 +242,21 @@ describe('откат при ошибке', () => {
     return dir;
   }
 
-  it('падение на фиче N откатывает уже скопированное', () => {
+  it('failure on feature N rolls back what was already copied', () => {
     const reg = createRegistrySource(brokenRegistry());
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: [], registry: reg });
     const project = loadProject(root);
 
-    expect(() => installFeatures(project, ['good', 'bad'], reg)).toThrow(/нет источника/);
-    // good скопирован первым, но bad упал → всё откатилось
+    expect(() => installFeatures(project, ['good', 'bad'], reg)).toThrow(/no source/);
+    // good was copied first, but bad failed → everything rolled back
     expect(existsSync(join(root, 'lib/good/x.ts'))).toBe(false);
     expect(project.lock.features.good).toBeUndefined();
     expect(JSON.parse(read(root, 'vitrine.json')).features).toEqual({});
   });
 });
 
-describe('remove атомарен', () => {
+describe('remove is atomic', () => {
   function soloReg(): string {
     const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
     tmps.push(dir);
@@ -281,15 +281,15 @@ describe('remove атомарен', () => {
     return dir;
   }
 
-  it('падение регенерации при remove откатывает удаление файлов и лок', () => {
+  it('a regeneration failure during remove rolls back file deletion and the lock', () => {
     const reg = createRegistrySource(soloReg());
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['solo'], registry: reg });
     expect(existsSync(join(root, 'lib/solo/x.ts'))).toBe(true);
     expect(existsSync(join(root, '.vitrine/originals/solo@0.0.0/lib/solo/x.ts'))).toBe(true);
 
-    // Ломаем маркеры site.config → regenerateDerived (replaceBetween) бросит уже ПОСЛЕ
-    // того, как файлы фичи удалены транзакцией.
+    // Break the site.config markers → regenerateDerived (replaceBetween) will throw AFTER
+    // the feature files are already removed by the transaction.
     writeFileSync(
       join(root, 'site.config.ts'),
       read(root, 'site.config.ts').replace('// vitrine:features:start', '// broken'),
@@ -298,7 +298,7 @@ describe('remove атомарен', () => {
     const project = loadProject(root);
     expect(() => removeFeature(project, 'solo', reg)).toThrow();
 
-    // файлы и pristine восстановлены, лок (в памяти и на диске) не тронут
+    // files and pristine restored, the lock (in memory and on disk) untouched
     expect(existsSync(join(root, 'lib/solo/x.ts'))).toBe(true);
     expect(existsSync(join(root, '.vitrine/originals/solo@0.0.0/lib/solo/x.ts'))).toBe(true);
     expect(project.lock.features.solo).toBeDefined();
@@ -306,27 +306,27 @@ describe('remove атомарен', () => {
   });
 });
 
-describe('remove удаляет только файлы фичи (общий app/, P0)', () => {
-  it('remove checkout-stripe не трогает файлы checkout/cart и базового шаблона', () => {
+describe('remove deletes only the feature files (shared app/, P0)', () => {
+  it('remove checkout-stripe does not touch checkout/cart and base template files', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
       features: ['cart', 'checkout-stripe'], registry,
     });
-    // checkout-stripe тянет checkout (→ cart); все мапят files/app/ → app/
+    // checkout-stripe pulls checkout (→ cart); all map files/app/ → app/
     expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(true); // checkout-stripe
     expect(existsSync(join(root, 'lib/checkout-stripe/provider.ts'))).toBe(true);
-    expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true); // checkout (зависимость)
+    expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true); // checkout (dependency)
     expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
-    expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true); // базовый шаблон
+    expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true); // base template
 
     removeFeature(loadProject(root), 'checkout-stripe', registry);
 
-    // удалены РОВНО файлы checkout-stripe
+    // EXACTLY the checkout-stripe files were removed
     expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(false);
     expect(existsSync(join(root, 'lib/checkout-stripe/provider.ts'))).toBe(false);
     expect(existsSync(join(root, '.vitrine/originals/checkout-stripe@0.0.0/app/api/webhooks/stripe/route.ts'))).toBe(false);
-    // checkout (родительская зависимость), cart и базовый шаблон уцелели
+    // checkout (parent dependency), cart and the base template survived
     expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true);
     expect(existsSync(join(root, 'components/checkout/CheckoutButton.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
@@ -335,31 +335,31 @@ describe('remove удаляет только файлы фичи (общий app
   });
 });
 
-describe('платёжные провайдеры (мульти-провайдер)', () => {
-  it('install checkout-stripe тянет checkout/cart и ставит провайдера', () => {
+describe('payment providers (multi-provider)', () => {
+  it('install checkout-stripe pulls checkout/cart and installs the provider', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
       features: ['checkout-stripe'], registry,
     });
-    // зависимости подтянулись (checkout-stripe → checkout → cart)
+    // dependencies were pulled in (checkout-stripe → checkout → cart)
     const lock = JSON.parse(read(root, 'vitrine.json'));
     expect(Object.keys(lock.features).sort()).toEqual(['cart', 'checkout', 'checkout-stripe']);
-    // активный провайдер в site.config (управляемый регион integrations)
+    // active provider in site.config (managed integrations region)
     expect(read(root, 'site.config.ts')).toContain('payments: "stripe"');
-    // регистрация провайдера в lib/payments.ts
+    // provider registration in lib/payments.ts
     const payments = read(root, 'lib/payments.ts');
     expect(payments).toContain('registerCheckoutStripeProvider');
     expect(payments).toContain('./checkout-stripe/register.js');
-    // кнопка оформления — слот из generic checkout
+    // the checkout button is a slot from the generic checkout
     expect(read(root, 'lib/slots.ts')).toContain('registerCheckoutSlots');
-    // env Stripe домержен
+    // Stripe env merged in
     expect(read(root, '.env.example')).toContain('STRIPE_SECRET_KEY=');
   });
 
-  it('мастер: провайдеры есть в реестре и исключаются из общего списка фич', () => {
+  it('wizard: providers exist in the registry and are excluded from the general feature list', () => {
     for (const f of PAYMENT_PROVIDER_FEATURES) expect(registry.hasFeature(f)).toBe(true);
-    // baseline мультиселекта = подсказанные фичи минус провайдеры (их выбирают отдельным шагом)
+    // multiselect baseline = suggested features minus providers (chosen in a separate step)
     const baseline = suggestFeatures('simple-store', registry, 'payload').filter(
       (f) => !PAYMENT_PROVIDER_FEATURES.includes(f),
     );
@@ -367,17 +367,17 @@ describe('платёжные провайдеры (мульти-провайде
     expect(baseline).not.toContain('checkout-stripe');
   });
 
-  it('провайдеры взаимоисключающи: paddle при установленном stripe → конфликт', () => {
+  it('providers are mutually exclusive: paddle with stripe installed → conflict', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
       features: ['checkout-stripe'], registry,
     });
     const project = loadProject(root);
-    expect(() => installFeatures(project, ['checkout-paddle'], registry)).toThrow(/конфликт/);
+    expect(() => installFeatures(project, ['checkout-paddle'], registry)).toThrow(/conflict/);
   });
 
-  it('paddle: integrations.payments, регистрация провайдера и env', () => {
+  it('paddle: integrations.payments, provider registration and env', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
@@ -388,11 +388,11 @@ describe('платёжные провайдеры (мульти-провайде
     expect(payments).toContain('registerCheckoutPaddleProvider');
     expect(payments).toContain('./checkout-paddle/register.js');
     expect(read(root, '.env.example')).toContain('PADDLE_API_KEY=');
-    // doctor доволен консистентным проектом
+    // doctor is happy with a consistent project
     expect(runDoctor(loadProject(root), registry).ok).toBe(true);
   });
 
-  it('yookassa: integrations.payments и регистрация провайдера', () => {
+  it('yookassa: integrations.payments and provider registration', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
@@ -400,7 +400,7 @@ describe('платёжные провайдеры (мульти-провайде
     });
     expect(read(root, 'site.config.ts')).toContain('payments: "yookassa"');
     expect(read(root, 'lib/payments.ts')).toContain('registerCheckoutYookassaProvider');
-    // doctor доволен консистентным проектом
+    // doctor is happy with a consistent project
     expect(runDoctor(loadProject(root), registry).ok).toBe(true);
   });
 });
@@ -412,36 +412,36 @@ describe('design apply (M6)', () => {
     return root;
   }
 
-  it('findClaudeBin: явный путь — существующий возвращается, отсутствующий бросает', () => {
+  it('findClaudeBin: explicit path — existing one is returned, a missing one throws', () => {
     expect(findClaudeBin(process.execPath)).toBe(process.execPath);
-    expect(() => findClaudeBin(join(tmp(), 'nope', 'claude'))).toThrow(/не найден/);
+    expect(() => findClaudeBin(join(tmp(), 'nope', 'claude'))).toThrow(/not found/);
   });
 
-  it('designHasInput: только README → false; добавили файл → true', () => {
+  it('designHasInput: only README → false; added a file → true', () => {
     const root = scaffold();
-    expect(designHasInput(root)).toBe(false); // в base только design/README.md
+    expect(designHasInput(root)).toBe(false); // base has only design/README.md
     writeFileSync(join(root, 'design', 'tokens.json'), '{}');
     expect(designHasInput(root)).toBe(true);
   });
 
-  it('extractDesignInstruction вытаскивает блок §11, без соседних разделов', () => {
+  it('extractDesignInstruction extracts the §11 block, without neighboring sections', () => {
     const md = read(scaffold(), 'CLAUDE.md');
     const instr = extractDesignInstruction(md);
-    expect(instr).toContain('ИНСТРУКЦИЯ: применить дизайн');
-    expect(instr).not.toContain('## Установленные фичи'); // секция до дизайн-блока
-    expect(instr).not.toContain('## Команды vitrine CLI'); // секция до
-    expect(instr).not.toContain('## Границы'); // секция после: срез обрывается следующим ##
+    expect(instr).toContain('INSTRUCTION: apply the design');
+    expect(instr).not.toContain('## Installed features'); // section before the design block
+    expect(instr).not.toContain('## vitrine CLI commands'); // section before
+    expect(instr).not.toContain('## Boundaries'); // section after: the slice stops at the next ##
   });
 
-  it('buildDesignPrompt включает инструкцию, целевой файл и набор токенов', () => {
+  it('buildDesignPrompt includes the instruction, the target file and the token set', () => {
     const project = loadProject(scaffold());
     const prompt = buildDesignPrompt(project);
     expect(prompt).toContain('theme/client.css');
     expect(prompt).toContain('--vt-color-primary');
-    expect(prompt).toContain('ИНСТРУКЦИЯ');
+    expect(prompt).toContain('INSTRUCTION');
   });
 
-  it('designApply шеллит в Claude Code с -p и cwd проекта (через stub-runner)', () => {
+  it('designApply shells out to Claude Code with -p and the project cwd (via a stub runner)', () => {
     const root = scaffold();
     writeFileSync(join(root, 'design', 'export.css'), ':root{}');
     const project = loadProject(root);
@@ -458,14 +458,14 @@ describe('design apply (M6)', () => {
     expect(calls[0]?.prompt).toContain('--vt-color-primary');
   });
 
-  it('designApply бросает на пустой design/ (нечего применять)', () => {
+  it('designApply throws on an empty design/ (nothing to apply)', () => {
     const project = loadProject(scaffold());
-    expect(() => designApply(project, { bin: process.execPath }, () => 0)).toThrow(/пуста/);
+    expect(() => designApply(project, { bin: process.execPath }, () => 0)).toThrow(/is empty/);
   });
 });
 
 describe('doctor (M7)', () => {
-  // Синтетический реестр с фичей, объявляющей files+env+npm+slots — для контроля рассинхрона.
+  // Synthetic registry with a feature declaring files+env+npm+slots — to control for drift.
   function featureRegistry(): string {
     const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
     tmps.push(dir);
@@ -494,7 +494,7 @@ describe('doctor (M7)', () => {
     return dir;
   }
 
-  it('чистый проект — без проблем', () => {
+  it('clean project — no issues', () => {
     const reg = createRegistrySource(featureRegistry());
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['demo'], registry: reg });
@@ -503,7 +503,7 @@ describe('doctor (M7)', () => {
     expect(report.ok).toBe(true);
   });
 
-  it('ловит рассинхрон: удалённый файл, пропавший env, пропавшая зависимость, версия не та', () => {
+  it('catches drift: a deleted file, a missing env, a missing dependency, a wrong version', () => {
     const reg = createRegistrySource(featureRegistry());
     const root = join(tmp(), 'shop');
     initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['demo'], registry: reg });
@@ -519,34 +519,34 @@ describe('doctor (M7)', () => {
 
     const report = runDoctor(loadProject(root), reg);
     const msgs = report.issues.map((i) => i.message).join('\n');
-    expect(report.ok).toBe(false); // есть error-уровень
-    expect(msgs).toMatch(/нет файла "lib\/demo\/register\.ts"/);
+    expect(report.ok).toBe(false); // there is an error-level issue
+    expect(msgs).toMatch(/missing file "lib\/demo\/register\.ts"/);
     expect(msgs).toMatch(/DEMO_KEY/);
     expect(msgs).toMatch(/zod/);
-    expect(msgs).toMatch(/версия в репо 9\.9\.9/);
+    expect(msgs).toMatch(/repo version 9\.9\.9/);
   });
 });
 
 describe('kit cache (M7)', () => {
-  const repoRoot = join(here, '..', '..', '..'); // монорепо: registry/ + templates/
+  const repoRoot = join(here, '..', '..', '..'); // monorepo: registry/ + templates/
 
-  it('populateCache наполняет ~/.vitrine (registry + templates) и пишет meta', () => {
+  it('populateCache fills ~/.vitrine (registry + templates) and writes meta', () => {
     const home = tmp();
     const res = populateCache(repoRoot, { home });
     expect(existsSync(join(home, 'registry', '_index.json'))).toBe(true);
     expect(existsSync(join(home, 'templates', 'base', 'files', 'app', '(frontend)', 'layout.tsx'))).toBe(true);
     expect(readKitMeta(home)?.kitVersion).toBeDefined();
     expect(res.changelog.length).toBeGreaterThan(0);
-    expect(res.changelog.every((e) => e.kind === 'added')).toBe(true); // первый прогон
+    expect(res.changelog.every((e) => e.kind === 'added')).toBe(true); // first run
   });
 
-  it('повторный populateCache — без изменений набора фич', () => {
+  it('repeated populateCache — no changes to the feature set', () => {
     const home = tmp();
     populateCache(repoRoot, { home });
     expect(populateCache(repoRoot, { home }).changelog).toEqual([]);
   });
 
-  it('kitStatus читает кэш', () => {
+  it('kitStatus reads the cache', () => {
     const home = tmp();
     expect(kitStatus(home).cached).toBe(false);
     populateCache(repoRoot, { home });
@@ -555,18 +555,18 @@ describe('kit cache (M7)', () => {
     expect(s.featureCount).toBeGreaterThanOrEqual(3);
   });
 
-  it('offline init из кэша (DoD): VITRINE_HOME → реестр и шаблоны из ~/.vitrine', () => {
+  it('offline init from the cache (DoD): VITRINE_HOME → registry and templates from ~/.vitrine', () => {
     const home = tmp();
     populateCache(repoRoot, { home });
     const prev = process.env.VITRINE_HOME;
     process.env.VITRINE_HOME = home;
     try {
-      const reg = createRegistrySource(); // без explicit → должен взять кэш
+      const reg = createRegistrySource(); // without explicit → should use the cache
       expect(reg.root).toBe(join(home, 'registry'));
       const root = join(tmp(), 'shop');
       initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry: reg });
       expect(existsSync(join(root, 'components/catalog/ProductCard.tsx'))).toBe(true);
-      expect(existsSync(join(root, 'payload.config.ts'))).toBe(true); // шаблоны тоже из кэша
+      expect(existsSync(join(root, 'payload.config.ts'))).toBe(true); // templates also from the cache
     } finally {
       if (prev === undefined) delete process.env.VITRINE_HOME;
       else process.env.VITRINE_HOME = prev;
@@ -584,8 +584,8 @@ describe('kit cache (M7)', () => {
   });
 });
 
-describe('init vendure / переносимость (M10)', () => {
-  it('full-store → vendure: backend-vendure + та же витрина и фичи, без Payload', () => {
+describe('init vendure / portability (M10)', () => {
+  it('full-store → vendure: backend-vendure + the same storefront and features, without Payload', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root,
@@ -596,15 +596,15 @@ describe('init vendure / переносимость (M10)', () => {
       registry,
     });
 
-    // vendure-специфичное
+    // vendure-specific
     expect(existsSync(join(root, 'vendure-config.ts'))).toBe(true);
     expect(existsSync(join(root, 'src/index.ts'))).toBe(true);
     expect(existsSync(join(root, 'lib/adapter/vendure-catalog.ts'))).toBe(true);
     expect(existsSync(join(root, 'lib/adapter/map.ts'))).toBe(true);
-    // НЕ Payload
+    // NOT Payload
     expect(existsSync(join(root, 'payload.config.ts'))).toBe(false);
 
-    // переносимость: те же витрина (base) и компоненты каталога/корзины, что и на Payload
+    // portability: the same storefront (base) and catalog/cart components as on Payload
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'components/catalog/ProductGrid.tsx'))).toBe(true);
     expect(existsSync(join(root, 'components/cart/CartView.tsx'))).toBe(true);
@@ -615,7 +615,7 @@ describe('init vendure / переносимость (M10)', () => {
     expect(pkg.scripts.vendure).toBe('tsx src/index.ts');
   });
 
-  it('suggestFeatures: vendure full-store без checkout-stripe, payload simple-store — с ним', () => {
+  it('suggestFeatures: vendure full-store without checkout-stripe, payload simple-store — with it', () => {
     const v = suggestFeatures('full-store', registry, 'vendure');
     expect(v).toContain('cart');
     expect(v).not.toContain('checkout-stripe');
@@ -624,37 +624,37 @@ describe('init vendure / переносимость (M10)', () => {
 });
 
 describe('merge3 (3-way, M9)', () => {
-  it('theirs-only изменение → берём theirs', () => {
+  it('theirs-only change → take theirs', () => {
     const r = merge3('a\nb\nc', 'a\nb\nc', 'a\nb\nc\nd');
     expect(r.clean).toBe(true);
     expect(r.text).toBe('a\nb\nc\nd');
   });
 
-  it('ours-only изменение → сохраняем ours (правка клиента)', () => {
+  it('ours-only change → keep ours (client edit)', () => {
     const r = merge3('a\nb', 'a\nZ', 'a\nb');
     expect(r.clean).toBe(true);
     expect(r.text).toBe('a\nZ');
   });
 
-  it('оба изменили одинаково → чисто', () => {
+  it('both changed the same way → clean', () => {
     const r = merge3('a\nb', 'a\nQ', 'a\nQ');
     expect(r.clean).toBe(true);
     expect(r.text).toBe('a\nQ');
   });
 
-  it('непересекающиеся изменения → оба применены', () => {
+  it('non-overlapping changes → both applied', () => {
     const r = merge3('a\nb\nc\nd\ne', 'A\nb\nc\nd\ne', 'a\nb\nc\nd\nE');
     expect(r.clean).toBe(true);
     expect(r.text).toBe('A\nb\nc\nd\nE');
   });
 
-  it('вставки на разных концах → обе применены', () => {
+  it('insertions at different ends → both applied', () => {
     const r = merge3('l1\nl2\nl3', 'HEAD\nl1\nl2\nl3', 'l1\nl2\nl3\nTAIL');
     expect(r.clean).toBe(true);
     expect(r.text).toBe('HEAD\nl1\nl2\nl3\nTAIL');
   });
 
-  it('пересекающиеся разные изменения → конфликт с маркерами', () => {
+  it('overlapping different changes → conflict with markers', () => {
     const r = merge3('a\nb\nc', 'a\nX\nc', 'a\nY\nc');
     expect(r.clean).toBe(false);
     expect(r.conflicts).toBe(1);
@@ -694,10 +694,10 @@ describe('vitrine update (M9)', () => {
     return root;
   }
 
-  it('3-way merge сохраняет правки клиента и вливает новое из реестра', () => {
+  it('3-way merge keeps client edits and merges in the new from the registry', () => {
     const root = setup('line1\nline2\nline3\n');
-    writeFileSync(join(root, 'lib/demo/x.ts'), 'CLIENT1\nline2\nline3\n'); // клиент стилизовал line1
-    const v2 = createRegistrySource(demoReg('0.1.0', 'line1\nline2\nTHEIRS3\n')); // реестр сменил line3
+    writeFileSync(join(root, 'lib/demo/x.ts'), 'CLIENT1\nline2\nline3\n'); // client styled line1
+    const v2 = createRegistrySource(demoReg('0.1.0', 'line1\nline2\nTHEIRS3\n')); // registry changed line3
     const project = loadProject(root);
 
     const plan = planUpdate(project, 'demo', v2);
@@ -706,15 +706,15 @@ describe('vitrine update (M9)', () => {
     applyUpdate(project, plan, v2);
 
     const merged = read(root, 'lib/demo/x.ts');
-    expect(merged).toContain('CLIENT1'); // правка клиента сохранена
-    expect(merged).toContain('THEIRS3'); // новое из реестра влито
+    expect(merged).toContain('CLIENT1'); // client edit preserved
+    expect(merged).toContain('THEIRS3'); // new from the registry merged in
     expect(merged).not.toContain('line1');
     expect(JSON.parse(read(root, 'vitrine.json')).features.demo.version).toBe('0.1.0');
     expect(existsSync(join(root, '.vitrine/originals/demo@0.1.0/lib/demo/x.ts'))).toBe(true);
-    expect(existsSync(join(root, '.vitrine/originals/demo@0.0.0'))).toBe(false); // старый pristine снят
+    expect(existsSync(join(root, '.vitrine/originals/demo@0.0.0'))).toBe(false); // old pristine removed
   });
 
-  it('конфликт помечается git-маркерами', () => {
+  it('conflict is marked with git markers', () => {
     const root = setup('a\nb\nc\n');
     writeFileSync(join(root, 'lib/demo/x.ts'), 'a\nCLIENT\nc\n');
     const v2 = createRegistrySource(demoReg('0.1.0', 'a\nREGISTRY\nc\n'));
@@ -730,7 +730,7 @@ describe('vitrine update (M9)', () => {
     expect(merged).toContain('REGISTRY');
   });
 
-  it('diff (planUpdate) не пишет файлы', () => {
+  it('diff (planUpdate) does not write files', () => {
     const root = setup('a\nb\n');
     writeFileSync(join(root, 'lib/demo/x.ts'), 'a\nZZ\n');
     const v2 = createRegistrySource(demoReg('0.1.0', 'a\nb\nc\n'));
@@ -741,7 +741,7 @@ describe('vitrine update (M9)', () => {
   });
 });
 
-describe('генераторы (чистые)', () => {
+describe('generators (pure)', () => {
   const fakeManifest = (over: Record<string, unknown> = {}) =>
     ({
       name: 'x', title: 'X', kitVersion: '0.0.0', requiresContracts: '>=1.0.0',
@@ -749,14 +749,14 @@ describe('генераторы (чистые)', () => {
       files: [], slots: [], env: [], conflicts: [], removable: true, ...over,
     }) as unknown as FeatureState['manifest'];
 
-  it('renderFeaturesRegion собирает флаги из config.set', () => {
+  it('renderFeaturesRegion collects flags from config.set', () => {
     const states: FeatureState[] = [
       { name: 'catalog', version: '0.0.0', manifest: fakeManifest({ config: { set: { 'features.catalog': true } } }) },
     ];
     expect(renderFeaturesRegion(states)).toContain('"catalog": true');
   });
 
-  it('renderSlotsFile зовёт register<Name>Slots только для фич со слотами', () => {
+  it('renderSlotsFile calls register<Name>Slots only for features with slots', () => {
     const withSlots: FeatureState = {
       name: 'catalog', version: '0.0.0',
       manifest: fakeManifest({ slots: [{ slot: 'global.header-nav', component: 'CategoryNav' }] }),
@@ -767,7 +767,7 @@ describe('генераторы (чистые)', () => {
     expect(out).not.toContain('registerSeoSlots');
   });
 
-  it('renderPaymentsFile зовёт register<Name>Provider только для платёжных фич', () => {
+  it('renderPaymentsFile calls register<Name>Provider only for payment features', () => {
     const provider: FeatureState = {
       name: 'checkout-stripe', version: '0.0.0',
       manifest: fakeManifest({ payment: { provider: 'stripe' } }),
@@ -779,20 +779,20 @@ describe('генераторы (чистые)', () => {
     expect(out).not.toContain('registerCartProvider');
   });
 
-  it('activePaymentProvider/renderIntegrationsRegion берут провайдера из блока payment', () => {
+  it('activePaymentProvider/renderIntegrationsRegion take the provider from the payment block', () => {
     const states: FeatureState[] = [
       { name: 'cart', version: '0.0.0', manifest: fakeManifest() },
       { name: 'checkout-yookassa', version: '0.0.0', manifest: fakeManifest({ payment: { provider: 'yookassa' } }) },
     ];
     expect(activePaymentProvider(states)).toBe('yookassa');
     expect(renderIntegrationsRegion(states)).toContain('payments: "yookassa"');
-    // без платёжных фич — пустой объект
+    // without payment features — an empty object
     expect(renderIntegrationsRegion([{ name: 'cart', version: '0.0.0', manifest: fakeManifest() }])).toBe(
       '  integrations: {},',
     );
   });
 
-  it('renderBlueprintFile подключает extend<Name>Blueprint для фич с blueprint', () => {
+  it('renderBlueprintFile wires up extend<Name>Blueprint for features with a blueprint', () => {
     const f: FeatureState = {
       name: 'reviews', version: '0.0.0',
       manifest: fakeManifest({ blueprint: { extend: 'product', addFields: ['reviewsEnabled'] } }),
@@ -800,7 +800,7 @@ describe('генераторы (чистые)', () => {
     expect(renderBlueprintFile([f])).toContain('extendReviewsBlueprint');
   });
 
-  it('mergePackageDeps добавляет corePackages и npm', () => {
+  it('mergePackageDeps adds corePackages and npm', () => {
     const f: FeatureState = {
       name: 'reviews', version: '0.0.0',
       manifest: fakeManifest({ corePackages: { '@vitrine-kit/core': '>=0.1.0' }, npm: ['zod@^3'] }),
@@ -810,13 +810,13 @@ describe('генераторы (чистые)', () => {
     expect((pkg.dependencies as Record<string, string>).zod).toBe('^3');
   });
 
-  it('replaceBetween заменяет только содержимое между маркерами', () => {
+  it('replaceBetween replaces only the content between the markers', () => {
     const src = 'a\n// s\nOLD\n// e\nb';
     expect(replaceBetween(src, '// s', '// e', 'NEW')).toBe('a\n// s\nNEW\n// e\nb');
   });
 
-  it('preflightNode: ниже минимума бросает, на текущем рантайме — нет', () => {
-    expect(() => preflightNode(99)).toThrow(/нужен Node >= 99/);
+  it('preflightNode: below the minimum throws, on the current runtime — does not', () => {
+    expect(() => preflightNode(99)).toThrow(/Node >= 99 required/);
     expect(() => preflightNode(1)).not.toThrow();
   });
 });

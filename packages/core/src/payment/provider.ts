@@ -1,19 +1,19 @@
-// Контракт платёжного провайдера (фреймворк- и SDK-агностичный). Реализации
-// (Stripe/Paddle/YooKassa) живут в registry-фичах checkout-<provider> и тащат свой
-// SDK; ядро лишь описывает форму. startCheckout отдаёт redirectUrl (как и
-// CommerceBackend), verifyWebhook верифицирует подпись и нормализует событие.
+// The payment-provider contract (framework- and SDK-agnostic). Implementations
+// (Stripe/Paddle/YooKassa) live in the checkout-<provider> registry features and bring their
+// own SDK; the core only describes the shape. startCheckout returns a redirectUrl (like
+// CommerceBackend), verifyWebhook verifies the signature and normalizes the event.
 import type { Cart } from '@vitrine-kit/contracts';
 
-/** Совпадает с integrations.payments в site.config (контракт 4). */
+/** Matches integrations.payments in site.config (contract 4). */
 export type PaymentProviderName = 'stripe' | 'paddle' | 'yookassa';
 
 export interface CreateCheckoutArgs {
   cart: Cart;
-  /** Базовый URL витрины; success/cancel строятся относительно него. */
+  /** The storefront base URL; success/cancel are built relative to it. */
   baseUrl: string;
-  /** По умолчанию '/order/success'. */
+  /** Defaults to '/order/success'. */
   successPath?: string;
-  /** По умолчанию '/cart'. */
+  /** Defaults to '/cart'. */
   cancelPath?: string;
 }
 
@@ -22,22 +22,22 @@ export interface PaymentWebhookRequest {
   headers: Record<string, string | null>;
 }
 
-/** Нормализованное событие провайдера — общий язык для роутов вебхуков. */
+/** A normalized provider event — the common language for webhook routes. */
 export interface NormalizedPaymentEvent {
   kind: 'checkout_completed' | 'payment_failed' | 'unknown';
-  /** Из metadata/custom_data/label провайдера. */
+  /** From the provider's metadata/custom_data/label. */
   cartId?: string;
-  /** Уникальный референс платежа провайдера — ключ идемпотентности. */
+  /** The provider's unique payment reference — the idempotency key. */
   providerRef?: string;
   email?: string;
-  /** Исходный объект провайдера (на случай, если роуту нужны доп. поля). */
+  /** The raw provider object (in case the route needs extra fields). */
   raw: unknown;
 }
 
 export interface PaymentProvider {
   name: PaymentProviderName;
-  /** Создаёт hosted-checkout у провайдера → URL для редиректа. */
+  /** Creates a hosted checkout at the provider → redirect URL. */
   createCheckout(args: CreateCheckoutArgs): Promise<{ redirectUrl: string }>;
-  /** Верифицирует подпись/подлинность и нормализует событие. Бросает при невалидном. */
+  /** Verifies the signature/authenticity and normalizes the event. Throws if invalid. */
   verifyWebhook(req: PaymentWebhookRequest): Promise<NormalizedPaymentEvent>;
 }

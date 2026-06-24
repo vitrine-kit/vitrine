@@ -1,7 +1,7 @@
-# Нормализуем переводы строк к LF в репозитории (CI на Linux, .editorconfig = LF).
+# Normalize line endings to LF in the repository (CI on Linux, .editorconfig = LF).
 * text=auto eol=lf
 
-# Бинарные ассеты — без нормализации.
+# Binary assets — no normalization.
 *.png binary
 *.jpg binary
 *.jpeg binary

@@ -1,5 +1,5 @@
-// Резолвер активного бэкенда (Vendure). Тот же интерфейс, что и backend-payload —
-// поэтому витрина (app/(frontend)) и фичи каталога/корзины не меняются.
+// Resolver for the active backend (Vendure). The same interface as backend-payload —
+// so the storefront (app/(frontend)) and the catalog/cart features don't change.
 import type { CatalogSource, CommerceBackend } from '@vitrine-kit/contracts';
 import { VendureCatalogSource } from './vendure-catalog.js';
 import { VendureCommerceBackend } from './vendure-commerce.js';

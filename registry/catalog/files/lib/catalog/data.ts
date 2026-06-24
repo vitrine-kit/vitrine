@@ -1,6 +1,6 @@
-// Доступ к каталогу через контракт CatalogSource. Источник (Payload*/Vendure*)
-// резолвится в данных страницы (template), сюда приходит готовый CatalogSource —
-// так фича зависит только от контракта и переносима между бэкендами.
+// Catalog access via the CatalogSource contract. The source (Payload*/Vendure*)
+// is resolved in the page data (template); a ready CatalogSource arrives here —
+// so the feature depends only on the contract and is portable across backends.
 import type { CatalogSource, Category, Product, ProductQuery } from '@vitrine-kit/contracts';
 
 export async function loadProducts(
@@ -18,7 +18,7 @@ export async function loadCategories(source: CatalogSource): Promise<Category[]>
   return source.listCategories();
 }
 
-/** Money — минимальные единицы (копейки); делим на 100 для 2-знаковых валют. */
-export function formatPrice(amount: number, currency: string, locale = 'ru-RU'): string {
+/** Money — minor units (e.g. cents); divide by 100 for 2-decimal currencies. */
+export function formatPrice(amount: number, currency: string, locale = 'en-US'): string {
   return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount / 100);
 }

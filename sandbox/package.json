@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Площадка core-разработки: гоняет реестр фич на одних контрактах.",
+  "description": "Core-development playground: runs the feature registry on the contracts alone.",
   "scripts": {
     "demo": "tsx src/demo.ts",
     "test": "vitest run"

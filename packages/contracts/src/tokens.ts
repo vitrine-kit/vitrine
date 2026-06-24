@@ -1,7 +1,7 @@
-// Контракт 1 · Tokens
-// Имена CSS-переменных и Tailwind-preset. Контракт фиксирует ИМЕНА (роли),
-// не значения. Значения задаёт дизайн-шаг в theme/<client>.css (§11 спеки).
-// Соответствует docs/contracts-v1-proposal.md (утверждён).
+// Contract 1 · Tokens
+// CSS variable names and the Tailwind preset. The contract fixes the NAMES (roles),
+// not the values. Values are set by the design step in theme/<client>.css (spec §11).
+// Matches docs/contracts-v1-proposal.md (approved).
 
 export const COLOR_TOKENS = [
   'bg', 'fg',
@@ -40,16 +40,16 @@ export type SpaceToken = (typeof SPACE_TOKENS)[number];
 export const MOTION_TOKENS = ['duration-fast', 'duration-normal', 'ease-default'] as const;
 export type MotionToken = (typeof MOTION_TOKENS)[number];
 
-/** Одиночные «ручки» без группы. */
+/** Single "knobs" without a group. */
 export const SINGLETON_TOKENS = ['density', 'border-width'] as const;
 export type SingletonToken = (typeof SINGLETON_TOKENS)[number];
 
-/** Имя CSS-переменной для токена: cssVar('color','primary') → '--vt-color-primary'. */
+/** CSS variable name for a token: cssVar('color','primary') → '--vt-color-primary'. */
 export function cssVar(group: string, name?: string): `--vt-${string}` {
   return (name ? `--vt-${group}-${name}` : `--vt-${group}`) as `--vt-${string}`;
 }
 
-/** Полный перечень имён CSS-переменных контракта — для скаффолда theme и доков. */
+/** Full list of the contract's CSS variable names — for theme scaffolding and docs. */
 export const TOKEN_CSS_VARS: string[] = [
   ...COLOR_TOKENS.map((t) => cssVar('color', t)),
   ...FONT_TOKENS.map((t) => cssVar('font', t)),
@@ -66,9 +66,9 @@ export const TOKEN_CSS_VARS: string[] = [
 const ref = (group: string, name?: string) => `var(${cssVar(group, name)})`;
 
 /**
- * Tailwind-preset Vitrine: маппит ключи Tailwind на CSS-переменные контракта.
- * Используется в клиентском tailwind.config: `presets: [vitrinePreset]`.
- * Типизирован свободно, чтобы не тащить зависимость на tailwindcss в контракты.
+ * The Vitrine Tailwind preset: maps Tailwind keys to the contract's CSS variables.
+ * Used in the client's tailwind.config: `presets: [vitrinePreset]`.
+ * Loosely typed so contracts don't take a dependency on tailwindcss.
  */
 export const vitrinePreset: { theme: { extend: Record<string, unknown> } } = {
   theme: {

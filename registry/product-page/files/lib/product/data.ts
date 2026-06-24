@@ -4,7 +4,7 @@ export async function loadProduct(source: CatalogSource, slug: string): Promise<
   return source.getProduct(slug);
 }
 
-/** Money — минимальные единицы (копейки). */
-export function formatPrice(amount: number, currency: string, locale = 'ru-RU'): string {
+/** Money — minor units (e.g. cents). */
+export function formatPrice(amount: number, currency: string, locale = 'en-US'): string {
   return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount / 100);
 }

@@ -1,6 +1,6 @@
-// Реализация контракта CatalogSource поверх Vendure Shop API. Нормализация — в
-// чистых мапперах (map.ts). Тот же контракт, что у Payload-адаптера → фичи каталога
-// переносимы без изменений.
+// CatalogSource contract implementation on top of the Vendure Shop API. Normalization
+// lives in the pure mappers (map.ts). The same contract as the Payload adapter → the
+// catalog features are portable without changes.
 import type { CatalogSource, Category, Product, ProductQuery } from '@vitrine-kit/contracts';
 import { shopQuery } from './graphql.js';
 import { mapVendureCollection, mapVendureProduct } from './map.js';

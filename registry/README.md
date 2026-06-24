@@ -1,9 +1,7 @@
-# registry/ — copy-in реестр фич
+# registry/ — copy-in feature registry
 
-Источник для `vitrine init` / `vitrine add`. Каждая фича = папка с `feature.json` (манифест) + `files/` (исходники). При установке файлы **копируются** в репозиторий клиента (он владеет кодом).
+The source for `vitrine init` / `vitrine add`. Each feature = a folder with `feature.json` (manifest) + `files/` (sources). On install the files are **copied** into the client repository (the client owns the code).
 
-`_index.json` — манифест реестра: список всех фич + версия kit.
+`_index.json` is the registry manifest: the list of all features + the kit version.
 
-**Правило (§4, §13 спеки):** в реестре — только то, что расходится под клиента (UI, секции, проводка). Никакой критической логики — она в `@vitrine-kit/core`. Новая фича обязана зависеть **только от контрактов**.
-
-Первые фичи (`catalog`, `product-page`, `seo`) — M3.
+**Rule (spec §4, §13):** the registry holds only what varies per client (UI, sections, wiring). No critical logic — that lives in `@vitrine-kit/core`. A new feature must depend **only on the contracts**.

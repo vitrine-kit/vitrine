@@ -5,14 +5,14 @@ import { siteConfigSchema } from './config.js';
 import { featureManifestSchema, vitrineLockSchema } from './manifest.js';
 
 describe('slots', () => {
-  it('замкнутый набор v1 без дублей', () => {
+  it('closed v1 set with no duplicates', () => {
     expect(SLOT_IDS.length).toBe(32);
     expect(new Set(SLOT_IDS).size).toBe(SLOT_IDS.length);
   });
 });
 
 describe('tokens', () => {
-  it('все имена — валидные CSS-переменные --vt-*', () => {
+  it('all names are valid --vt-* CSS variables', () => {
     expect(TOKEN_CSS_VARS.length).toBeGreaterThan(0);
     expect(TOKEN_CSS_VARS.every((v) => v.startsWith('--vt-'))).toBe(true);
     expect(new Set(TOKEN_CSS_VARS).size).toBe(TOKEN_CSS_VARS.length);
@@ -20,16 +20,16 @@ describe('tokens', () => {
 });
 
 describe('site.config', () => {
-  it('минимальный конфиг проходит с дефолтами', () => {
+  it('minimal config passes with defaults', () => {
     const cfg = siteConfigSchema.parse({ backend: 'payload', tier: 'catalog' });
     expect(cfg.features).toEqual({});
-    expect(cfg.i18n.defaultLocale).toBe('ru');
+    expect(cfg.i18n.defaultLocale).toBe('en');
     expect(cfg.theme.cssFile).toBe('theme/client.css');
   });
 });
 
-describe('feature.json (пример reviews из §8 спеки)', () => {
-  it('валиден против схемы', () => {
+describe('feature.json (reviews example from §8 of the spec)', () => {
+  it('is valid against the schema', () => {
     const reviews = {
       name: 'reviews',
       title: 'Product reviews',
@@ -54,7 +54,7 @@ describe('feature.json (пример reviews из §8 спеки)', () => {
     expect(() => featureManifestSchema.parse(reviews)).not.toThrow();
   });
 
-  it('отклоняет несуществующий слот', () => {
+  it('rejects a nonexistent slot', () => {
     const bad = {
       name: 'x', title: 'x', kitVersion: '1.0.0', requiresContracts: '>=1.0.0',
       tier: ['catalog'],
@@ -64,8 +64,8 @@ describe('feature.json (пример reviews из §8 спеки)', () => {
   });
 });
 
-describe('vitrine.json (пример из §6 спеки)', () => {
-  it('лок-файл валиден', () => {
+describe('vitrine.json (example from §6 of the spec)', () => {
+  it('lock file is valid', () => {
     const lock = {
       kitVersion: '1.6.0',
       contracts: '1.0.0',

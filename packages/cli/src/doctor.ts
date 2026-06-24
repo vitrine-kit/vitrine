@@ -1,6 +1,6 @@
-// vitrine doctor (§7 спеки): сверяет четыре оси консистентности репозитория
-// клиента — vitrine.json ↔ реально лежащие файлы ↔ установленные пакеты
-// (package.json) ↔ env (.env.example) — и предлагает фикс на каждое расхождение.
+// vitrine doctor (spec §7): reconciles four axes of the client repository's
+// consistency — vitrine.json ↔ the files actually present ↔ installed packages
+// (package.json) ↔ env (.env.example) — and suggests a fix for each discrepancy.
 import { join } from 'node:path';
 import type { Project } from './project.js';
 import { projectPaths } from './project.js';
@@ -32,42 +32,42 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
   const slotsText = exists(paths.slots) ? readText(paths.slots) : '';
   const paymentsText = exists(paths.payments) ? readText(paths.payments) : '';
 
-  // Глобальные пакеты-контракты.
+  // Global contract packages.
   for (const core of ['@vitrine-kit/contracts', '@vitrine-kit/core']) {
     if (!deps[core]) {
-      add({ severity: 'error', scope: 'packages', message: `нет зависимости ${core}`, fix: 'добавьте в package.json' });
+      add({ severity: 'error', scope: 'packages', message: `missing dependency ${core}`, fix: 'add it to package.json' });
     }
   }
 
-  // Дизайн-инструкция в CLAUDE.md (§7: doctor предлагает освежить).
-  if (exists(paths.claude) && !readText(paths.claude).includes('ИНСТРУКЦИЯ: применить дизайн')) {
+  // Design instruction in CLAUDE.md (§7: doctor suggests refreshing it).
+  if (exists(paths.claude) && !readText(paths.claude).includes('INSTRUCTION: apply the design')) {
     add({
       severity: 'warn',
       scope: 'design',
-      message: 'в CLAUDE.md нет блока дизайн-инструкции',
-      fix: 'обновите CLAUDE.md (kit update приносит свежую инструкцию)',
+      message: 'CLAUDE.md has no design-instruction block',
+      fix: 'update CLAUDE.md (kit update brings a fresh instruction)',
     });
   }
 
   for (const [name, pin] of Object.entries(project.lock.features)) {
     const scope = `feature:${name}`;
     if (!registry.hasFeature(name)) {
-      add({ severity: 'error', scope, message: `фича не найдена в реестре`, fix: 'vitrine kit update' });
+      add({ severity: 'error', scope, message: `feature not found in the registry`, fix: 'vitrine kit update' });
       continue;
     }
     const manifest = registry.loadManifest(name);
 
-    // версия: репо ↔ реестр (кэш)
+    // version: repo ↔ registry (cache)
     if (pin.version !== manifest.kitVersion) {
       add({
         severity: 'warn',
         scope,
-        message: `версия в репо ${pin.version}, реестр предлагает ${manifest.kitVersion}`,
+        message: `repo version ${pin.version}, registry offers ${manifest.kitVersion}`,
         fix: `vitrine update ${name}`,
       });
     }
 
-    // файлы (по каждому файлу источника реестра — ловит и удаление одного файла)
+    // files (per registry source file — catches even a single deleted file)
     const featDir = registry.featureDir(name);
     for (const map of manifest.files) {
       for (const file of eachFeatureFile(featDir, map)) {
@@ -75,8 +75,8 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
           add({
             severity: 'error',
             scope,
-            message: `нет файла "${file.toRel}"`,
-            fix: `vitrine add ${name} (переустановит)`,
+            message: `missing file "${file.toRel}"`,
+            fix: `vitrine add ${name} (reinstalls)`,
           });
         }
       }
@@ -88,41 +88,41 @@ export function runDoctor(project: Project, registry: RegistrySource): DoctorRep
         add({
           severity: e.required ? 'error' : 'warn',
           scope,
-          message: `нет ключа env "${e.key}"${e.required ? ' (обязателен)' : ''}`,
-          fix: 'добавьте в .env.example/.env',
+          message: `missing env key "${e.key}"${e.required ? ' (required)' : ''}`,
+          fix: 'add it to .env.example/.env',
         });
       }
     }
 
-    // пакеты фичи
+    // feature packages
     const need = [...Object.keys(manifest.corePackages ?? {}), ...(manifest.npm ?? []).map((s) => parseNpmSpec(s).name)];
     for (const dep of need) {
       if (!deps[dep]) {
-        add({ severity: 'error', scope, message: `нет зависимости ${dep}`, fix: `vitrine add ${name} (домержит deps)` });
+        add({ severity: 'error', scope, message: `missing dependency ${dep}`, fix: `vitrine add ${name} (merges deps)` });
       }
     }
 
-    // слоты: регистрация в lib/slots.ts
+    // slots: registration in lib/slots.ts
     if ((manifest.slots?.length ?? 0) > 0) {
       const fn = `register${pascalCase(name)}Slots`;
       if (!slotsText.includes(fn)) {
-        add({ severity: 'error', scope, message: `lib/slots.ts не вызывает ${fn}`, fix: `vitrine add ${name} (регенерирует slots)` });
+        add({ severity: 'error', scope, message: `lib/slots.ts does not call ${fn}`, fix: `vitrine add ${name} (regenerates slots)` });
       }
     }
 
-    // флаг в site.config
+    // flag in site.config
     if (!configText.includes(`"${name}": true`)) {
-      add({ severity: 'warn', scope, message: `в site.config нет флага features.${name}`, fix: `vitrine add ${name} (регенерирует флаги)` });
+      add({ severity: 'warn', scope, message: `site.config has no features.${name} flag`, fix: `vitrine add ${name} (regenerates flags)` });
     }
 
-    // платёжный провайдер: регистрация в lib/payments.ts + активен в site.config
+    // payment provider: registration in lib/payments.ts + active in site.config
     if (manifest.payment) {
       const fn = `register${pascalCase(name)}Provider`;
       if (!paymentsText.includes(fn)) {
-        add({ severity: 'error', scope, message: `lib/payments.ts не вызывает ${fn}`, fix: `vitrine add ${name} (регенерирует payments)` });
+        add({ severity: 'error', scope, message: `lib/payments.ts does not call ${fn}`, fix: `vitrine add ${name} (regenerates payments)` });
       }
       if (!configText.includes(`payments: ${JSON.stringify(manifest.payment.provider)}`)) {
-        add({ severity: 'warn', scope, message: `в site.config integrations.payments ≠ "${manifest.payment.provider}"`, fix: `vitrine add ${name} (регенерирует integrations)` });
+        add({ severity: 'warn', scope, message: `site.config integrations.payments ≠ "${manifest.payment.provider}"`, fix: `vitrine add ${name} (regenerates integrations)` });
       }
     }
   }

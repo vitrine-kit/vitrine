@@ -5,7 +5,7 @@
     "jsx": "react-jsx",
     "types": ["react", "node"]
   },
-  "//": "Типизируем презентационные components/ + контрактный lib/ (зависят только от контрактов/core). Next-glue под files/app/** (роуты, server actions, webhook) и платёжный glue (provider.ts тащит SDK провайдера, fulfill.ts — payload/@payload-config) проверяются при инстанцировании клиента, не в ките.",
+  "//": "We typecheck the presentational components/ + the contract-based lib/ (they depend only on contracts/core). Next glue under files/app/** (routes, server actions, webhook) and payment glue (provider.ts pulls in the provider SDK, fulfill.ts — payload/@payload-config) are checked when the client is instantiated, not in the kit.",
   "include": [
     "*/files/components/**/*.ts",
     "*/files/components/**/*.tsx",

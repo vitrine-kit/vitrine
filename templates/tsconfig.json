@@ -4,7 +4,7 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "//": "Типизируем только чистые файлы шаблона (контракты + node) — критическую логику zero-config и мапперы. Файлы с импортами Next/Payload проверяются при инстанцировании клиента (там стек установлен).",
+  "//": "We typecheck only the pure template files (contracts + node) — the zero-config critical logic and the mappers. Files that import Next/Payload are checked when the client is instantiated (the stack is installed there).",
   "include": [
     "backend-payload/files/lib/adapter/db-decision.ts",
     "backend-payload/files/lib/adapter/db-ping.ts",

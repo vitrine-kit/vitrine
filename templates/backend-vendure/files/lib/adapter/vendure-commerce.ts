@@ -1,7 +1,7 @@
-// Реализация контракта CommerceBackend поверх Vendure (активный заказ + session
-// token). cartId == Vendure auth-token сессии. Денежные итоги отдаёт Vendure;
-// нормализация — в map.ts. Оплата — Stripe-плагин Vendure (startCheckout переводит
-// заказ в ArrangingPayment). Next-glue, валидируется на запущенном Vendure.
+// CommerceBackend contract implementation on top of Vendure (active order + session
+// token). cartId == the Vendure session auth-token. Money totals come from Vendure;
+// normalization lives in map.ts. Payment — Vendure's Stripe plugin (startCheckout moves
+// the order to ArrangingPayment). Next glue, validated against a running Vendure.
 import type { Cart, CommerceBackend, Order } from '@vitrine-kit/contracts';
 import { shopQuery } from './graphql.js';
 import { mapVendureOrder, mapVendureOrderToCart } from './map.js';
@@ -23,7 +23,7 @@ export class VendureCommerceBackend implements CommerceBackend {
   constructor(private readonly baseUrl: string) {}
 
   async createCart(): Promise<Cart> {
-    // Vendure выдаёт session-токен на любом запросе; активный заказ создаётся при addItem.
+    // Vendure issues a session token on any request; the active order is created on addItem.
     const { token } = await shopQuery(`{ activeChannel { id } }`);
     return emptyCart(token ?? '');
   }
@@ -61,7 +61,7 @@ export class VendureCommerceBackend implements CommerceBackend {
   }
 
   async startCheckout(cartId: string): Promise<{ redirectUrl: string }> {
-    // Перевод в оплату; Stripe-плагин Vendure создаёт PaymentIntent на странице оплаты.
+    // Transition to payment; Vendure's Stripe plugin creates a PaymentIntent on the payment page.
     await shopQuery(`mutation { transitionOrderToState(state: "ArrangingPayment") { ...on Order { id } } }`, {}, cartId);
     return { redirectUrl: `${this.baseUrl}/checkout/payment` };
   }

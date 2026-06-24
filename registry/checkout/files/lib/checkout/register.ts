@@ -1,5 +1,5 @@
-// Регистрация слотов фичи checkout. Кнопка оформления — в итогах корзины.
-// Платёжный провайдер регистрируется отдельно — в фиче checkout-<provider>.
+// Registers the checkout feature's slots. The checkout button goes in the cart totals.
+// The payment provider is registered separately — in the checkout-<provider> feature.
 import { registerSlot } from '@vitrine-kit/core';
 import { CheckoutButton } from '../../components/checkout/CheckoutButton.js';
 

@@ -1,4 +1,4 @@
-/* GraphQL API Payload (эквивалент сгенерированного файла). */
+/* Payload GraphQL API (equivalent of the generated file). */
 import config from '@payload-config';
 import { GRAPHQL_POST, GRAPHQL_OPTIONS } from '@payloadcms/next/routes';
 

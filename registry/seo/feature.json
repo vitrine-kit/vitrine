@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/feature.schema.json",
   "name": "seo",
-  "title": "SEO — метаданные и JSON-LD",
+  "title": "SEO — metadata and JSON-LD",
   "kitVersion": "0.0.0",
   "requiresContracts": ">=1.0.0 <2.0.0",
   "tier": ["catalog", "simple-store", "full-store"],

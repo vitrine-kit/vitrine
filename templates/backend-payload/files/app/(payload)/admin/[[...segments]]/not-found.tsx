@@ -1,4 +1,4 @@
-/* Эквивалент сгенерированной Payload страницы 404 админки. */
+/* Equivalent of the Payload-generated admin 404 page. */
 import type { Metadata } from 'next';
 import config from '@payload-config';
 import { generatePageMetadata, NotFoundPage } from '@payloadcms/next/views';

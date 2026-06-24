@@ -1,6 +1,6 @@
-// API корзины: POST добавить, PATCH изменить количество, DELETE удалить строку.
-// Cart-id в httpOnly cookie. Мутации делегируются CommerceBackend (lib/adapter),
-// арифметика — в @vitrine-kit/core. Next-glue, не типизируется в монорепо.
+// Cart API: POST add, PATCH change quantity, DELETE remove a line.
+// Cart id in an httpOnly cookie. Mutations are delegated to CommerceBackend (lib/adapter),
+// the arithmetic lives in @vitrine-kit/core. Next glue, not typechecked in the monorepo.
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { CommerceBackend } from '@vitrine-kit/contracts';
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const { lineId, quantity } = (await req.json()) as { lineId: string; quantity: number };
   const id = (await cookies()).get(COOKIE)?.value;
-  if (!id) return NextResponse.json({ error: 'корзина не найдена' }, { status: 400 });
+  if (!id) return NextResponse.json({ error: 'cart not found' }, { status: 400 });
   const commerce = await getCommerceBackend();
   return NextResponse.json(await commerce.updateItem(id, lineId, quantity));
 }
@@ -35,7 +35,7 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   const { lineId } = (await req.json()) as { lineId: string };
   const id = (await cookies()).get(COOKIE)?.value;
-  if (!id) return NextResponse.json({ error: 'корзина не найдена' }, { status: 400 });
+  if (!id) return NextResponse.json({ error: 'cart not found' }, { status: 400 });
   const commerce = await getCommerceBackend();
   return NextResponse.json(await commerce.removeItem(id, lineId));
 }

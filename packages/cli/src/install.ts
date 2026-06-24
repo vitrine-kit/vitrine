@@ -1,8 +1,8 @@
-// Примитив установки фичи (§8–§9 спеки) — сердце CLI, общий для init и add.
-// 7 шагов декларативно: резолв зависимостей → копирование files → флаг в
-// site.config → слоты → blueprint → env+npm → vitrine.json + CLAUDE.md.
-// Идемпотентен (повтор той же версии = no-op), транзакционен (откат при ошибке),
-// снапшотит pristine-оригиналы в .vitrine/originals (база для 3-way merge, M9).
+// The feature install primitive (spec §8–§9) — the heart of the CLI, shared by init and add.
+// 7 declarative steps: resolve dependencies → copy files → flag in
+// site.config → slots → blueprint → env+npm → vitrine.json + CLAUDE.md.
+// Idempotent (re-running the same version = no-op), transactional (rollback on error),
+// snapshots pristine originals into .vitrine/originals (the base for 3-way merge, M9).
 import { join } from 'node:path';
 import type { FeatureManifest } from '@vitrine-kit/contracts';
 import type { Project } from './project.js';
@@ -28,14 +28,14 @@ export interface InstallResult {
   skipped: string[];
 }
 
-/** Топологический порядок: registryDependencies раньше зависящих. */
+/** Topological order: registryDependencies before their dependents. */
 function resolveOrder(names: string[], registry: RegistrySource): string[] {
   const order: string[] = [];
   const seen = new Set<string>();
   const visit = (name: string): void => {
     if (seen.has(name)) return;
     if (!registry.hasFeature(name)) {
-      throw new Error(`[vitrine] фича "${name}" не найдена в реестре`);
+      throw new Error(`[vitrine] feature "${name}" not found in the registry`);
     }
     seen.add(name);
     const manifest = registry.loadManifest(name);
@@ -49,12 +49,12 @@ function resolveOrder(names: string[], registry: RegistrySource): string[] {
 function validate(name: string, manifest: FeatureManifest, project: Project): void {
   if (!manifest.tier.includes(project.lock.tier)) {
     throw new Error(
-      `[vitrine] фича "${name}" не поддерживает уровень "${project.lock.tier}" (только ${manifest.tier.join(', ')})`,
+      `[vitrine] feature "${name}" does not support tier "${project.lock.tier}" (only ${manifest.tier.join(', ')})`,
     );
   }
   for (const conflict of manifest.conflicts ?? []) {
     if (project.lock.features[conflict]) {
-      throw new Error(`[vitrine] конфликт: "${name}" несовместима с установленной "${conflict}"`);
+      throw new Error(`[vitrine] conflict: "${name}" is incompatible with the installed "${conflict}"`);
     }
   }
 }
@@ -71,17 +71,17 @@ function copyFeatureFiles(
 
   for (const map of manifest.files) {
     if (!exists(join(featDir, map.from))) {
-      throw new Error(`[vitrine] фича "${name}": нет источника "${map.from}"`);
+      throw new Error(`[vitrine] feature "${name}": no source "${map.from}"`);
     }
     for (const file of eachFeatureFile(featDir, map)) {
       const content = readText(file.srcAbs);
-      tx.write(safeJoin(project.root, file.repoRel), content); // в репо
-      tx.write(safeJoin(originalsBase, file.repoRel), content); // pristine для M9
+      tx.write(safeJoin(project.root, file.repoRel), content); // into the repo
+      tx.write(safeJoin(originalsBase, file.repoRel), content); // pristine for M9
     }
   }
 }
 
-/** Перегенерация производных файлов из ПОЛНОГО состояния установленных фич. */
+/** Regenerate derived files from the FULL state of installed features. */
 export function regenerateDerived(project: Project, registry: RegistrySource, tx: FsTransaction): void {
   const paths = projectPaths(project.root);
   const states: FeatureState[] = Object.entries(project.lock.features).map(([name, pin]) => ({
@@ -90,7 +90,7 @@ export function regenerateDerived(project: Project, registry: RegistrySource, tx
     manifest: registry.loadManifest(name),
   }));
 
-  // 3 · флаг features + активный платёжный провайдер в site.config (управляемые регионы)
+  // 3 · features flag + active payment provider in site.config (managed regions)
   const config = readText(paths.config);
   const withFeatures = replaceBetween(
     config,
@@ -108,11 +108,11 @@ export function regenerateDerived(project: Project, registry: RegistrySource, tx
     ),
   );
 
-  // 4 · слоты + платёжные провайдеры (генерируемые файлы)
+  // 4 · slots + payment providers (generated files)
   tx.write(paths.slots, renderSlotsFile(states));
   tx.write(paths.payments, renderPaymentsFile(states));
 
-  // 5 · blueprint (генерируемый файл)
+  // 5 · blueprint (generated file)
   tx.write(paths.blueprint, renderBlueprintFile(states));
 
   // 6 · env + npm deps
@@ -120,7 +120,7 @@ export function regenerateDerived(project: Project, registry: RegistrySource, tx
   const pkg = readJson<Record<string, unknown>>(paths.pkg);
   tx.write(paths.pkg, `${JSON.stringify(mergePackageDeps(pkg, states), null, 2)}\n`);
 
-  // 7 · CLAUDE.md (таблица фич) + vitrine.json
+  // 7 · CLAUDE.md (feature table) + vitrine.json
   const claude = readText(paths.claude);
   tx.write(
     paths.claude,
@@ -148,7 +148,7 @@ export function installFeatures(
     return !pinned || pinned.version !== manifest.kitVersion;
   });
 
-  // Идемпотентность: ничего нового → честный no-op.
+  // Idempotency: nothing new → an honest no-op.
   if (toInstall.length === 0) {
     return { installed: [], skipped: order };
   }
@@ -165,7 +165,7 @@ export function installFeatures(
     tx.commit();
   } catch (error) {
     tx.rollback();
-    // откат состояния лок-файла в памяти
+    // roll back the in-memory lock state
     for (const name of toInstall) {
       if (!installedNames.has(name)) delete project.lock.features[name];
     }
@@ -180,27 +180,27 @@ export function installFeatures(
 
 export function removeFeature(project: Project, name: string, registry: RegistrySource): void {
   const removed = project.lock.features[name];
-  if (!removed) throw new Error(`[vitrine] фича "${name}" не установлена`);
+  if (!removed) throw new Error(`[vitrine] feature "${name}" is not installed`);
   const manifest = registry.loadManifest(name);
   if (!manifest.removable) {
-    throw new Error(`[vitrine] фича "${name}" не удаляема (removable: false)`);
+    throw new Error(`[vitrine] feature "${name}" is not removable (removable: false)`);
   }
   for (const other of Object.keys(project.lock.features)) {
     if (other === name) continue;
     const deps = registry.loadManifest(other).registryDependencies ?? [];
     if (deps.includes(name)) {
-      throw new Error(`[vitrine] нельзя удалить "${name}": от неё зависит "${other}"`);
+      throw new Error(`[vitrine] cannot remove "${name}": "${other}" depends on it`);
     }
   }
 
-  // Всё мутирующее — в одной транзакции (как installFeatures): tx.remove снапшотит
-  // содержимое, поэтому откат восстановит удалённые файлы; лок-файл регенерится из
-  // нового состояния, а in-memory лок чиним вручную при ошибке. Полу-удаления нет.
+  // Everything mutating — in one transaction (like installFeatures): tx.remove snapshots
+  // the content, so rollback restores deleted files; the lock file is regenerated from
+  // the new state, and the in-memory lock is fixed by hand on error. No half-deletes.
   //
-  // Удаляем РОВНО файлы фичи, а не весь каталог назначения: фичи, отображающие в
-  // общий корень (cart/checkout-stripe → app/), иначе снесли бы базовый шаблон и
-  // соседние фичи. Источник истины — pristine-снимок (что реально ставилось) ∪
-  // текущий источник реестра. Несуществующие пути tx.remove игнорирует.
+  // We delete EXACTLY the feature's files, not the whole destination directory: features
+  // mapping into a shared root (cart/checkout-stripe → app/) would otherwise wipe the base
+  // template and neighboring features. Source of truth — the pristine snapshot (what was
+  // actually installed) ∪ the current registry source. tx.remove ignores nonexistent paths.
   const originalsDir = join(projectPaths(project.root).originals, `${name}@${removed.version}`);
   const featDir = registry.featureDir(name);
   const targets = new Set<string>();
@@ -210,15 +210,15 @@ export function removeFeature(project: Project, name: string, registry: Registry
   const tx = new FsTransaction();
   try {
     for (const rel of targets) {
-      tx.remove(safeJoin(project.root, rel)); // файл в репо
-      tx.remove(safeJoin(originalsDir, rel)); // pristine-снимок
+      tx.remove(safeJoin(project.root, rel)); // file in the repo
+      tx.remove(safeJoin(originalsDir, rel)); // pristine snapshot
     }
     delete project.lock.features[name];
     regenerateDerived(project, registry, tx);
     tx.commit();
   } catch (error) {
     tx.rollback();
-    project.lock.features[name] = removed; // восстановить лок в памяти
+    project.lock.features[name] = removed; // restore the in-memory lock
     throw error;
   }
 }

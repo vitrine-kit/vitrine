@@ -5,23 +5,24 @@ coverage/
 *.log
 *.tsbuildinfo
 
-# Окружение и локальные dev-данные
+# Environment and local dev data
 .env
 .env.local
 .env.*.local
 .vitrine/
 
-# OS / редакторы
+# OS / editors
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
 
-# AI-ассистенты / IDE-правила / локальные доки — не коммитим по умолчанию.
-# Пути закреплены за корнем (ведущий /), чтобы НЕ задеть будущие шиппинг-файлы
-# вроде templates/base/CLAUDE.md (это деливерабл клиента) или доки внутри пакетов.
+# AI assistants / IDE rules / local docs / internal planning — not committed by default.
+# Paths are anchored to the root (leading /) so we don't accidentally match future
+# shipped files like templates/base/CLAUDE.md (a client deliverable) or docs inside packages.
 /CLAUDE.md
 /.claude/
 /.cursor/
 /docs/
+/IMPLEMENTATION_PLAN.md

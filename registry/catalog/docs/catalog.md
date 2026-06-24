@@ -1,18 +1,18 @@
-# Фича: catalog
+# Feature: catalog
 
-Просмотр ассортимента: сетка товаров, карточка товара, навигация по категориям.
+Browsing the assortment: product grid, product card, category navigation.
 
-## Компоненты
-- `components/catalog/ProductGrid` — сетка (семантический список) из `ProductCard`.
-- `components/catalog/ProductCard` — карточка (изображение, название, цена).
-- `components/catalog/CategoryNav` — навигация; монтируется в слот `global.header-nav`.
+## Components
+- `components/catalog/ProductGrid` — grid (semantic list) of `ProductCard`s.
+- `components/catalog/ProductCard` — card (image, title, price).
+- `components/catalog/CategoryNav` — navigation; mounted into the `global.header-nav` slot.
 
-## Данные
-- `lib/catalog/data` — `loadProducts`/`loadProduct`/`loadCategories` поверх контракта `CatalogSource` + `formatPrice` (цена в минимальных единицах).
-- `lib/catalog/register` — регистрация слота `global.header-nav`.
+## Data
+- `lib/catalog/data` — `loadProducts`/`loadProduct`/`loadCategories` over the `CatalogSource` contract + `formatPrice` (price in minor units).
+- `lib/catalog/register` — registers the `global.header-nav` slot.
 
-## Стилизация
-Все классы — токенные (`bg-surface`, `text-fg`, `text-price`, `rounded-md`, `gap-gutter`). Дизайн-шаг меняет только значения токенов, не структуру/a11y.
+## Styling
+All classes are token-based (`bg-surface`, `text-fg`, `text-price`, `rounded-md`, `gap-gutter`). The design step changes only token values, not structure/a11y.
 
-## Контракты
-Зависит только от `@vitrine-kit/contracts` (типы, `CatalogSource`) и `@vitrine-kit/core` (`registerSlot`). Переносима между Payload и Vendure.
+## Contracts
+Depends only on `@vitrine-kit/contracts` (types, `CatalogSource`) and `@vitrine-kit/core` (`registerSlot`). Portable between Payload and Vendure.

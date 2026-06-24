@@ -1,6 +1,6 @@
-// Чистые генераторы управляемых/производных файлов из состояния установленных
-// фич. Регенерация из состояния (а не патчинг) делает шаги примитива
-// идемпотентными по построению.
+// Pure generators of managed/derived files from the state of installed
+// features. Regenerating from state (rather than patching) makes the primitive's steps
+// idempotent by construction.
 import { TOKEN_CSS_VARS, type FeatureManifest } from '@vitrine-kit/contracts';
 import { parseEnvKeys, pascalCase, parseNpmSpec, sortKeys } from './util.js';
 
@@ -10,7 +10,7 @@ export interface FeatureState {
   manifest: FeatureManifest;
 }
 
-/** Флаги features из config.set всех фич (ключи вида "features.<x>"). */
+/** features flags from every feature's config.set (keys like "features.<x>"). */
 export function collectFeatureFlags(features: FeatureState[]): Record<string, boolean> {
   const flags: Record<string, boolean> = {};
   for (const f of features) {
@@ -21,7 +21,7 @@ export function collectFeatureFlags(features: FeatureState[]): Record<string, bo
   return flags;
 }
 
-/** Тело свойства `features` для управляемого региона site.config (2 пробела). */
+/** Body of the `features` property for the managed site.config region (2-space indent). */
 export function renderFeaturesRegion(features: FeatureState[]): string {
   const flags = collectFeatureFlags(features);
   const keys = Object.keys(flags).sort();
@@ -30,7 +30,7 @@ export function renderFeaturesRegion(features: FeatureState[]): string {
   return `  features: {\n${body}\n  },`;
 }
 
-/** Активный платёжный провайдер из блоков payment установленных фич (одна активна). */
+/** The active payment provider from installed features' payment blocks (one active). */
 export function activePaymentProvider(features: FeatureState[]): string | undefined {
   const providers = new Set<string>();
   for (const f of features) {
@@ -39,27 +39,27 @@ export function activePaymentProvider(features: FeatureState[]): string | undefi
   return [...providers].sort()[0];
 }
 
-/** Тело свойства `integrations` для управляемого региона site.config (2 пробела). */
+/** Body of the `integrations` property for the managed site.config region (2-space indent). */
 export function renderIntegrationsRegion(features: FeatureState[]): string {
   const payments = activePaymentProvider(features);
   if (!payments) return '  integrations: {},';
   return `  integrations: {\n    payments: ${JSON.stringify(payments)},\n  },`;
 }
 
-/** Имена фич не должны схлопываться в один PascalCase-идентификатор (дубль register/extend). */
+/** Feature names must not collapse into one PascalCase identifier (duplicate register/extend). */
 function assertNoPascalCollisions(features: FeatureState[]): void {
   const byPascal = new Map<string, string>();
   for (const f of features) {
     const id = pascalCase(f.name);
     const prev = byPascal.get(id);
     if (prev && prev !== f.name) {
-      throw new Error(`[vitrine] фичи "${prev}" и "${f.name}" дают один идентификатор "${id}" — переименуйте одну`);
+      throw new Error(`[vitrine] features "${prev}" and "${f.name}" produce the same identifier "${id}" — rename one`);
     }
     byPascal.set(id, f.name);
   }
 }
 
-/** lib/slots.ts — целиком генерируемый: зовёт register<Name>Slots() фич со слотами. */
+/** lib/slots.ts — fully generated: calls register<Name>Slots() of slot features. */
 export function renderSlotsFile(features: FeatureState[]): string {
   const withSlots = features.filter((f) => (f.manifest.slots?.length ?? 0) > 0);
   assertNoPascalCollisions(withSlots);
@@ -68,17 +68,17 @@ export function renderSlotsFile(features: FeatureState[]): string {
   );
   const calls = withSlots.map((f) => `  register${pascalCase(f.name)}Slots();`);
   return [
-    '// vitrine:generated — регистрация слотов установленных фич. Не редактировать вручную.',
+    '// vitrine:generated — slot registration for installed features. Do not edit by hand.',
     ...imports,
     '',
     'export function registerSlots(): void {',
-    ...(calls.length ? calls : ['  // нет фич со слотами']),
+    ...(calls.length ? calls : ['  // no slot features']),
     '}',
     '',
   ].join('\n');
 }
 
-/** lib/payments.ts — целиком генерируемый: зовёт register<Name>Provider() платёжных фич. */
+/** lib/payments.ts — fully generated: calls register<Name>Provider() of payment features. */
 export function renderPaymentsFile(features: FeatureState[]): string {
   const withPayment = features.filter((f) => f.manifest.payment);
   assertNoPascalCollisions(withPayment);
@@ -87,17 +87,17 @@ export function renderPaymentsFile(features: FeatureState[]): string {
   );
   const calls = withPayment.map((f) => `  register${pascalCase(f.name)}Provider();`);
   return [
-    '// vitrine:generated — регистрация платёжных провайдеров установленных фич. Не редактировать вручную.',
+    '// vitrine:generated — payment-provider registration for installed features. Do not edit by hand.',
     ...imports,
     '',
     'export function registerPayments(): void {',
-    ...(calls.length ? calls : ['  // нет платёжных фич']),
+    ...(calls.length ? calls : ['  // no payment features']),
     '}',
     '',
   ].join('\n');
 }
 
-/** lib/blueprint.ts — базовый blueprint + аддитивные расширения фич с blueprint. */
+/** lib/blueprint.ts — base blueprint + additive extensions of blueprint features. */
 export function renderBlueprintFile(features: FeatureState[]): string {
   const withBp = features.filter((f) => f.manifest.blueprint);
   assertNoPascalCollisions(withBp);
@@ -106,7 +106,7 @@ export function renderBlueprintFile(features: FeatureState[]): string {
   );
   const calls = withBp.map((f) => `  extend${pascalCase(f.name)}Blueprint(blueprint);`);
   return [
-    '// vitrine:generated — blueprint установленных фич. Не редактировать вручную.',
+    '// vitrine:generated — blueprint of installed features. Do not edit by hand.',
     "import { createBlueprint } from '@vitrine-kit/payload-blueprint';",
     ...imports,
     '',
@@ -118,18 +118,18 @@ export function renderBlueprintFile(features: FeatureState[]): string {
   ].join('\n');
 }
 
-/** Управляемая таблица фич для CLAUDE.md. */
+/** Managed feature table for CLAUDE.md. */
 export function renderClaudeFeaturesTable(features: FeatureState[]): string {
-  if (features.length === 0) return '_Фичи ещё не установлены._';
+  if (features.length === 0) return '_No features installed yet._';
   const rows = features
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((f) => `| \`${f.name}\` | ${f.manifest.title} | ${f.version} |`)
     .join('\n');
-  return ['| Фича | Описание | Версия |', '|---|---|---|', rows].join('\n');
+  return ['| Feature | Description | Version |', '|---|---|---|', rows].join('\n');
 }
 
-/** Идемпотентное добавление недостающих ключей env в .env.example. */
+/** Idempotently add missing env keys to .env.example. */
 export function mergeEnvExample(existing: string, features: FeatureState[]): string {
   const present = parseEnvKeys(existing);
   const additions: string[] = [];
@@ -145,7 +145,7 @@ export function mergeEnvExample(existing: string, features: FeatureState[]): str
   return `${existing.trimEnd()}\n\n${additions.join('\n')}\n`;
 }
 
-/** Слияние corePackages + npm фич в dependencies package.json (идемпотентно). */
+/** Merge features' corePackages + npm into package.json dependencies (idempotent). */
 export function mergePackageDeps(
   pkg: Record<string, unknown>,
   features: FeatureState[],
@@ -161,7 +161,7 @@ export function mergePackageDeps(
   return { ...pkg, dependencies: sortKeys(deps) };
 }
 
-/** Нейтральная тема: имена всех токенов контракта со стартовыми значениями. */
+/** Neutral theme: all contract token names with starter values. */
 export function renderNeutralTheme(): string {
   const neutral: Record<string, string> = {
     '--vt-color-bg': '#ffffff',
@@ -184,7 +184,7 @@ export function renderNeutralTheme(): string {
   };
   const lines = TOKEN_CSS_VARS.map((v) => `  ${v}: ${neutral[v] ?? 'initial'};`).join('\n');
   return [
-    '/* vitrine: значения токенов клиента. Дизайн-шаг (vitrine design apply) переписывает только это. */',
+    '/* vitrine: client token values. The design step (vitrine design apply) rewrites only this. */',
     ':root {',
     lines,
     '}',

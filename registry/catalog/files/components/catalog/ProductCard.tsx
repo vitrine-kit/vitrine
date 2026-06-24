@@ -1,5 +1,5 @@
-// Карточка товара — презентационная, визуально нейтральная (классы → токены).
-// Структуру/a11y дизайн-шаг не трогает, только токены.
+// Product card — presentational, visually neutral (classes → tokens).
+// The design step doesn't touch structure/a11y, only tokens.
 import type { Product } from '@vitrine-kit/contracts';
 import { formatPrice } from '../../lib/catalog/data.js';
 

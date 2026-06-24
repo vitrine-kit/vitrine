@@ -1,5 +1,5 @@
-// Сборка метаданных страницы из доменных типов. SiteMetadata структурно
-// совместима с Next Metadata — в клиенте generateMetadata() возвращает это.
+// Builds page metadata from domain types. SiteMetadata is structurally
+// compatible with Next Metadata — in the client, generateMetadata() returns this.
 import type { Product } from '@vitrine-kit/contracts';
 
 export interface SiteMetadata {

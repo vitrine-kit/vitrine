@@ -1,5 +1,5 @@
-// Клиентский проект: корень (где лежит vitrine.json), пути управляемых файлов,
-// загрузка/доступ к лок-файлу.
+// The client project: root (where vitrine.json lives), managed-file paths,
+// loading/accessing the lock file.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { vitrineLockSchema, type VitrineLock } from '@vitrine-kit/contracts';

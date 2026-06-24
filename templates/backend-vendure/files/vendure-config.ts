@@ -1,6 +1,6 @@
-// Конфиг Vendure-сервера. БД: Postgres (DATABASE_URL) или встроенный better-sqlite3
-// в dev (zero-config, §18-эквивалент). Суперадмин — из env (сменить для прода).
-// Stripe-плагин подключается при tier=full с оплатой.
+// Vendure server config. DB: Postgres (DATABASE_URL) or the embedded better-sqlite3
+// in dev (zero-config, §18 equivalent). Superadmin — from env (change it for prod).
+// The Stripe plugin is wired in at tier=full with payments.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DefaultJobQueuePlugin, DefaultSearchPlugin, type VendureConfig } from '@vendure/core';
@@ -15,10 +15,10 @@ function dbConnectionOptions(): VendureConfig['dbConnectionOptions'] {
     return { type: 'postgres', url, synchronize: IS_DEV } as VendureConfig['dbConnectionOptions'];
   }
   if (!IS_DEV) {
-    // В production молчаливого fallback на SQLite нет (§18).
-    throw new Error('[vitrine] DATABASE_URL обязателен в production');
+    // In production there's no silent fallback to SQLite (§18).
+    throw new Error('[vitrine] DATABASE_URL is required in production');
   }
-  // dev zero-config: встроенный SQLite (без сервера БД).
+  // dev zero-config: embedded SQLite (no DB server).
   return {
     type: 'better-sqlite3',
     database: path.join(dirname, '.vitrine', 'vendure.sqlite'),
@@ -36,7 +36,7 @@ export const config: VendureConfig = {
     tokenMethod: ['bearer', 'cookie'],
     superadminCredentials: {
       identifier: process.env.VENDURE_SUPERADMIN_USERNAME ?? 'superadmin',
-      // dev-дефолт; для прода обязательно задать VENDURE_SUPERADMIN_PASSWORD.
+      // dev default; for prod you must set VENDURE_SUPERADMIN_PASSWORD.
       password: process.env.VENDURE_SUPERADMIN_PASSWORD ?? 'superadmin',
     },
     cookieOptions: { secret: process.env.VENDURE_COOKIE_SECRET ?? 'dev-cookie-secret' },
@@ -44,7 +44,7 @@ export const config: VendureConfig = {
   dbConnectionOptions: dbConnectionOptions(),
   paymentOptions: {
     paymentMethodHandlers: [
-      // + StripePlugin handler (env STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET) для tier=full с оплатой.
+      // + StripePlugin handler (env STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET) for tier=full with payments.
     ],
   },
   plugins: [

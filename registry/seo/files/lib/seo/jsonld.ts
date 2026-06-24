@@ -1,4 +1,4 @@
-// schema.org JSON-LD из доменных типов.
+// schema.org JSON-LD from domain types.
 import type { Product } from '@vitrine-kit/contracts';
 
 export function productJsonLd(

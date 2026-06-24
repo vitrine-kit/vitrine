@@ -142,7 +142,7 @@
           "properties": {
             "defaultLocale": {
               "type": "string",
-              "default": "ru"
+              "default": "en"
             },
             "locales": {
               "type": "array",
@@ -150,12 +150,12 @@
                 "type": "string"
               },
               "default": [
-                "ru"
+                "en"
               ]
             },
             "currency": {
               "type": "string",
-              "default": "RUB"
+              "default": "USD"
             },
             "priceFormat": {
               "type": "string"
@@ -163,11 +163,11 @@
           },
           "additionalProperties": false,
           "default": {
-            "defaultLocale": "ru",
+            "defaultLocale": "en",
             "locales": [
-              "ru"
+              "en"
             ],
-            "currency": "RUB"
+            "currency": "USD"
           }
         }
       },

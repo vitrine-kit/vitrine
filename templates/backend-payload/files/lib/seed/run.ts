@@ -1,6 +1,6 @@
-// Демо-сид (§18.2): запускается из onInit Payload. Идемпотентен (гард по
-// shouldRunDevTask: только dev + пустая коллекция). Картинки — локальные
-// placeholder из seed-assets/ (без сети).
+// Demo seed (§18.2): runs from Payload's onInit. Idempotent (guarded by
+// shouldRunDevTask: dev only + empty collection). Images are local
+// placeholders from seed-assets/ (no network).
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Payload } from 'payload';
@@ -47,5 +47,5 @@ export async function seedDemo(payload: Payload): Promise<void> {
     }
   }
 
-  payload.logger.info('[vitrine] demo seed: создано 5 товаров');
+  payload.logger.info('[vitrine] demo seed: created 5 products');
 }

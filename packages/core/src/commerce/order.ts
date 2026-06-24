@@ -1,6 +1,6 @@
-// Построение заказа из корзины. Денежная/заказная логика — в пакете (критично).
-// Маппинг в формат конкретного платёжного провайдера живёт в самой фиче
-// checkout-<provider> (вместе с её SDK), а не здесь.
+// Building an order from the cart. The money/order logic is in the package (critical).
+// Mapping into a specific payment provider's format lives in the
+// checkout-<provider> feature itself (with its SDK), not here.
 import type { Cart, Order, OrderLine, OrderStatus } from '@vitrine-kit/contracts';
 
 export interface BuildOrderOptions {
@@ -8,11 +8,11 @@ export interface BuildOrderOptions {
   status?: OrderStatus;
   email?: string;
   number?: string;
-  /** ISO-8601; по умолчанию — сейчас. */
+  /** ISO-8601; defaults to now. */
   createdAt?: string;
 }
 
-/** Снимок корзины в заказ (после оплаты). Итоги берём из корзины — не пересчитываем. */
+/** Snapshots the cart into an order (after payment). Totals come from the cart — not recomputed. */
 export function buildOrderFromCart(cart: Cart, opts: BuildOrderOptions): Order {
   const lines: OrderLine[] = cart.lines.map((l) => ({
     variantId: l.variantId,

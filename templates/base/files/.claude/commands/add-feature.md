@@ -1,18 +1,18 @@
 ---
-description: Добавить фичу из реестра Vitrine и стилизовать её
+description: Add a feature from the Vitrine registry and style it
 argument-hint: <feature>
 ---
 
-Добавь фичу `$ARGUMENTS` в проект:
+Add the `$ARGUMENTS` feature to the project:
 
-1. `vitrine list` — проверь, что фича доступна и ещё не установлена (покажи список).
-2. `vitrine add $ARGUMENTS` — копирует файлы, регистрирует слоты/blueprint, домерживает
-   env и зависимости, обновляет `site.config.ts`, `vitrine.json` и таблицу в `CLAUDE.md`.
-   Зависимости фичи подтянутся автоматически.
-3. Если фича добавила ключи в `.env.example` — подскажи заполнить их в `.env`.
-4. `vitrine design apply` — стилизуй новую фичу под текущий бренд (только если в `/design`
-   есть экспорт; иначе пропусти).
-5. `pnpm typecheck` (или `pnpm build`) — убедись, что сборка зелёная.
-6. Генерируемые файлы вручную не правь. Напомни пользователю закоммитить изменения.
+1. `vitrine list` — check that the feature is available and not yet installed (show the list).
+2. `vitrine add $ARGUMENTS` — copies files, registers slots/blueprint, merges in
+   env and dependencies, updates `site.config.ts`, `vitrine.json`, and the table in `CLAUDE.md`.
+   The feature's dependencies are pulled in automatically.
+3. If the feature added keys to `.env.example` — suggest filling them in `.env`.
+4. `vitrine design apply` — style the new feature for the current brand (only if `/design`
+   has an export; otherwise skip).
+5. `pnpm typecheck` (or `pnpm build`) — make sure the build is green.
+6. Don't edit generated files by hand. Remind the user to commit the changes.
 
-Убрать фичу — `vitrine remove <feature>` (только для `removable`).
+To remove a feature — `vitrine remove <feature>` (only for `removable` ones).

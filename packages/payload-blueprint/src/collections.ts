@@ -1,12 +1,12 @@
-// Базовые коллекции Vitrine (нейтральная форма, переносимая в Payload-конфиг
-// клиента в M5). Поля описаны контрактным BlueprintFieldDef; доп. Payload-опции
-// (admin/access/hooks/upload/auth) идут через passthrough-ключи.
+// Vitrine's base collections (a neutral form, ported into the client's Payload
+// config in M5). Fields are described by the contract BlueprintFieldDef; extra Payload options
+// (admin/access/hooks/upload/auth) go through passthrough keys.
 import type { BlueprintFieldDef } from '@vitrine-kit/contracts';
 
 export interface BlueprintCollectionConfig {
   slug: string;
   fields: BlueprintFieldDef[];
-  /** Прочие опции коллекции Payload (admin, access, hooks, upload, auth, …). */
+  /** Other Payload collection options (admin, access, hooks, upload, auth, …). */
   [option: string]: unknown;
 }
 
@@ -16,10 +16,10 @@ const f = (
   extra: Record<string, unknown> = {},
 ): BlueprintFieldDef => ({ name, type, ...extra });
 
-// Доступ только для аутентифицированных (админ): закрывает авто-сгенерированный
-// публичный REST/GraphQL над корзинами/заказами. Server-local вызовы Payload
-// (адаптер, webhook) идут с overrideAccess и не затрагиваются. Тип облегчён, чтобы
-// не тащить payload в пакет контрактных коллекций.
+// Authenticated-only (admin) access: locks down the auto-generated
+// public REST/GraphQL over carts/orders. Server-local Payload calls
+// (adapter, webhook) use overrideAccess and aren't affected. The type is loosened so we
+// don't pull payload into the contract-collections package.
 const authenticated = ({ req }: { req?: { user?: unknown } }): boolean => Boolean(req?.user);
 const adminOnly = { read: authenticated, create: authenticated, update: authenticated, delete: authenticated };
 
@@ -52,7 +52,7 @@ export const variantsCollection: BlueprintCollectionConfig = {
   fields: [
     f('sku', 'text', { required: true, unique: true, index: true }),
     f('product', 'relationship', { relationTo: 'products', required: true }),
-    f('price', 'number', { required: true }), // минимальные единицы (копейки)
+    f('price', 'number', { required: true }), // minor units (e.g. cents)
     f('stock', 'number'),
     f('options', 'json'), // { size: 'M', color: 'red' }
   ],
@@ -88,7 +88,7 @@ export const ordersCollection: BlueprintCollectionConfig = {
     f('total', 'number'),
     f('lines', 'json'),
     f('paymentProvider', 'text'), // 'stripe' | 'paddle' | 'yookassa'
-    f('paymentRef', 'text', { index: true }), // идемпотентность webhook (дедуп по референсу платежа)
+    f('paymentRef', 'text', { index: true }), // webhook idempotency (dedup by payment reference)
     f('createdAt', 'date'),
   ],
 };
@@ -98,7 +98,7 @@ export const cartsCollection: BlueprintCollectionConfig = {
   admin: { useAsTitle: 'id' },
   access: adminOnly,
   fields: [
-    f('lines', 'json'), // CartLine[] (контракт); арифметика — в @vitrine-kit/core
+    f('lines', 'json'), // CartLine[] (contract); arithmetic lives in @vitrine-kit/core
     f('currency', 'text'),
     f('subtotal', 'number'),
     f('discountTotal', 'number'),
@@ -111,7 +111,7 @@ export const cartsCollection: BlueprintCollectionConfig = {
   ],
 };
 
-/** Базовые коллекции в стабильном порядке. */
+/** Base collections in a stable order. */
 export const baseCollections: BlueprintCollectionConfig[] = [
   categoriesCollection,
   mediaCollection,

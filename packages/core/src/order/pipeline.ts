@@ -1,20 +1,20 @@
-// Order pipeline (каркас, наполняется в M8). Критлогика заказа живёт в пакете,
-// не в copy-in реестре: баг здесь = инцидент у всех клиентов.
+// Order pipeline (scaffold, filled in M8). The order's critical logic lives in the package,
+// not the copy-in registry: a bug here = an incident for every client.
 import type { Cart, Order } from '@vitrine-kit/contracts';
 
 export interface OrderPipelineContext {
   cart: Cart;
-  /** Заполняется шагами пайплайна (создание заказа). */
+  /** Filled by pipeline stages (order creation). */
   order?: Order;
-  /** Произвольные данные шагов (платёж, резерв склада, доставка). */
+  /** Arbitrary stage data (payment, stock reservation, shipping). */
   meta: Record<string, unknown>;
 }
 
 export type OrderStage<T = OrderPipelineContext> = (ctx: T) => T | Promise<T>;
 
 /**
- * Последовательно прогоняет контекст через шаги. Любая ошибка шага прерывает
- * пайплайн (откат/идемпотентность — ответственность конкретных шагов в M8).
+ * Runs the context through the stages sequentially. Any stage error aborts the
+ * pipeline (rollback/idempotency are the responsibility of specific stages in M8).
  */
 export async function runPipeline<T>(
   ctx: T,

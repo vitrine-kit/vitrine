@@ -1,8 +1,8 @@
-// Реализация контракта CommerceBackend поверх Payload (коллекции carts/orders).
-// Денежная арифметика и заказ — из @vitrine-kit/core (критлогика); здесь только
-// персистентность. Создание оплаты делегируется активному платёжному провайдеру
-// (payments.resolve по site.config), поэтому модуль не тащит ни одного платёжного
-// SDK и грузится на любом уровне (включая catalog).
+// CommerceBackend contract implementation on top of Payload (carts/orders collections).
+// Money arithmetic and the order come from @vitrine-kit/core (critical logic); here — only
+// persistence. Creating the payment is delegated to the active payment provider
+// (payments.resolve by site.config), so this module pulls in no payment SDK
+// and loads at any layer (including catalog).
 import type { Payload } from 'payload';
 import type { Cart, CommerceBackend, Order, SiteConfig } from '@vitrine-kit/contracts';
 import {
@@ -92,18 +92,18 @@ export class PayloadCommerceBackend implements CommerceBackend {
 
   async updateItem(cartId: string, lineId: string, qty: number): Promise<Cart> {
     const cart = await this.getCart(cartId);
-    if (!cart) throw new Error('[vitrine] корзина не найдена');
+    if (!cart) throw new Error('[vitrine] cart not found');
     return this.persist(setCartLineQty(cart, lineId, qty));
   }
 
   async removeItem(cartId: string, lineId: string): Promise<Cart> {
     const cart = await this.getCart(cartId);
-    if (!cart) throw new Error('[vitrine] корзина не найдена');
+    if (!cart) throw new Error('[vitrine] cart not found');
     return this.persist(removeCartLine(cart, lineId));
   }
 
-  /** Перепроверяет цены строк по актуальным вариантам (анти-stale). Источник цены —
-   *  БД, а не величина, сохранённая в корзине при добавлении. */
+  /** Re-checks line prices against current variants (anti-stale). The price source
+   *  is the DB, not the value saved in the cart at add time. */
   private async reprice(cart: Cart): Promise<Cart> {
     const lines = await Promise.all(
       cart.lines.map(async (l) => {
@@ -113,15 +113,15 @@ export class PayloadCommerceBackend implements CommerceBackend {
         return variant && typeof variant.price === 'number' ? { ...l, unitPrice: variant.price } : l;
       }),
     );
-    return this.persist(recalcCart({ ...cart, lines })); // recalc пересчитает lineTotal/итоги
+    return this.persist(recalcCart({ ...cart, lines })); // recalc recomputes lineTotal/totals
   }
 
   async startCheckout(cartId: string): Promise<{ redirectUrl: string }> {
     const current = await this.getCart(cartId);
-    if (!current || current.lines.length === 0) throw new Error('[vitrine] корзина пуста');
+    if (!current || current.lines.length === 0) throw new Error('[vitrine] cart is empty');
     const cart = await this.reprice(current);
-    // Активный провайдер (Stripe/Paddle/YooKassa) резолвится по integrations.payments;
-    // его фича checkout-<provider> зарегистрировала его в реестре через lib/payments.ts.
+    // The active provider (Stripe/Paddle/YooKassa) is resolved by integrations.payments;
+    // its checkout-<provider> feature registered it in the registry via lib/payments.ts.
     return payments.resolve(this.siteConfig).createCheckout({ cart, baseUrl: this.baseUrl });
   }
 

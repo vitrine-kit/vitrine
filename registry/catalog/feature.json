@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/feature.schema.json",
   "name": "catalog",
-  "title": "Каталог товаров",
+  "title": "Product catalog",
   "kitVersion": "0.0.0",
   "requiresContracts": ">=1.0.0 <2.0.0",
   "tier": ["catalog", "simple-store", "full-store"],

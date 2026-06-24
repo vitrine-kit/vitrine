@@ -1,12 +1,12 @@
 // @vitrine-kit/contracts
-// Пять стабильных контрактов Vitrine под semver. Расширять ТОЛЬКО аддитивно.
+// The five stable Vitrine contracts under semver. Extend ADDITIVELY only.
 //
 // 1 · Tokens     → ./tokens
 // 2 · Data       → ./data
 // 3 · Slots      → ./slots
 // 4 · Config     → ./config
 // 5 · Blueprint  → ./blueprint
-// Манифесты (feature.json / vitrine.json / registry) → ./manifest
+// Manifests (feature.json / vitrine.json / registry) → ./manifest
 
 export const CONTRACTS_VERSION = '1.0.0' as const;
 

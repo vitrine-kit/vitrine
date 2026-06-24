@@ -1,12 +1,12 @@
-// Реестр платёжных провайдеров — зеркало adapter/resolver.ts. Фичи
-// checkout-<provider> регистрируют свой провайдер (через lib/payments.ts,
-// генерируемый CLI); startCheckout резолвит активный по integrations.payments.
+// The payment-provider registry — mirrors adapter/resolver.ts. The checkout-<provider>
+// features register their provider (via the CLI-generated lib/payments.ts); startCheckout
+// resolves the active one by integrations.payments.
 import type { SiteConfig } from '@vitrine-kit/contracts';
 import type { PaymentProvider, PaymentProviderName } from './provider.js';
 
 export interface PaymentRegistry {
   register(provider: PaymentProvider): void;
-  /** Активный провайдер по site.config.integrations.payments. */
+  /** The active provider by site.config.integrations.payments. */
   resolve(config: SiteConfig): PaymentProvider;
   get(name: PaymentProviderName): PaymentProvider | undefined;
   clear(): void;
@@ -23,12 +23,12 @@ export function createPaymentRegistry(): PaymentRegistry {
     const name = config.integrations.payments;
     if (!name) {
       throw new Error(
-        '[vitrine] integrations.payments не задан в site.config — установите фичу checkout-<provider>',
+        '[vitrine] integrations.payments is not set in site.config — install a checkout-<provider> feature',
       );
     }
     const provider = providers.get(name);
     if (!provider) {
-      throw new Error(`[vitrine] платёжный провайдер "${name}" не зарегистрирован`);
+      throw new Error(`[vitrine] payment provider "${name}" is not registered`);
     }
     return provider;
   }
@@ -44,5 +44,5 @@ export function createPaymentRegistry(): PaymentRegistry {
   return { register, resolve, get, clear };
 }
 
-/** Глобальный реестр провайдеров по умолчанию. */
+/** The default global provider registry. */
 export const payments: PaymentRegistry = createPaymentRegistry();

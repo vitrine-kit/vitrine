@@ -1,5 +1,5 @@
-// Резолвер активного бэкенда для витрины. Каталог отдаём через Payload local
-// API; коммерцию (CommerceBackend) включают фичи cart/checkout-stripe (M8).
+// Resolver for the storefront's active backend. The catalog is served via the
+// Payload local API; commerce (CommerceBackend) is enabled by the cart/checkout-stripe features (M8).
 import { getPayload } from 'payload';
 import config from '@payload-config';
 import type { CatalogSource, CommerceBackend } from '@vitrine-kit/contracts';
@@ -8,8 +8,8 @@ import { registerPayments } from '@/lib/payments';
 import { PayloadCatalogSource } from './payload-catalog.js';
 import { PayloadCommerceBackend } from './payload-commerce.js';
 
-// Регистрация платёжных провайдеров установленных фич (lib/payments.ts генерируется
-// CLI). Нужна до startCheckout, который резолвит активного провайдера из реестра.
+// Register payment providers of installed features (lib/payments.ts is generated
+// by the CLI). Needed before startCheckout, which resolves the active provider from the registry.
 registerPayments();
 
 let catalog: CatalogSource | null = null;

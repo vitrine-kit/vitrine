@@ -4,15 +4,15 @@ out/
 dist/
 build/
 
-# окружение и секреты
+# environment and secrets
 .env
 .env.local
 .env.*.local
 
-# zero-config dev: локальная SQLite + pristine-оригиналы фич (M9)
+# zero-config dev: local SQLite + pristine feature originals (M9)
 .vitrine/
 
-# сгенерированное
+# generated
 next-env.d.ts
 *.tsbuildinfo
 payload-types.ts

@@ -1,6 +1,6 @@
-// Файловая транзакция: пишет через write(), запоминая прежнее состояние каждого
-// файла; rollback() возвращает всё назад (восстанавливает содержимое или удаляет
-// созданные файлы). Делает примитив установки частично-транзакционным (§8 плана).
+// A filesystem transaction: writes via write(), remembering each file's prior
+// state; rollback() reverts everything (restores content or deletes created files).
+// Makes the install primitive partially transactional (plan §8).
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 

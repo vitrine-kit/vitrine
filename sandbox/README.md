@@ -1,5 +1,5 @@
 # sandbox/
 
-Площадка core-разработчиков: прогоняет фичи реестра на одних контрактах (без клиентского репо). Здесь пишутся и проверяются новые фичи перед попаданием в `registry/` (поток C, §12 спеки).
+The core developers' playground: it exercises registry features on contracts alone (without a client repo). New features are written and validated here before landing in `registry/` (flow C, spec §12).
 
-Наполняется по мере появления runtime (M2) и первых фич (M3). Исключён из релизов (`changeset.ignore`).
+Excluded from releases (`changeset.ignore`).

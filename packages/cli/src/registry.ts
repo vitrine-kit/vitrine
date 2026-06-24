@@ -1,5 +1,5 @@
-// Источник реестра фич. В проде — кэш ~/.vitrine/registry (M7); в dev — реестр
-// монорепо (поиск вверх по дереву). Можно переопределить флагом/env.
+// The feature registry source. In prod — the ~/.vitrine/registry cache (M7); in dev — the
+// monorepo registry (search up the tree). Can be overridden by flag/env.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { featureManifestSchema, type FeatureManifest } from '@vitrine-kit/contracts';
@@ -28,13 +28,13 @@ function findUpRegistry(start: string): string | null {
 export function resolveRegistryRoot(explicit?: string): string {
   if (explicit) return resolve(explicit);
   if (process.env.VITRINE_REGISTRY) return resolve(process.env.VITRINE_REGISTRY);
-  // Кэш kit (~/.vitrine/registry), заполняемый `kit update`. Корень ~/.vitrine —
-  // единый источник (cache.vitrineHome): VITRINE_HOME, иначе USERPROFILE/HOME.
+  // The kit cache (~/.vitrine/registry), populated by `kit update`. The ~/.vitrine root is
+  // the single source (cache.vitrineHome): VITRINE_HOME, otherwise USERPROFILE/HOME.
   let home: string | null;
   try {
     home = vitrineHome();
   } catch {
-    home = null; // нет HOME/USERPROFILE — переходим к dev-реестру
+    home = null; // no HOME/USERPROFILE — fall through to the dev registry
   }
   if (home) {
     const cache = join(home, 'registry');
@@ -42,7 +42,7 @@ export function resolveRegistryRoot(explicit?: string): string {
   }
   const dev = findUpRegistry(process.cwd());
   if (dev) return dev;
-  throw new Error('[vitrine] реестр не найден. Запусти "vitrine kit update" или укажи --registry.');
+  throw new Error('[vitrine] registry not found. Run "vitrine kit update" or pass --registry.');
 }
 
 export function createRegistrySource(explicitRoot?: string): RegistrySource {
@@ -57,7 +57,7 @@ export function createRegistrySource(explicitRoot?: string): RegistrySource {
     const cached = cache.get(name);
     if (cached) return cached;
     const file = join(featureDir(name), 'feature.json');
-    if (!existsSync(file)) throw new Error(`[vitrine] фича "${name}" не найдена в реестре`);
+    if (!existsSync(file)) throw new Error(`[vitrine] feature "${name}" not found in the registry`);
     const manifest = featureManifestSchema.parse(JSON.parse(readText(file)));
     cache.set(name, manifest);
     return manifest;

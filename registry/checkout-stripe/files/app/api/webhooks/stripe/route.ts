@@ -1,6 +1,6 @@
-// Stripe webhook: stripeProvider.verifyWebhook (подпись Stripe SDK) → нормализованное
-// событие → handlePaymentWebhook → общий fulfillOrderFromEvent создаёт заказ из
-// корзины и помечает её converted. Провайдер-специфичного кода тут нет — только склейка.
+// Stripe webhook: stripeProvider.verifyWebhook (Stripe SDK signature) → normalized
+// event → handlePaymentWebhook → the shared fulfillOrderFromEvent creates an order from
+// the cart and marks it converted. No provider-specific code here — just glue.
 import { NextResponse } from 'next/server';
 import { handlePaymentWebhook } from '@vitrine-kit/core';
 import { stripeProvider } from '@/lib/checkout-stripe/provider';

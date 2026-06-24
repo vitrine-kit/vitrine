@@ -1,5 +1,5 @@
-// Страница товара. ProductView (фича product-page) хостит слоты product.*.
-// Метаданные и JSON-LD — из фичи seo.
+// Product page. ProductView (the product-page feature) hosts the product.* slots.
+// Metadata and JSON-LD come from the seo feature.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getCatalogSource } from '@/lib/adapter';

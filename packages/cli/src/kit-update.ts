@@ -1,7 +1,7 @@
-// kit update / kit status / self-update (§7, §9). kit update заполняет кэш
-// ~/.vitrine из release-tarball GitHub (network, через gh) ИЛИ из локального дерева
-// (--from <dir>: клон kit или распакованный tarball; офлайн-путь). После update
-// init/add работают офлайн из кэша.
+// kit update / kit status / self-update (§7, §9). kit update populates the
+// ~/.vitrine cache from a GitHub release tarball (network, via gh) OR from a local tree
+// (--from <dir>: a kit clone or an unpacked tarball; the offline path). After update,
+// init/add work offline from the cache.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -17,13 +17,13 @@ function hasBin(bin: string): boolean {
   return spawnSync(probe, [bin], { stdio: 'ignore' }).status === 0;
 }
 
-/** Сетевой путь: gh release download (source tarball) → tar -xzf → корень дерева kit. */
+/** Network path: gh release download (source tarball) → tar -xzf → the kit tree root. */
 function acquireFromGh(version?: string): string {
   if (!hasBin('gh')) {
-    throw new Error('[vitrine] для сетевого обновления нужен gh (GitHub CLI), либо укажите --from <dir>');
+    throw new Error('[vitrine] network update needs gh (GitHub CLI), or pass --from <dir>');
   }
   if (!hasBin('tar')) {
-    throw new Error('[vitrine] для распаковки нужен tar, либо укажите --from <dir>');
+    throw new Error('[vitrine] unpacking needs tar, or pass --from <dir>');
   }
   const tmp = mkdtempSync(join(tmpdir(), 'vitrine-kit-'));
   const dl = spawnSync(
@@ -32,17 +32,17 @@ function acquireFromGh(version?: string): string {
     { stdio: 'inherit' },
   );
   if (dl.status !== 0) {
-    throw new Error('[vitrine] gh release download не удался (проверьте доступ/авторизацию: gh auth status, при необходимости gh auth login)');
+    throw new Error('[vitrine] gh release download failed (check access/auth: gh auth status, and gh auth login if needed)');
   }
   const tarball = readdirSync(tmp).find((f) => f.endsWith('.tar.gz'));
-  if (!tarball) throw new Error('[vitrine] release-tarball не найден после загрузки');
+  if (!tarball) throw new Error('[vitrine] release tarball not found after download');
   if (spawnSync('tar', ['-xzf', join(tmp, tarball), '-C', tmp], { stdio: 'inherit' }).status !== 0) {
-    throw new Error('[vitrine] распаковка tarball не удалась');
+    throw new Error('[vitrine] tarball extraction failed');
   }
   const root = readdirSync(tmp)
     .map((f) => join(tmp, f))
     .find((p) => statSync(p).isDirectory() && existsSync(join(p, 'registry', '_index.json')));
-  if (!root) throw new Error('[vitrine] в распакованном tarball нет registry/_index.json');
+  if (!root) throw new Error('[vitrine] the unpacked tarball has no registry/_index.json');
   return root;
 }
 

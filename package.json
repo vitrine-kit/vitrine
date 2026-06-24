@@ -2,7 +2,7 @@
   "name": "vitrine",
   "version": "0.0.0",
   "private": true,
-  "description": "Vitrine — реестр фич + контракты для быстрой сборки клиентских интернет-магазинов.",
+  "description": "Vitrine — a feature registry + contracts for quickly assembling client online stores.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vitrine-kit/vitrine.git"

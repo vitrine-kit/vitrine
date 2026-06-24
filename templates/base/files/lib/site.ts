@@ -1,8 +1,8 @@
-// Сводные параметры сайта из site.config + env. Безопасно импортируется и на
-// сервере, и на клиенте (только публичные значения).
+// Aggregated site parameters from site.config + env. Safe to import on both
+// the server and the client (public values only).
 import { siteConfig } from '@/site.config';
 
-/** Базовый URL для canonical/OG. Переопределяется NEXT_PUBLIC_SITE_URL. */
+/** Base URL for canonical/OG. Overridden by NEXT_PUBLIC_SITE_URL. */
 export const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
 export const currency = siteConfig.i18n.currency;

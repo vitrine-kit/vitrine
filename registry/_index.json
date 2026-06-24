@@ -4,42 +4,42 @@
   "contracts": "1.0.0",
   "features": {
     "catalog": {
-      "title": "Каталог товаров",
+      "title": "Product catalog",
       "kitVersion": "0.0.0",
       "tier": ["catalog", "simple-store", "full-store"]
     },
     "product-page": {
-      "title": "Страница товара",
+      "title": "Product page",
       "kitVersion": "0.0.0",
       "tier": ["catalog", "simple-store", "full-store"]
     },
     "seo": {
-      "title": "SEO — метаданные и JSON-LD",
+      "title": "SEO — metadata and JSON-LD",
       "kitVersion": "0.0.0",
       "tier": ["catalog", "simple-store", "full-store"]
     },
     "cart": {
-      "title": "Корзина",
+      "title": "Cart",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     },
     "checkout": {
-      "title": "Оформление заказа",
+      "title": "Checkout",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     },
     "checkout-stripe": {
-      "title": "Оплата — Stripe",
+      "title": "Payment — Stripe",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     },
     "checkout-paddle": {
-      "title": "Оплата — Paddle",
+      "title": "Payment — Paddle",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     },
     "checkout-yookassa": {
-      "title": "Оплата — ЮKassa",
+      "title": "Payment — YooKassa",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     }

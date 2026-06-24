@@ -1,63 +1,63 @@
 # Vitrine
 
-Агентский стартер-кит для быстрой сборки клиентских интернет-магазинов и каталогов. Реестр фич в стиле shadcn/ui (copy-in), но для **целых фич магазина**, за пятью стабильными контрактами. 1 клиент = 1 репозиторий; уникальный дизайн применяется ИИ-шагом.
+An agentic starter kit for quickly assembling client e-commerce stores and catalogs. A feature
+registry in the shadcn/ui style (copy-in), but for **whole store features**, behind five stable
+contracts. One client = one repository; the unique design is applied by an AI step.
 
-📄 Спецификация: `vitrine-starter-kit-spec.md` · План реализации: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
-
-## Структура монорепо
+## Monorepo layout
 
 ```
 packages/
-  contracts/         @vitrine-kit/contracts — пять контрактов (Tokens, Data, Slots, Config, Blueprint)
-  core/              @vitrine-kit/core — runtime слотов/адаптера, order pipeline, Stripe webhook
-  payload-blueprint/ @vitrine-kit/payload-blueprint — базовые коллекции + extend()
-  cli/               @vitrine-kit/vitrine — CLI (примитив установки, init, add, update, doctor)
-registry/            copy-in реестр фич (catalog, product-page, seo, cart, checkout-stripe)
-templates/           скелеты клиентского репо: base, backend-payload, backend-vendure
-sandbox/             площадка core-разработки (фичи на одних контрактах)
-schemas/             JSON Schema (генерируются из zod в contracts)
+  contracts/         @vitrine-kit/contracts — five contracts (Tokens, Data, Slots, Config, Blueprint)
+  core/              @vitrine-kit/core — slot/adapter runtime, order pipeline, Stripe webhook
+  payload-blueprint/ @vitrine-kit/payload-blueprint — base collections + extend()
+  cli/               @vitrine-kit/vitrine — CLI (install primitive, init, add, update, doctor)
+registry/            copy-in feature registry (catalog, product-page, seo, cart, checkout-stripe)
+templates/           client repo skeletons: base, backend-payload, backend-vendure
+sandbox/             core-development playground (features on contracts only)
+schemas/             JSON Schema (generated from zod in contracts)
 ```
 
-## Зафиксированные параметры
+## Fixed parameters
 
 | | |
 |---|---|
-| Реестр пакетов | **npm** (публичный, npmjs.com), scope `@vitrine-kit` |
-| Рантайм | **Node 20 LTS + pnpm** |
-| Стек шаблона | Next.js + Tailwind + Payload 3 |
-| Хостинг эталона | **VPS + Docker** (app + Postgres) |
-| Версионирование | Changesets · Turborepo |
-| Лицензия | **MIT** ([LICENSE](LICENSE)) |
+| Package registry | **npm** (public, npmjs.com), scope `@vitrine-kit` |
+| Runtime | **Node 20 LTS + pnpm** |
+| Template stack | Next.js + Tailwind + Payload 3 |
+| Reference hosting | **VPS + Docker** (app + Postgres) |
+| Versioning | Changesets · Turborepo |
+| License | **MIT** ([LICENSE](LICENSE)) |
 
-## Разработка
+## Development
 
 ```bash
 pnpm install
-pnpm build       # turbo: сборка всех пакетов
+pnpm build       # turbo: build all packages
 pnpm typecheck
 pnpm test
-pnpm changeset   # описать изменение версии
+pnpm changeset   # describe a version change
 ```
 
-> Пакеты `@vitrine-kit/*` публичны в npm — для установки токен не нужен. Внутри монорепо пакеты идут через `workspace:*`.
+> The `@vitrine-kit/*` packages are public on npm — no token is needed to install them. Inside the
+> monorepo, packages are linked via `workspace:*`.
 
-## Релиз / публикация
+## Release / publishing
 
-Версии — через [Changesets](.changeset). Поток на push в `main`
+Versions are managed with [Changesets](.changeset). Flow on push to `main`
 ([.github/workflows/release.yml](.github/workflows/release.yml)):
 
-1. Есть неучтённые changesets → бот открывает PR **«Version Packages»** (бамп версий + CHANGELOG).
-2. PR влит → CI публикует изменённые `@vitrine-kit/*` в npm (npmjs.com, с provenance), ставит git-теги
-   и создаёт GitHub Releases. Source-архив релиза тянет `vitrine kit update`.
+1. Pending changesets → the bot opens a **"Version Packages"** PR (version bumps + CHANGELOG).
+2. PR merged → CI publishes the changed `@vitrine-kit/*` to npm (npmjs.com, with provenance), pushes
+   git tags, and creates GitHub Releases. The release source archive is what `vitrine kit update` pulls.
 
 ```bash
-pnpm changeset          # описать изменение (локально)
-# дальше — автоматикой CI; вручную: pnpm version-packages && pnpm release
+pnpm changeset          # describe a change (locally)
+# the rest is automated by CI; manually: pnpm version-packages && pnpm release
 ```
 
-## Дорожная карта
+## Status
 
-См. [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) — фазы **M0…M10**. Текущий статус:
-**M0–M10 реализованы**; офлайн-проверка (build/typecheck/тесты/схемы) зелёная. Живые прогоны
-стека (Next/Payload/Vendure/Stripe, e2e) и публикация пакетов — на CI / машине со стеком;
-юр-проверка лицензии Vendure (GPL-3.0) — отдельный параллельный трек.
+Phases **M0–M10** are implemented; the offline gate (build/typecheck/tests/schemas) is green. Live
+stack runs (Next/Payload/Vendure/Stripe, e2e) and package publishing happen in CI / on a machine
+with the full stack; the Vendure license (GPL-3.0) legal review is a separate parallel track.

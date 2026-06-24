@@ -1,6 +1,6 @@
-// ЮKassa webhook: уведомление не подписано — yookassaProvider.verifyWebhook
-// перепроверяет платёж через API (доверяем только succeeded) → нормализованное
-// событие → handlePaymentWebhook → общий fulfillOrderFromEvent.
+// YooKassa webhook: the notification is unsigned — yookassaProvider.verifyWebhook
+// re-checks the payment via the API (we trust only succeeded) → normalized
+// event → handlePaymentWebhook → the shared fulfillOrderFromEvent.
 import { NextResponse } from 'next/server';
 import { handlePaymentWebhook } from '@vitrine-kit/core';
 import { yookassaProvider } from '@/lib/checkout-yookassa/provider';

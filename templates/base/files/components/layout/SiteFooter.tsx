@@ -1,4 +1,4 @@
-// Подвал витрины. Хостит слот global.footer.
+// Storefront footer. Hosts the global.footer slot.
 import { Slot } from '@vitrine-kit/core/react';
 
 export function SiteFooter() {

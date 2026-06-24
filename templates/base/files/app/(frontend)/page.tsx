@@ -1,5 +1,5 @@
-// Главная витрины: листинг каталога. Данные — через контракт CatalogSource
-// (бэкенд-агностично), сетка — компонент фичи catalog.
+// Storefront home: catalog listing. Data via the CatalogSource contract
+// (backend-agnostic); the grid is the catalog feature's component.
 import { Slot } from '@vitrine-kit/core/react';
 import { getCatalogSource } from '@/lib/adapter';
 import { loadProducts } from '@/lib/catalog/data';
@@ -14,7 +14,7 @@ export default async function HomePage() {
       <Slot name="home.hero" />
       <section aria-labelledby="catalog-heading" className="flex flex-col gap-gutter">
         <h1 id="catalog-heading" className="font-heading text-fg">
-          Каталог
+          Catalog
         </h1>
         <Slot name="catalog.grid-top" />
         <ProductGrid products={products} />

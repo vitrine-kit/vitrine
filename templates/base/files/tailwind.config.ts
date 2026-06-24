@@ -1,5 +1,5 @@
-// Tailwind клиента: пресет Vitrine маппит классы на CSS-переменные контракта
-// токенов (--vt-*). Значения переменных живут в theme/client.css (дизайн-шаг).
+// The client's Tailwind: the Vitrine preset maps classes to the token contract's
+// CSS variables (--vt-*). The variable values live in theme/client.css (design step).
 import type { Config } from 'tailwindcss';
 import { vitrinePreset } from '@vitrine-kit/contracts';
 

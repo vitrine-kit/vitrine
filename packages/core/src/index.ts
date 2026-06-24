@@ -1,8 +1,8 @@
-// @vitrine-kit/core — фреймворк-агностичный runtime Vitrine.
-// React-обёртка <Slot> вынесена в подпуть @vitrine-kit/core/react, чтобы не-React
-// потребители (например CLI) не тянули react.
+// @vitrine-kit/core — Vitrine's framework-agnostic runtime.
+// The React <Slot> wrapper is split into the @vitrine-kit/core/react subpath so non-React
+// consumers (e.g. the CLI) don't pull in react.
 
-// Держать в синхроне с package.json version (бампится changeset'ом).
+// Keep in sync with the package.json version (bumped by a changeset).
 export const CORE_VERSION = '0.1.0' as const;
 
 export * from './slots/registry.js';

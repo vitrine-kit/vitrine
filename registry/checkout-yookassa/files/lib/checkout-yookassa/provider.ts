@@ -1,19 +1,19 @@
-// PaymentProvider поверх ЮKassa (yookassa.ru) — эквайринг РФ: карты, СБП, кошельки.
-// SDK не нужен: REST /v3/payments + Basic-auth (shopId:secretKey). Ядро платёжных SDK
-// не тащит. createCheckout создаёт платёж с confirmation.redirect → confirmation_url.
+// PaymentProvider over YooKassa (yookassa.ru) — Russian acquiring: cards, SBP, wallets.
+// No SDK needed: REST /v3/payments + Basic auth (shopId:secretKey). The core doesn't pull in
+// payment SDKs. createCheckout creates a payment with confirmation.redirect → confirmation_url.
 //
-// ВАЖНО: ЮKassa-уведомления НЕ подписаны. verifyWebhook подтверждает подлинность
-// повторным запросом к API (GET /v3/payments/{id}) и доверяет только status=succeeded.
+// IMPORTANT: YooKassa notifications are NOT signed. verifyWebhook confirms authenticity
+// with a follow-up API request (GET /v3/payments/{id}) and trusts only status=succeeded.
 //
-// ЮKassa ждёт сумму десятичной строкой ("1990.00"); наш Money — минимальные единицы,
-// поэтому делим на 100 (RUB и большинство валют — 2 знака).
+// YooKassa expects the amount as a decimal string ("1990.00"); our Money is in minor units,
+// so we divide by 100 (RUB and most currencies have 2 decimal places).
 import { randomUUID } from 'node:crypto';
 import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@vitrine-kit/core';
 
 const API = 'https://api.yookassa.ru/v3/payments';
 const ZERO_DECIMAL = new Set(['JPY', 'KRW', 'VND', 'CLP']);
 
-/** Минимальные единицы → десятичная строка валюты ("199000" RUB → "1990.00"). */
+/** Minor units → currency decimal string ("199000" RUB → "1990.00"). */
 function minorToDecimalString(amount: number, currency: string): string {
   return ZERO_DECIMAL.has(currency.toUpperCase()) ? String(amount) : (amount / 100).toFixed(2);
 }
@@ -43,11 +43,11 @@ export const yookassaProvider: PaymentProvider = {
         },
         capture: true,
         confirmation: { type: 'redirect', return_url: `${baseUrl}${successPath}` },
-        description: `Заказ (корзина ${cart.id})`,
+        description: `Order (cart ${cart.id})`,
         metadata: { cartId: cart.id },
       }),
     });
-    if (!res.ok) throw new Error(`[vitrine] ЮKassa: ${res.status} ${await res.text()}`);
+    if (!res.ok) throw new Error(`[vitrine] YooKassa: ${res.status} ${await res.text()}`);
     const payment = (await res.json()) as { confirmation?: { confirmation_url?: string } };
     return { redirectUrl: payment.confirmation?.confirmation_url ?? `${baseUrl}${cancelPath}` };
   },
@@ -57,9 +57,9 @@ export const yookassaProvider: PaymentProvider = {
     const paymentId = body.object?.id;
     if (!paymentId) return { kind: 'unknown', raw: body };
 
-    // Уведомление не подписано — перепроверяем платёж через API.
+    // The notification is unsigned — re-check the payment via the API.
     const res = await fetch(`${API}/${paymentId}`, { headers: { Authorization: authHeader() } });
-    if (!res.ok) throw new Error(`[vitrine] ЮKassa verify: ${res.status}`);
+    if (!res.ok) throw new Error(`[vitrine] YooKassa verify: ${res.status}`);
     const payment = (await res.json()) as {
       id?: string;
       status?: string;

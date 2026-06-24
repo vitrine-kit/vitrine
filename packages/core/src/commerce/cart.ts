@@ -1,19 +1,19 @@
-// Корзинная арифметика (контракт Cart). Критическая денежная логика живёт в
-// пакете, не в copy-in реестре: баг в подсчёте суммы = инцидент у всех клиентов.
-// Чистые функции (без I/O) — реализация CommerceBackend в шаблоне делегирует им,
-// храня только персистентность. Деньги — целое в минимальных единицах (копейки).
+// Cart arithmetic (the Cart contract). The critical money logic lives in the
+// package, not the copy-in registry: a bug in totals = an incident for every client.
+// Pure functions (no I/O) — the template's CommerceBackend implementation delegates to them,
+// keeping only persistence. Money is an integer in minor units (e.g. cents).
 import type { Cart, CartLine, CurrencyCode, Money } from '@vitrine-kit/contracts';
 
 export function computeLineTotal(unitPrice: Money, quantity: number): Money {
   return unitPrice * quantity;
 }
 
-/** Пустая корзина. */
+/** An empty cart. */
 export function emptyCart(id: string, currency: CurrencyCode): Cart {
   return { id, lines: [], currency, subtotal: 0, total: 0 };
 }
 
-/** Пересчитывает lineTotal каждой строки и итоги (subtotal/total с учётом скидки). */
+/** Recomputes each line's lineTotal and the totals (subtotal/total incl. discount). */
 export function recalcCart(cart: Cart): Cart {
   const lines = cart.lines.map((l) => ({ ...l, lineTotal: computeLineTotal(l.unitPrice, l.quantity) }));
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
@@ -32,10 +32,10 @@ export interface NewLineInput {
   image?: string;
 }
 
-/** Добавляет строку; если вариант уже в корзине — увеличивает количество. */
+/** Adds a line; if the variant is already in the cart, increases its quantity. */
 export function addCartLine(cart: Cart, input: NewLineInput): Cart {
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
-    throw new Error(`[vitrine] недопустимое количество строки: ${input.quantity} (нужно целое > 0)`);
+    throw new Error(`[vitrine] invalid line quantity: ${input.quantity} (must be an integer > 0)`);
   }
   const exists = cart.lines.some((l) => l.variantId === input.variantId);
   const lines: CartLine[] = exists
@@ -58,10 +58,10 @@ export function addCartLine(cart: Cart, input: NewLineInput): Cart {
   return recalcCart({ ...cart, lines });
 }
 
-/** Меняет количество строки; quantity ≤ 0 удаляет строку. */
+/** Changes a line's quantity; quantity ≤ 0 removes the line. */
 export function setCartLineQty(cart: Cart, lineId: string, quantity: number): Cart {
   if (!Number.isInteger(quantity)) {
-    throw new Error(`[vitrine] недопустимое количество: ${quantity} (нужно целое)`);
+    throw new Error(`[vitrine] invalid quantity: ${quantity} (must be an integer)`);
   }
   if (quantity <= 0) return removeCartLine(cart, lineId);
   return recalcCart({
@@ -74,7 +74,7 @@ export function removeCartLine(cart: Cart, lineId: string): Cart {
   return recalcCart({ ...cart, lines: cart.lines.filter((l) => l.id !== lineId) });
 }
 
-/** Суммарное число единиц в корзине (для индикатора в шапке). */
+/** Total number of units in the cart (for the header indicator). */
 export function cartItemCount(cart: Cart): number {
   return cart.lines.reduce((n, l) => n + l.quantity, 0);
 }

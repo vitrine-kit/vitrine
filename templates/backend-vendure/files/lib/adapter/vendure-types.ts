@@ -1,6 +1,6 @@
-// Структурные формы ответов Vendure Shop API (GraphQL). Намеренно свободные и
-// НЕ импортируют сгенерированные типы Vendure — чтобы map.ts оставался чистым
-// (только контракты) и тестируемым без запущенного Vendure.
+// Structural shapes of Vendure Shop API responses (GraphQL). Intentionally loose and
+// do NOT import the generated Vendure types — so that map.ts stays pure
+// (contracts only) and testable without a running Vendure.
 
 export type VId = string | number;
 
@@ -22,10 +22,10 @@ export interface VVariant {
   id: VId;
   sku: string;
   name?: string | null;
-  /** Vendure хранит цену целым в минимальных единицах (как Money). */
+  /** Vendure stores the price as an integer in minor units (like Money). */
   priceWithTax: number;
   currencyCode: string;
-  stockLevel?: string | null; // 'IN_STOCK' | 'OUT_OF_STOCK' | ... (не число в Shop API)
+  stockLevel?: string | null; // 'IN_STOCK' | 'OUT_OF_STOCK' | ... (not a number in the Shop API)
 }
 
 export interface VProduct {

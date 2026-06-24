@@ -4,10 +4,10 @@
 
 ### Minor Changes
 
-- 9d4ae82: Перенос в организацию `vitrine-kit`: пакеты переименованы со scope `@maks417/*` на
-  `@vitrine-kit/*` и публикуются в **публичный npm** (npmjs.com, с provenance) вместо приватного
-  GitHub Packages. Лицензия — **MIT**. Установка больше не требует токена/PAT: ни клиентским репо,
-  ни CI, ни Docker-сборке. Внутри монорепо пакеты по-прежнему линкуются через `workspace:*`.
+- 9d4ae82: Move to the `vitrine-kit` organization: packages renamed from the `@maks417/*` scope to
+  `@vitrine-kit/*` and published to the **public npm** (npmjs.com, with provenance) instead of private
+  GitHub Packages. License — **MIT**. Installation no longer requires a token/PAT: not for client repos,
+  not for CI, not for the Docker build. Inside the monorepo packages are still linked via `workspace:*`.
 
 ### Patch Changes
 
@@ -18,95 +18,95 @@
 
 ### Minor Changes
 
-- 29f419a: init теперь скаффолдит агентские артефакты в репозиторий клиента, чтобы вести проект через
-  ИИ-агента: расширенный `CLAUDE.md` (полный справочник команд CLI + типовые сценарии + границы),
-  слэш-команды Claude Code в `.claude/commands/` (`/setup`, `/add-feature`, `/design`, `/update`,
-  `/doctor`) и `AGENTS.md` для кросс-тул агентов. README CLI расширен до getting-started.
+- 29f419a: init now scaffolds agent artifacts into the client repository, so the project can be driven by
+  an AI agent: an extended `CLAUDE.md` (full CLI command reference + typical scenarios + boundaries),
+  Claude Code slash commands in `.claude/commands/` (`/setup`, `/add-feature`, `/design`, `/update`,
+  `/doctor`) and `AGENTS.md` for cross-tool agents. The CLI README is expanded into a getting-started.
 
 ## 0.1.2
 
 ### Patch Changes
 
-- 9cf0098: init генерирует `README.md` клиента (backend-aware) вместо статичного файла шаблона.
-  README покрывает весь рабочий поток разработчика — запуск/деплой под выбранный backend
-  (Payload: `/admin` + `PAYLOAD_SECRET`; Vendure: `pnpm vendure` + Shop API `:3001` +
-  `VENDURE_*`), а также жизненный цикл фич и обновлений (`add`/`remove`/`list`,
-  `update`/`diff`, `doctor`, `kit update`) и независимый апгрейд пакетов `@vitrine-kit/*`.
-  Исправляет баг: прежний статичный README был Payload-специфичен и попадал в Vendure-проект.
+- 9cf0098: init generates the client's `README.md` (backend-aware) instead of a static template file.
+  The README covers the developer's whole workflow — run/deploy for the chosen backend
+  (Payload: `/admin` + `PAYLOAD_SECRET`; Vendure: `pnpm vendure` + the Shop API `:3001` +
+  `VENDURE_*`), as well as the feature and update lifecycle (`add`/`remove`/`list`,
+  `update`/`diff`, `doctor`, `kit update`) and the independent upgrade of the `@vitrine-kit/*` packages.
+  Fixes a bug: the previous static README was Payload-specific and ended up in a Vendure project.
 
 ## 0.1.1
 
 ### Patch Changes
 
-- b7b4590: CLI: `vitrine --version` теперь читает версию из package.json в рантайме вместо захардкоженного `0.0.0` (расходился с релизной версией пакета).
+- b7b4590: CLI: `vitrine --version` now reads the version from package.json at runtime instead of a hardcoded `0.0.0` (which diverged from the package's release version).
 
 ## 0.1.0
 
 ### Minor Changes
 
-- fc9cb9b: M6: `vitrine design apply` — ИИ-шаг дизайна как **обёртка над Claude Code** (§11).
-  CLI не имеет своей Anthropic-интеграции: находит бинарь `claude` (--bin /
-  VITRINE_CLAUDE_BIN / PATH; внятная ошибка с подсказкой установки, если не найден),
-  собирает промпт из блока «ИНСТРУКЦИЯ: применить дизайн из /design» в CLAUDE.md +
-  замкнутого набора токенов + указания на единственный редактируемый файл
-  `theme/client.css`, и шеллит в Claude Code (`-p`, `--permission-mode acceptEdits`)
-  с cwd проекта. Гарды: пустой `design/` → понятная ошибка; `--dry-run` показывает
-  команду без запуска. Жёсткие ограничения §11 (только токены, не поведение/данные/
-  роутинг/a11y) живут в промпте; шаг идемпотентен.
-- 65062d9: M4: примитив установки фичи + команды `init`/`add`/`list`/`remove`. Примитив —
-  общий для init и add (7 шагов §9: резолв registry-зависимостей → копирование
-  files → флаг в site.config → слоты → blueprint → env+npm → vitrine.json +
-  CLAUDE.md). Идемпотентен, транзакционен (откат при ошибке), снапшотит
-  pristine-оригиналы в `.vitrine/originals` (база для 3-way merge, M9). `init`
-  создаёт минимальный скелет клиента (полные Next/Payload-шаблоны — M5).
+- fc9cb9b: M6: `vitrine design apply` — the AI design step as a **wrapper around Claude Code** (§11).
+  The CLI has no Anthropic integration of its own: it locates the `claude` binary (--bin /
+  VITRINE_CLAUDE_BIN / PATH; a clear error with an install hint if not found),
+  builds the prompt from the "INSTRUCTION: apply the design from /design" block in CLAUDE.md +
+  the closed token set + a pointer to the single editable file
+  `theme/client.css`, and shells out to Claude Code (`-p`, `--permission-mode acceptEdits`)
+  with the project cwd. Guards: an empty `design/` → a clear error; `--dry-run` shows
+  the command without running it. The hard §11 constraints (tokens only, not behavior/data/
+  routing/a11y) live in the prompt; the step is idempotent.
+- 65062d9: M4: the feature install primitive + the `init`/`add`/`list`/`remove` commands. The primitive is
+  shared by init and add (the 7 steps of §9: resolve registry dependencies → copy
+  files → flag in site.config → slots → blueprint → env+npm → vitrine.json +
+  CLAUDE.md). Idempotent, transactional (rollback on error), snapshots
+  pristine originals into `.vitrine/originals` (the basis for 3-way merge, M9). `init`
+  creates a minimal client skeleton (full Next/Payload templates — M5).
 - fc9cb9b: M7: `vitrine kit update` / `kit status` / `self-update` + `vitrine doctor`.
-  `kit update` заполняет кэш `~/.vitrine` (registry + templates) с GitHub-релиза
-  (через `gh`) или из локального дерева (`--from <dir>`, офлайн); печатает changelog
-  (дифф наборов фич) и пишет `kit.json`. После update `init`/`add` работают офлайн
-  из кэша (`VITRINE_HOME`/`~/.vitrine` резолвится автоматически). `doctor` сверяет
-  четыре оси консистентности репозитория клиента — `vitrine.json` ↔ файлы ↔ пакеты
-  (`package.json`) ↔ env (`.env.example`) + слоты/флаги/дизайн-инструкцию — и на
-  каждое расхождение предлагает фикс (выход с кодом 1 при error-уровне).
-- fc9cb9b: M5: `init` скаффолдит из шаблонов `templates/base` + `templates/backend-payload`
-  (Next.js + Tailwind + Payload 3) поверх того же примитива установки. Шаблон даёт
-  статический каркас (роуты витрины, админка Payload, адаптеры, zero-config dev —
-  SQLite-fallback + демо-сид + dev-админ §18, Dockerfile + docker-compose под VPS);
-  CLI генерирует управляемые файлы (site.config, vitrine.json, CLAUDE.md,
-  package.json со стеком Next/Payload, slots/blueprint/theme). Реальный
-  `PayloadCatalogSource` поверх контракта `CatalogSource`; чистые мапперы и логика
-  выбора БД покрыты тестами и `typecheck:templates`.
-- fc9cb9b: M9: `vitrine update [feature…]` (3-way merge) + `vitrine diff <feature>`. Построчный
-  diff3 (`merge.ts`, без зависимостей): base = pristine-оригинал версии
-  (`.vitrine/originals`, закладывается примитивом с M4), ours = репо клиента
-  (стилизованный), theirs = версия из реестра. Чистый merge тихий, неразрешимый —
-  git-маркеры (`<<<<<<< / ======= / >>>>>>>`). `applyUpdate` пишет слитые файлы,
-  обновляет pristine-снапшот до новой версии, бампает `vitrine.json` и регенерирует
-  производные. `diff` = тот же план в dry-run. `update` без аргументов обходит все
-  установленные фичи; `--dry-run` показывает план без записи.
-- fc9cb9b: M10: backend Vendure → полный магазин. `vitrine init --tier full-store` (backend
-  по умолчанию vendure) собирает шаблон `templates/backend-vendure`: Vendure-сервер
-  (`vendure-config.ts` — Postgres / SQLite-dev §18-эквивалент, суперадмин из env),
-  адаптеры `VendureCatalogSource`/`VendureCommerceBackend` поверх Shop GraphQL,
-  populate-гард (только dev + пустая БД), Docker (db + server + web). Витрина
-  (`app/(frontend)`) и фичи каталога/корзины — те же, что на Payload: доказательство
-  переносимости контрактов (на vendure `checkout-stripe` исключается из автонабора —
-  оплата нативная Vendure-Stripe). Чистые мапперы Vendure→контракт покрыты тестами и
-  `typecheck:templates`. ⚠ Юр-проверка лицензии Vendure (GPL-3.0) — отдельный трек.
-- d340824: Провайдер-агностичные платежи. `@vitrine-kit/core` получает абстракцию `PaymentProvider`
+  `kit update` fills the `~/.vitrine` cache (registry + templates) from a GitHub release
+  (via `gh`) or from a local tree (`--from <dir>`, offline); prints a changelog
+  (the diff of feature sets) and writes `kit.json`. After update, `init`/`add` work offline
+  from the cache (`VITRINE_HOME`/`~/.vitrine` is resolved automatically). `doctor` checks
+  four axes of consistency in the client repository — `vitrine.json` ↔ files ↔ packages
+  (`package.json`) ↔ env (`.env.example`) + slots/flags/design instruction — and for
+  each discrepancy offers a fix (exits with code 1 on an error level).
+- fc9cb9b: M5: `init` scaffolds from the `templates/base` + `templates/backend-payload` templates
+  (Next.js + Tailwind + Payload 3) on top of the same install primitive. The template provides
+  a static skeleton (storefront routes, the Payload admin, adapters, zero-config dev —
+  SQLite fallback + demo seed + dev admin §18, Dockerfile + docker-compose for a VPS);
+  the CLI generates the managed files (site.config, vitrine.json, CLAUDE.md,
+  package.json with the Next/Payload stack, slots/blueprint/theme). A real
+  `PayloadCatalogSource` on top of the `CatalogSource` contract; the pure mappers and the
+  DB selection logic are covered by tests and `typecheck:templates`.
+- fc9cb9b: M9: `vitrine update [feature…]` (3-way merge) + `vitrine diff <feature>`. A line-by-line
+  diff3 (`merge.ts`, no dependencies): base = the pristine original of the version
+  (`.vitrine/originals`, laid down by the primitive since M4), ours = the client repo
+  (styled), theirs = the version from the registry. A clean merge is silent, an unresolvable one —
+  git markers (`<<<<<<< / ======= / >>>>>>>`). `applyUpdate` writes the merged files,
+  updates the pristine snapshot to the new version, bumps `vitrine.json` and regenerates
+  the derived files. `diff` = the same plan in dry-run. `update` without arguments walks all
+  installed features; `--dry-run` shows the plan without writing.
+- fc9cb9b: M10: the Vendure backend → a full store. `vitrine init --tier full-store` (default backend
+  vendure) assembles the `templates/backend-vendure` template: a Vendure server
+  (`vendure-config.ts` — Postgres / SQLite-dev §18 equivalent, superadmin from env),
+  the `VendureCatalogSource`/`VendureCommerceBackend` adapters on top of the Shop GraphQL,
+  a populate guard (dev only + empty DB), Docker (db + server + web). The storefront
+  (`app/(frontend)`) and the catalog/cart features are the same as on Payload: a proof of
+  contract portability (on vendure `checkout-stripe` is excluded from the auto set —
+  payment is native Vendure-Stripe). The pure Vendure→contract mappers are covered by tests and
+  `typecheck:templates`. ⚠ A legal review of the Vendure license (GPL-3.0) is a separate track.
+- d340824: Provider-agnostic payments. `@vitrine-kit/core` gains a `PaymentProvider` abstraction
 
-  - реестр `payments` (зеркало adapter/resolver) и нейтральный `handlePaymentWebhook`;
-    Stripe-специфичные `handleStripeWebhook`/`cartToStripeLineItems` удалены из ядра
-    (переезжают в фичу `checkout-stripe`). `OrderCreationGuard` обобщён:
+  - the `payments` registry (mirror of adapter/resolver) and a neutral `handlePaymentWebhook`;
+    the Stripe-specific `handleStripeWebhook`/`cartToStripeLineItems` are removed from the core
+    (they move into the `checkout-stripe` feature). `OrderCreationGuard` is generalized:
     `sessionId`→`providerRef`, `existingOrderSessionIds`→`existingOrderRefs`.
 
   `@vitrine-kit/contracts`: `integrations.payments` → `stripe | paddle | yookassa`;
-  у манифеста фичи появился блок `payment: { provider }`.
+  the feature manifest gains a `payment: { provider }` block.
 
-  `@vitrine-kit/payload-blueprint`: поля `orders.stripeSessionId`/`carts.stripeSessionId`
-  переименованы в `paymentRef`, у `orders` добавлен `paymentProvider`.
+  `@vitrine-kit/payload-blueprint`: the `orders.stripeSessionId`/`carts.stripeSessionId` fields
+  are renamed to `paymentRef`, and `orders` gains `paymentProvider`.
 
-  `@vitrine-kit/vitrine` (CLI): генерирует `lib/payments.ts` (регистрация провайдеров) и
-  проставляет активный провайдер в `site.config` при установке фичи `checkout-<provider>`.
+  `@vitrine-kit/vitrine` (CLI): generates `lib/payments.ts` (provider registration) and
+  sets the active provider in `site.config` when a `checkout-<provider>` feature is installed.
 
 ### Patch Changes
 

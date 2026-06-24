@@ -1,6 +1,6 @@
-// Демо-данные для zero-config dev (§18.2): 5 товаров + 2 категории + локальные
-// placeholder-картинки (seed-assets/). Цены — в минимальных единицах (копейки):
-// 199000 = 1990.00. Чистые данные — покрыты тестом на инварианты.
+// Demo data for zero-config dev (§18.2): 5 products + 2 categories + local
+// placeholder images (seed-assets/). Prices are in minor units (e.g. cents):
+// 199000 = 1990.00. Pure data — covered by an invariants test.
 
 export interface DemoCategory {
   slug: string;
@@ -9,7 +9,7 @@ export interface DemoCategory {
 
 export interface DemoVariant {
   sku: string;
-  /** Минимальные единицы (копейки). */
+  /** Minor units (e.g. cents). */
   price: number;
   stock: number;
 }
@@ -19,61 +19,61 @@ export interface DemoProduct {
   title: string;
   category: string;
   description: string;
-  /** Имя файла в seed-assets/. */
+  /** File name in seed-assets/. */
   image: string;
   seo: { title: string; description: string };
   variants: DemoVariant[];
 }
 
 export const demoCategories: DemoCategory[] = [
-  { slug: 'apparel', title: 'Одежда' },
-  { slug: 'accessories', title: 'Аксессуары' },
+  { slug: 'apparel', title: 'Apparel' },
+  { slug: 'accessories', title: 'Accessories' },
 ];
 
 export const demoProducts: DemoProduct[] = [
   {
     slug: 'classic-tee',
-    title: 'Классическая футболка',
+    title: 'Classic T-Shirt',
     category: 'apparel',
-    description: 'Хлопковая футболка прямого кроя.',
+    description: 'A straight-cut cotton T-shirt.',
     image: 'placeholder-1.svg',
-    seo: { title: 'Классическая футболка', description: 'Базовая хлопковая футболка.' },
+    seo: { title: 'Classic T-Shirt', description: 'A basic cotton T-shirt.' },
     variants: [{ sku: 'TEE-001', price: 199000, stock: 25 }],
   },
   {
     slug: 'zip-hoodie',
-    title: 'Худи на молнии',
+    title: 'Zip Hoodie',
     category: 'apparel',
-    description: 'Тёплое худи с капюшоном.',
+    description: 'A warm hooded sweatshirt.',
     image: 'placeholder-2.svg',
-    seo: { title: 'Худи на молнии', description: 'Утеплённое худи.' },
+    seo: { title: 'Zip Hoodie', description: 'An insulated hoodie.' },
     variants: [{ sku: 'HOD-001', price: 459000, stock: 12 }],
   },
   {
     slug: 'logo-cap',
-    title: 'Кепка с логотипом',
+    title: 'Logo Cap',
     category: 'accessories',
-    description: 'Регулируемая кепка.',
+    description: 'An adjustable cap.',
     image: 'placeholder-3.svg',
-    seo: { title: 'Кепка', description: 'Кепка с логотипом.' },
+    seo: { title: 'Cap', description: 'A cap with a logo.' },
     variants: [{ sku: 'CAP-001', price: 129000, stock: 40 }],
   },
   {
     slug: 'tote-bag',
-    title: 'Сумка-шопер',
+    title: 'Tote Bag',
     category: 'accessories',
-    description: 'Плотный хлопковый шопер.',
+    description: 'A sturdy cotton tote.',
     image: 'placeholder-4.svg',
-    seo: { title: 'Шопер', description: 'Хлопковая сумка-шопер.' },
+    seo: { title: 'Tote', description: 'A cotton tote bag.' },
     variants: [{ sku: 'TOT-001', price: 99000, stock: 60 }],
   },
   {
     slug: 'crew-socks',
-    title: 'Носки, 3 пары',
+    title: 'Socks, 3 Pairs',
     category: 'apparel',
-    description: 'Комплект из трёх пар.',
+    description: 'A set of three pairs.',
     image: 'placeholder-5.svg',
-    seo: { title: 'Носки', description: 'Набор носков, 3 пары.' },
+    seo: { title: 'Socks', description: 'A pack of socks, 3 pairs.' },
     variants: [{ sku: 'SOC-001', price: 79000, stock: 100 }],
   },
 ];

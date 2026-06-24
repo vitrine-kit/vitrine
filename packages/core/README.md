@@ -1,7 +1,5 @@
 # @vitrine-kit/core
 
-Критическая логика Vitrine: runtime слотов и адаптера, order pipeline, обработчик Stripe-вебхука.
+Vitrine's critical logic: the slot and adapter runtime, the order pipeline, and the Stripe webhook handler.
 
-Здесь — то, где «баг = инцидент у всех клиентов сразу» (§4 спеки). Поэтому это **версионируемый пакет**, а не copy-in: критфикс прилетает всем бампом версии.
-
-Скелет (M0). Наполняется в M2 (runtime) и M8 (коммерция).
+This is where "a bug = an incident for every client at once" (spec §4). That's why it's a **versioned package** rather than copy-in: a critical fix reaches everyone via a version bump.

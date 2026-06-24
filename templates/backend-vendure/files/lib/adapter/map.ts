@@ -1,7 +1,7 @@
-// Чистые мапперы Vendure Shop API → контрактные типы. Зависят только от
-// @vitrine-kit/contracts и локальных структурных типов. Это и есть доказательство
-// переносимости: те же типы Product/Category/Cart/Order, что отдаёт Payload-адаптер,
-// — значит фичи каталога/корзины работают на Vendure БЕЗ изменений.
+// Pure mappers from Vendure Shop API → contract types. They depend only on
+// @vitrine-kit/contracts and local structural types. This is the proof of
+// portability: the same Product/Category/Cart/Order types the Payload adapter returns
+// — meaning the catalog/cart features work on Vendure WITHOUT changes.
 import type { Cart, Category, Money, Order, OrderStatus, Product, Variant } from '@vitrine-kit/contracts';
 import type { VAsset, VCollection, VOrder, VProduct, VVariant } from './vendure-types.js';
 
@@ -24,7 +24,7 @@ function mapVariant(v: VVariant): Variant {
     title: v.name ?? undefined,
     price: v.priceWithTax as Money,
     currency: v.currencyCode,
-    stock: null, // Shop API отдаёт stockLevel строкой — числовой склад тут не отслеживаем
+    stock: null, // the Shop API returns stockLevel as a string — we don't track numeric stock here
   };
 }
 
@@ -47,7 +47,7 @@ export function mapVendureProduct(p: VProduct): Product {
   };
 }
 
-/** Состояние заказа Vendure → контрактный OrderStatus. */
+/** Vendure order state → contract OrderStatus. */
 export function mapOrderState(state: string): OrderStatus {
   switch (state) {
     case 'PaymentSettled':
@@ -64,7 +64,7 @@ export function mapOrderState(state: string): OrderStatus {
   }
 }
 
-/** Активный заказ Vendure → Cart (то же, что фича cart получает на Payload). */
+/** Active Vendure order → Cart (the same the cart feature gets on Payload). */
 export function mapVendureOrderToCart(o: VOrder): Cart {
   return {
     id: o.code,

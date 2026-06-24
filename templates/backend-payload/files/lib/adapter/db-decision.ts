@@ -1,14 +1,14 @@
-// Чистая логика выбора адаптера БД (§18.1 спеки). Без зависимостей и сайд-эффектов
-// — поэтому покрыта unit-тестами как единственный источник истины таблицы решений.
-// Обёртка с реальными адаптерами Payload — в db.ts.
+// Pure DB adapter selection logic (§18.1 of the spec). No dependencies or side
+// effects — so it's covered by unit tests as the single source of truth for the
+// decision table. The wrapper with real Payload adapters lives in db.ts.
 
 export interface DbDecisionInput {
-  /** Значение DATABASE_URL (null/'' = не задан). */
+  /** Value of DATABASE_URL (null/'' = not set). */
   url: string | null;
-  /** Удалось ли подключиться к Postgres (ping). */
+  /** Whether we managed to connect to Postgres (ping). */
   canConnect: boolean;
   isProd: boolean;
-  /** VITRINE_DB_STRICT=1 — запрещает fallback даже в dev. */
+  /** VITRINE_DB_STRICT=1 — disallows fallback even in dev. */
   strict: boolean;
 }
 
@@ -18,9 +18,9 @@ export type DbDecision =
   | { kind: 'error'; message: string };
 
 /**
- * Таблица §18.1:
+ * Table §18.1:
  *  url + connect           → postgres
- *  url, !connect, prod|strict → error (никогда не падать молча на проде)
+ *  url, !connect, prod|strict → error (never fail silently in production)
  *  url, !connect, dev      → sqlite + warn
  *  !url, prod              → error
  *  !url, dev               → sqlite
@@ -31,13 +31,13 @@ export function decideDbAdapter(input: DbDecisionInput): DbDecision {
   if (url) {
     if (canConnect) return { kind: 'postgres' };
     if (isProd || strict) {
-      return { kind: 'error', message: '[vitrine] DATABASE_URL задан, но БД недоступна' };
+      return { kind: 'error', message: '[vitrine] DATABASE_URL is set, but the DB is unreachable' };
     }
-    return { kind: 'sqlite', warn: '[vitrine] Postgres недоступен → fallback на SQLite (dev)' };
+    return { kind: 'sqlite', warn: '[vitrine] Postgres unreachable → falling back to SQLite (dev)' };
   }
 
   if (isProd) {
-    return { kind: 'error', message: '[vitrine] DATABASE_URL обязателен в production' };
+    return { kind: 'error', message: '[vitrine] DATABASE_URL is required in production' };
   }
   return { kind: 'sqlite' };
 }

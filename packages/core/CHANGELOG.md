@@ -4,10 +4,10 @@
 
 ### Minor Changes
 
-- 9d4ae82: Перенос в организацию `vitrine-kit`: пакеты переименованы со scope `@maks417/*` на
-  `@vitrine-kit/*` и публикуются в **публичный npm** (npmjs.com, с provenance) вместо приватного
-  GitHub Packages. Лицензия — **MIT**. Установка больше не требует токена/PAT: ни клиентским репо,
-  ни CI, ни Docker-сборке. Внутри монорепо пакеты по-прежнему линкуются через `workspace:*`.
+- 9d4ae82: Move to the `vitrine-kit` organization: packages renamed from the `@maks417/*` scope to
+  `@vitrine-kit/*` and published to the **public npm** (npmjs.com, with provenance) instead of private
+  GitHub Packages. License — **MIT**. Installation no longer requires a token/PAT: not for client repos,
+  not for CI, not for the Docker build. Inside the monorepo packages are still linked via `workspace:*`.
 
 ### Patch Changes
 
@@ -18,35 +18,35 @@
 
 ### Minor Changes
 
-- fc9cb9b: M8: корзинная арифметика и заказ (критическая денежная логика — в пакете).
-  `commerce/cart` — чистые `emptyCart`/`addCartLine` (слияние одинаковых вариантов)/
-  `setCartLineQty` (qty=0 удаляет)/`removeCartLine`/`recalcCart` (итоги + скидка)/
-  `cartItemCount`. `commerce/order` — `buildOrderFromCart` (снимок корзины в заказ) и
-  `cartToStripeLineItems` (нейтральная форма line_items, без Stripe SDK в ядре).
-  Реализация `CommerceBackend` в шаблоне делегирует этим функциям, храня только
-  персистентность; webhook (`handleStripeWebhook`) собирает заказ через
-  `buildOrderFromCart`. Деньги — целое в минимальных единицах.
-- 65062d9: M2: фреймворк-агностичный runtime. Реестр слотов (`createSlotRegistry`,
-  `registerSlot`, `getSlotMounts`) + React `<Slot>` в подпути `@vitrine-kit/core/react`;
-  реестр адаптеров (`createAdapterRegistry` → активный CatalogSource/CommerceBackend
-  по site.config); каркас order pipeline (`runPipeline`) и Stripe webhook
-  (`handleStripeWebhook` с инъектируемой верификацией). Order pipeline/webhook
-  наполняются в M8.
-- d340824: Провайдер-агностичные платежи. `@vitrine-kit/core` получает абстракцию `PaymentProvider`
+- fc9cb9b: M8: cart arithmetic and the order (critical money logic — in the package).
+  `commerce/cart` — pure `emptyCart`/`addCartLine` (merging identical variants)/
+  `setCartLineQty` (qty=0 removes)/`removeCartLine`/`recalcCart` (totals + discount)/
+  `cartItemCount`. `commerce/order` — `buildOrderFromCart` (a cart snapshot into an order) and
+  `cartToStripeLineItems` (a neutral line_items shape, no Stripe SDK in the core).
+  The `CommerceBackend` implementation in the template delegates to these functions, keeping only
+  persistence; the webhook (`handleStripeWebhook`) assembles the order via
+  `buildOrderFromCart`. Money is an integer in minor units.
+- 65062d9: M2: a framework-agnostic runtime. The slot registry (`createSlotRegistry`,
+  `registerSlot`, `getSlotMounts`) + React `<Slot>` in the `@vitrine-kit/core/react` subpath;
+  the adapter registry (`createAdapterRegistry` → the active CatalogSource/CommerceBackend
+  by site.config); the order pipeline scaffold (`runPipeline`) and the Stripe webhook
+  (`handleStripeWebhook` with injectable verification). The order pipeline/webhook
+  are filled in in M8.
+- d340824: Provider-agnostic payments. `@vitrine-kit/core` gains a `PaymentProvider` abstraction
 
-  - реестр `payments` (зеркало adapter/resolver) и нейтральный `handlePaymentWebhook`;
-    Stripe-специфичные `handleStripeWebhook`/`cartToStripeLineItems` удалены из ядра
-    (переезжают в фичу `checkout-stripe`). `OrderCreationGuard` обобщён:
+  - the `payments` registry (mirror of adapter/resolver) and a neutral `handlePaymentWebhook`;
+    the Stripe-specific `handleStripeWebhook`/`cartToStripeLineItems` are removed from the core
+    (they move into the `checkout-stripe` feature). `OrderCreationGuard` is generalized:
     `sessionId`→`providerRef`, `existingOrderSessionIds`→`existingOrderRefs`.
 
   `@vitrine-kit/contracts`: `integrations.payments` → `stripe | paddle | yookassa`;
-  у манифеста фичи появился блок `payment: { provider }`.
+  the feature manifest gains a `payment: { provider }` block.
 
-  `@vitrine-kit/payload-blueprint`: поля `orders.stripeSessionId`/`carts.stripeSessionId`
-  переименованы в `paymentRef`, у `orders` добавлен `paymentProvider`.
+  `@vitrine-kit/payload-blueprint`: the `orders.stripeSessionId`/`carts.stripeSessionId` fields
+  are renamed to `paymentRef`, and `orders` gains `paymentProvider`.
 
-  `@vitrine-kit/vitrine` (CLI): генерирует `lib/payments.ts` (регистрация провайдеров) и
-  проставляет активный провайдер в `site.config` при установке фичи `checkout-<provider>`.
+  `@vitrine-kit/vitrine` (CLI): generates `lib/payments.ts` (provider registration) and
+  sets the active provider in `site.config` when a `checkout-<provider>` feature is installed.
 
 ### Patch Changes
 
