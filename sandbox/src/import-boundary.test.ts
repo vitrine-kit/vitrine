@@ -2,7 +2,7 @@
 // depend ONLY on packages that EVERY client installs regardless of the engine:
 //   - @vitrine-kit/contracts — the five contracts;
 //   - @vitrine-kit/core      — the slot runtime (<Slot>/registerSlot) and critical logic
-//                          (cart/order/Stripe webhook).
+//                          (cart/order/payment webhook dispatch).
 // Forbidden first and foremost is @vitrine-kit/payload-blueprint (a vendure client does NOT install it —
 // see clientPackageJson in packages/cli/src/init.ts: blueprint is for backend=payload only),
 // and likewise the CLI itself / any future engine-specific package. Otherwise a feature stops

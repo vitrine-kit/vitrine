@@ -30,6 +30,7 @@ import { kitStatus } from './kit-update.js';
 import { merge3 } from './merge.js';
 import { applyUpdate, planUpdate } from './update.js';
 import { preflightNode, replaceBetween } from './util.js';
+import { KIT_VERSION, CORE_RANGE, BLUEPRINT_RANGE } from './kit.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const monorepoRegistry = join(here, '..', '..', '..', 'registry');
@@ -357,6 +358,24 @@ describe('payment providers (multi-provider)', () => {
     expect(read(root, '.env.example')).toContain('STRIPE_SECRET_KEY=');
   });
 
+  it('generated client wires cart/checkout API routes and the Stripe webhook', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root, name: 'shop', backend: 'payload', tier: 'simple-store',
+      features: ['cart', 'checkout', 'checkout-stripe'], registry,
+    });
+    const cartRoute = read(root, 'app/api/cart/route.ts');
+    expect(cartRoute).toContain('export async function POST');
+    expect(cartRoute).toContain('export async function PATCH');
+    expect(cartRoute).toContain('export async function DELETE');
+    expect(read(root, 'app/api/checkout/route.ts')).toContain('export async function POST');
+    const webhook = read(root, 'app/api/webhooks/stripe/route.ts');
+    expect(webhook).toContain('export async function POST');
+    expect(webhook).toContain('handlePaymentWebhook');
+    expect(webhook).toContain('fulfillOrderFromEvent');
+    expect(read(root, 'lib/adapter/index.ts')).toContain('registerPayments()');
+  });
+
   it('wizard: providers exist in the registry and are excluded from the general feature list', () => {
     for (const f of PAYMENT_PROVIDER_FEATURES) expect(registry.hasFeature(f)).toBe(true);
     // multiselect baseline = suggested features minus providers (chosen in a separate step)
@@ -573,6 +592,29 @@ describe('kit cache', () => {
     }
   });
 
+  it('falls back to bundled kit when cache and monorepo registry are unavailable', () => {
+    const bundledRegistry = join(here, '..', 'kit', 'registry', '_index.json');
+    if (!existsSync(bundledRegistry)) return; // requires `pnpm build` in packages/cli
+
+    const home = tmp(); // empty — no ~/.vitrine cache
+    const isolated = tmp();
+    const prevHome = process.env.VITRINE_HOME;
+    const prevCwd = process.cwd();
+    process.env.VITRINE_HOME = home;
+    try {
+      process.chdir(isolated);
+      const reg = createRegistrySource();
+      expect(reg.hasFeature('catalog')).toBe(true);
+      const root = join(tmp(), 'shop');
+      initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry: reg });
+      expect(existsSync(join(root, 'components/catalog/ProductCard.tsx'))).toBe(true);
+    } finally {
+      process.chdir(prevCwd);
+      if (prevHome === undefined) delete process.env.VITRINE_HOME;
+      else process.env.VITRINE_HOME = prevHome;
+    }
+  });
+
   it('computeChangelog: added / removed / changed', () => {
     const cl = computeChangelog(
       { features: { x: { kitVersion: '1.0.0' }, y: { kitVersion: '1.0.0' } } },
@@ -763,6 +805,7 @@ describe('generators (pure)', () => {
     };
     const noSlots: FeatureState = { name: 'seo', version: '0.0.0', manifest: fakeManifest() };
     const out = renderSlotsFile([withSlots, noSlots]);
+    expect(out).toContain('slotRegistry.clear()');
     expect(out).toContain('registerCatalogSlots');
     expect(out).not.toContain('registerSeoSlots');
   });
@@ -774,6 +817,7 @@ describe('generators (pure)', () => {
     };
     const noPayment: FeatureState = { name: 'cart', version: '0.0.0', manifest: fakeManifest() };
     const out = renderPaymentsFile([provider, noPayment]);
+    expect(out).toContain('payments.clear()');
     expect(out).toContain('registerCheckoutStripeProvider');
     expect(out).toContain('./checkout-stripe/register.js');
     expect(out).not.toContain('registerCartProvider');
@@ -818,5 +862,21 @@ describe('generators (pure)', () => {
   it('preflightNode: below the minimum throws, on the current runtime — does not', () => {
     expect(() => preflightNode(99)).toThrow(/Node >= 99 required/);
     expect(() => preflightNode(1)).not.toThrow();
+  });
+});
+
+describe('kit version constants', () => {
+  function caretRange(version: string): string {
+    const [major, minor] = version.split('.');
+    if (major === '0') return `^0.${minor}.0`;
+    return `^${major}.0.0`;
+  }
+
+  it('generated ranges match published @vitrine-kit/* package versions', () => {
+    const readPkg = (name: string) =>
+      JSON.parse(readFileSync(join(here, '..', '..', name, 'package.json'), 'utf8')) as { version: string };
+    expect(KIT_VERSION).toBe(readPkg('cli').version);
+    expect(CORE_RANGE).toBe(caretRange(readPkg('core').version));
+    expect(BLUEPRINT_RANGE).toBe(caretRange(readPkg('payload-blueprint').version));
   });
 });

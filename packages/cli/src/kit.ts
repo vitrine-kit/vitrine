@@ -1,10 +1,13 @@
 // Kit versions/ranges written into the client scaffold. Under `kit update`
 // they come from the release; otherwise they're fixed to the monorepo's current state.
-export const KIT_VERSION = '0.0.0';
-export const CONTRACTS_VERSION = '1.0.0';
-export const CONTRACTS_RANGE = '^1.0.0';
-export const CORE_RANGE = '^0.1.0';
-export const BLUEPRINT_RANGE = '^0.1.0';
+export {
+  KIT_VERSION,
+  CONTRACTS_VERSION,
+  CONTRACTS_RANGE,
+  CORE_RANGE,
+  BLUEPRINT_RANGE,
+} from './kit-versions.generated.js';
+
 export const REACT_RANGE = '^18.3.1';
 
 // Client app stack ranges (templates). Next 15 + Payload 3

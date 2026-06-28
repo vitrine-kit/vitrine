@@ -5,3 +5,5 @@ The source for `vitrine init` / `vitrine add`. Each feature = a folder with `fea
 `_index.json` is the registry manifest: the list of all features + the kit version.
 
 **Rule (spec §4, §13):** the registry holds only what varies per client (UI, sections, wiring). No critical logic — that lives in `@vitrine-kit/core`. A new feature must depend **only on the contracts**.
+
+**Typecheck in the monorepo:** `pnpm typecheck:registry` (components + lib) and `pnpm typecheck:registry-routes` (Next API route glue via `stubs/route-glue.d.ts`). Full Next/Payload pages are checked when the client is instantiated.

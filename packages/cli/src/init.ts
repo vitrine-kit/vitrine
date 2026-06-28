@@ -55,7 +55,7 @@ export function suggestFeatures(
 ): string[] {
   const core = ['catalog', 'product-page', 'seo'];
   // On Vendure, checkout is native (Vendure's Stripe plugin); the checkout-stripe feature is Payload-specific.
-  const shop = backend === 'vendure' ? ['cart'] : ['cart', 'checkout-stripe', 'reviews'];
+  const shop = backend === 'vendure' ? ['cart'] : ['cart', 'checkout-stripe'];
   const desired = tier === 'catalog' ? core : [...core, ...shop];
   return desired.filter((name) => registry.hasFeature(name));
 }
@@ -253,8 +253,8 @@ ${run}
 
 \`\`\`bash
 vitrine list             # installed + available
-vitrine add reviews      # copy a feature: flag, slots, blueprint, env
-vitrine remove reviews   # remove (if the feature is removable)
+vitrine add cart         # copy a feature: flag, slots, blueprint, env
+vitrine remove cart      # remove (if the feature is removable)
 vitrine design apply     # style the new feature
 \`\`\`
 

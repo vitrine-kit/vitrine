@@ -17,6 +17,7 @@ import {
 } from './commerce/cart.js';
 import { buildOrderFromCart } from './commerce/order.js';
 import { shouldCreateOrder } from './order/idempotency.js';
+import { CORE_VERSION } from './index.js';
 import { Slot } from './react.js';
 
 const A: ComponentType<Record<string, unknown>> = () => null;
@@ -30,9 +31,20 @@ describe('slot registry', () => {
     expect(reg.get('product.below-description').map((m) => m.component)).toEqual([A, B]);
   });
 
-  it('empty slot → []', () => {
-    const reg = createSlotRegistry();
+  it('clear() resets registrations', () => {
+    const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
+    reg.register({ slot: 'home.hero', component: A });
+    reg.clear();
     expect(reg.get('home.hero')).toEqual([]);
+  });
+
+  it('re-registering after clear does not duplicate mounts', () => {
+    const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
+    const mount = { slot: 'home.hero' as const, component: A };
+    reg.register(mount);
+    reg.clear();
+    reg.register(mount);
+    expect(reg.get('home.hero')).toHaveLength(1);
   });
 });
 
@@ -264,5 +276,17 @@ describe('cart arithmetic (commerce)', () => {
     expect(created[0]?.status).toBe('paid');
     expect(created[0]?.total).toBe(398000);
     expect(created[0]?.email).toBe('x@y.z');
+  });
+});
+
+describe('package version', () => {
+  it('CORE_VERSION matches package.json', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { dirname, join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const pkg = JSON.parse(
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8'),
+    ) as { version: string };
+    expect(CORE_VERSION).toBe(pkg.version);
   });
 });

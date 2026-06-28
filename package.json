@@ -17,6 +17,7 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "typecheck:registry": "tsc -p registry/tsconfig.json",
+    "typecheck:registry-routes": "tsc -p registry/tsconfig.routes.json",
     "typecheck:templates": "tsc -p templates/tsconfig.json",
     "lint": "biome lint .",
     "schemas": "turbo run schemas",

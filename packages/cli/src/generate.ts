@@ -69,9 +69,11 @@ export function renderSlotsFile(features: FeatureState[]): string {
   const calls = withSlots.map((f) => `  register${pascalCase(f.name)}Slots();`);
   return [
     '// vitrine:generated — slot registration for installed features. Do not edit by hand.',
+    "import { slotRegistry } from '@vitrine-kit/core';",
     ...imports,
     '',
     'export function registerSlots(): void {',
+    '  slotRegistry.clear();',
     ...(calls.length ? calls : ['  // no slot features']),
     '}',
     '',
@@ -88,9 +90,11 @@ export function renderPaymentsFile(features: FeatureState[]): string {
   const calls = withPayment.map((f) => `  register${pascalCase(f.name)}Provider();`);
   return [
     '// vitrine:generated — payment-provider registration for installed features. Do not edit by hand.',
+    "import { payments } from '@vitrine-kit/core';",
     ...imports,
     '',
     'export function registerPayments(): void {',
+    '  payments.clear();',
     ...(calls.length ? calls : ['  // no payment features']),
     '}',
     '',

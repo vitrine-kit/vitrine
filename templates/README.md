@@ -3,7 +3,7 @@
 `vitrine init` assembles the client repository from these (spec §6). `templates/<name>/files`
 **mirrors the client root** (like `registry/<feature>/files`): the static skeleton is copied as-is,
 then the CLI generates managed files on top of it (site.config.ts, vitrine.json, CLAUDE.md,
-package.json, lib/slots.ts, lib/blueprint.ts, theme/client.css).
+package.json, lib/slots.ts, lib/payments.ts, lib/blueprint.ts, theme/client.css).
 
 - `base` — Next.js (App Router, route group `(frontend)`) + Tailwind (Vitrine preset),
   storefront routes (home/catalog, product, category), header/footer hosting slots,

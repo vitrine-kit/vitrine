@@ -3,6 +3,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { featureManifestSchema, type FeatureManifest } from '@vitrine-kit/contracts';
+import { bundledKitRoot } from './bundled-kit.js';
 import { vitrineHome } from './cache.js';
 import { isDir, readText } from './util.js';
 
@@ -42,6 +43,8 @@ export function resolveRegistryRoot(explicit?: string): string {
   }
   const dev = findUpRegistry(process.cwd());
   if (dev) return dev;
+  const bundled = bundledKitRoot();
+  if (bundled) return join(bundled, 'registry');
   throw new Error('[vitrine] registry not found. Run "vitrine kit update" or pass --registry.');
 }
 

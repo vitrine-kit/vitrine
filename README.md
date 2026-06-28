@@ -9,10 +9,10 @@ contracts. One client = one repository; the unique design is applied by an AI st
 ```
 packages/
   contracts/         @vitrine-kit/contracts — five contracts (Tokens, Data, Slots, Config, Blueprint)
-  core/              @vitrine-kit/core — slot/adapter runtime, order pipeline, Stripe webhook
+  core/              @vitrine-kit/core — slot/adapter runtime, order pipeline, payment webhook dispatch
   payload-blueprint/ @vitrine-kit/payload-blueprint — base collections + extend()
   cli/               @vitrine-kit/vitrine — CLI (install primitive, init, add, update, doctor)
-registry/            copy-in feature registry (catalog, product-page, seo, cart, checkout-stripe)
+registry/            copy-in feature registry (catalog, product-page, seo, cart, checkout + stripe/paddle/yookassa)
 templates/           client repo skeletons: base, backend-payload, backend-vendure
 sandbox/             core-development playground (features on contracts only)
 schemas/             JSON Schema (generated from zod in contracts)

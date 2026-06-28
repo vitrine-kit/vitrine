@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "//": "Next API route glue (cart/checkout/webhooks). Uses registry/stubs/route-glue.d.ts instead of installing Next/Payload in the kit repo.",
+  "include": ["stubs/**/*.d.ts", "*/files/app/api/**/route.ts"]
+}
