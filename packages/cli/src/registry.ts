@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { featureManifestSchema, type FeatureManifest } from '@vitrine-kit/contracts';
 import { bundledKitRoot } from './bundled-kit.js';
 import { vitrineHome } from './cache.js';
-import { isDir, readText } from './util.js';
+import { assertFeatureName, assertSafeRel, isDir, readText } from './util.js';
 
 export interface RegistrySource {
   root: string;
@@ -52,7 +52,12 @@ export function createRegistrySource(explicitRoot?: string): RegistrySource {
   const root = resolveRegistryRoot(explicitRoot);
   const cache = new Map<string, FeatureManifest>();
 
-  const featureDir = (name: string): string => join(root, name);
+  // The single choke point for name → directory (install/update/remove/doctor all
+  // flow through it) — reject names that could escape the registry root.
+  const featureDir = (name: string): string => {
+    assertFeatureName(name);
+    return join(root, name);
+  };
 
   const hasFeature = (name: string): boolean => existsSync(join(featureDir(name), 'feature.json'));
 
@@ -62,6 +67,12 @@ export function createRegistrySource(explicitRoot?: string): RegistrySource {
     const file = join(featureDir(name), 'feature.json');
     if (!existsSync(file)) throw new Error(`[vitrine] feature "${name}" not found in the registry`);
     const manifest = featureManifestSchema.parse(JSON.parse(readText(file)));
+    // A broken/malicious manifest must not read outside the feature dir or write
+    // outside the repo (the dest side is additionally guarded by safeJoin at write time).
+    for (const map of manifest.files) {
+      assertSafeRel(map.from, `feature "${name}": files.from`);
+      assertSafeRel(map.to, `feature "${name}": files.to`);
+    }
     cache.set(name, manifest);
     return manifest;
   };

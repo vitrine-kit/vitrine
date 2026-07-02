@@ -32,28 +32,35 @@ export interface InstallResult {
 function resolveOrder(names: string[], registry: RegistrySource): string[] {
   const order: string[] = [];
   const seen = new Set<string>();
+  const visiting = new Set<string>();
   const visit = (name: string): void => {
     if (seen.has(name)) return;
+    if (visiting.has(name)) {
+      // A registry authoring bug — report it instead of silently breaking the cycle.
+      throw new Error(`[vitrine] circular registryDependencies involving "${name}"`);
+    }
     if (!registry.hasFeature(name)) {
       throw new Error(`[vitrine] feature "${name}" not found in the registry`);
     }
-    seen.add(name);
+    visiting.add(name);
     const manifest = registry.loadManifest(name);
     for (const dep of manifest.registryDependencies ?? []) visit(dep);
+    visiting.delete(name);
+    seen.add(name);
     order.push(name);
   };
   for (const name of names) visit(name);
   return order;
 }
 
-function validate(name: string, manifest: FeatureManifest, project: Project): void {
+function validate(name: string, manifest: FeatureManifest, project: Project, present: Set<string>): void {
   if (!manifest.tier.includes(project.lock.tier)) {
     throw new Error(
       `[vitrine] feature "${name}" does not support tier "${project.lock.tier}" (only ${manifest.tier.join(', ')})`,
     );
   }
   for (const conflict of manifest.conflicts ?? []) {
-    if (project.lock.features[conflict]) {
+    if (present.has(conflict)) {
       throw new Error(`[vitrine] conflict: "${name}" is incompatible with the installed "${conflict}"`);
     }
   }
@@ -70,9 +77,6 @@ function copyFeatureFiles(
   const originalsBase = join(projectPaths(project.root).originals, `${name}@${manifest.kitVersion}`);
 
   for (const map of manifest.files) {
-    if (!exists(join(featDir, map.from))) {
-      throw new Error(`[vitrine] feature "${name}": no source "${map.from}"`);
-    }
     for (const file of eachFeatureFile(featDir, map)) {
       const content = readText(file.srcAbs);
       tx.write(safeJoin(project.root, file.repoRel), content); // into the repo
@@ -153,11 +157,25 @@ export function installFeatures(
     return { installed: [], skipped: order };
   }
 
+  // Fail fast: check tier/conflicts/sources for the WHOLE batch before the first write —
+  // common failures never touch the tree (rollback stays for the unexpected ones).
+  // `present` = installed ∪ earlier-in-batch, so in-batch conflicts are caught too.
+  const present = new Set(installedNames);
+  for (const name of toInstall) {
+    const manifest = registry.loadManifest(name);
+    validate(name, manifest, project, present);
+    present.add(name);
+    for (const map of manifest.files) {
+      if (!exists(join(registry.featureDir(name), map.from))) {
+        throw new Error(`[vitrine] feature "${name}": no source "${map.from}"`);
+      }
+    }
+  }
+
   const tx = new FsTransaction();
   try {
     for (const name of toInstall) {
       const manifest = registry.loadManifest(name);
-      validate(name, manifest, project);
       copyFeatureFiles(project, name, manifest, registry, tx);
       project.lock.features[name] = { version: manifest.kitVersion };
     }
@@ -215,6 +233,25 @@ export function removeFeature(project: Project, name: string, registry: Registry
     }
     delete project.lock.features[name];
     regenerateDerived(project, registry, tx);
+    // Drop the removed feature's env keys from .env.example unless another installed
+    // feature declares them. Only keys from the removed manifest are touched — anything
+    // the user added by hand stays.
+    const keptKeys = new Set(
+      Object.keys(project.lock.features).flatMap(
+        (other) => (registry.loadManifest(other).env ?? []).map((e) => e.key),
+      ),
+    );
+    const stale = (manifest.env ?? []).map((e) => e.key).filter((k) => !keptKeys.has(k));
+    const envPath = projectPaths(project.root).env;
+    if (stale.length > 0 && exists(envPath)) {
+      const lines = readText(envPath)
+        .split('\n')
+        .filter((l) => {
+          const key = l.includes('=') ? l.split('=')[0]?.trim() : undefined;
+          return !(key && stale.includes(key));
+        });
+      tx.write(envPath, lines.join('\n'));
+    }
     tx.commit();
   } catch (error) {
     tx.rollback();

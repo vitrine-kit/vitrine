@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,12 +25,14 @@ import {
   findClaudeBin,
 } from './design.js';
 import { runDoctor } from './doctor.js';
+import { listFeatures } from './commands.js';
 import { computeChangelog, populateCache, readKitMeta } from './cache.js';
-import { kitStatus } from './kit-update.js';
+import { kitStatus, kitUpdate } from './kit-update.js';
 import { merge3 } from './merge.js';
 import { applyUpdate, planUpdate } from './update.js';
 import { preflightNode, replaceBetween } from './util.js';
-import { KIT_VERSION, CORE_RANGE, BLUEPRINT_RANGE } from './kit.js';
+import { KIT_VERSION, CONTRACTS_VERSION, CORE_RANGE, BLUEPRINT_RANGE } from './kit.js';
+import { CONTRACTS_VERSION as CONTRACTS_API_VERSION } from '@vitrine-kit/contracts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const monorepoRegistry = join(here, '..', '..', '..', 'registry');
@@ -176,6 +178,7 @@ describe('init payload template', () => {
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'tailwind.config.ts'))).toBe(true);
     expect(existsSync(join(root, '.gitignore'))).toBe(true);
+    expect(read(root, '.gitattributes')).toContain('eol=lf'); // LF policy → clean 3-way merges
     expect(existsSync(join(root, '.npmrc'))).toBe(false); // public npm — client .npmrc not needed
 
     // backend-payload: config, adapters, zero-config, Docker
@@ -195,10 +198,11 @@ describe('init payload template', () => {
     expect(pkg.dependencies['@vitrine-kit/payload-blueprint']).toBeDefined();
     expect(pkg.scripts.dev).toBe('next dev');
 
-    // .env.example — zero-config keys
+    // .env.example — zero-config keys (incl. everything docker-compose reads from host env)
     const env = read(root, '.env.example');
     expect(env).toContain('DATABASE_URL=');
     expect(env).toContain('PAYLOAD_SECRET=');
+    expect(env).toContain('POSTGRES_PASSWORD=');
 
     // managed files are still consistent
     expect(read(root, 'site.config.ts')).toContain('"catalog": true');
@@ -254,6 +258,122 @@ describe('rollback on error', () => {
     expect(existsSync(join(root, 'lib/good/x.ts'))).toBe(false);
     expect(project.lock.features.good).toBeUndefined();
     expect(JSON.parse(read(root, 'vitrine.json')).features).toEqual({});
+  });
+});
+
+describe('fail-fast + path hardening', () => {
+  function conflictReg(): string {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({
+        kitVersion: '0.0.0',
+        contracts: '1.0.0',
+        features: {
+          left: { title: 'Left', kitVersion: '0.0.0', tier: ['catalog'] },
+          right: { title: 'Right', kitVersion: '0.0.0', tier: ['catalog'] },
+        },
+      }),
+    );
+    for (const name of ['left', 'right']) {
+      mkdirSync(join(dir, name, 'files', 'lib', name), { recursive: true });
+      writeFileSync(join(dir, name, 'files', 'lib', name, 'x.ts'), `export const ${name} = 1;\n`);
+      writeFileSync(
+        join(dir, name, 'feature.json'),
+        JSON.stringify({
+          name, title: name, kitVersion: '0.0.0', requiresContracts: '>=1.0.0', tier: ['catalog'],
+          files: [{ from: `files/lib/${name}/`, to: `lib/${name}/` }],
+          config: { set: { [`features.${name}`]: true } },
+          ...(name === 'right' ? { conflicts: ['left'] } : {}),
+        }),
+      );
+    }
+    return dir;
+  }
+
+  function evilReg(files: Array<{ from: string; to: string }>): string {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({
+        kitVersion: '0.0.0',
+        contracts: '1.0.0',
+        features: { evil: { title: 'Evil', kitVersion: '0.0.0', tier: ['catalog'] } },
+      }),
+    );
+    mkdirSync(join(dir, 'evil'), { recursive: true });
+    writeFileSync(
+      join(dir, 'evil', 'feature.json'),
+      JSON.stringify({
+        name: 'evil', title: 'Evil', kitVersion: '0.0.0', requiresContracts: '>=1.0.0',
+        tier: ['catalog'], files, config: { set: { 'features.evil': true } },
+      }),
+    );
+    return dir;
+  }
+
+  it('an in-batch conflict fails fast — nothing is written at all', () => {
+    const reg = createRegistrySource(conflictReg());
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: [], registry: reg });
+    const project = loadProject(root);
+
+    expect(() => installFeatures(project, ['left', 'right'], reg)).toThrow(/incompatible/);
+    // left was valid and first in order, but the batch failed pre-flight → never copied
+    expect(existsSync(join(root, 'lib/left/x.ts'))).toBe(false);
+    expect(project.lock.features.left).toBeUndefined();
+    expect(JSON.parse(read(root, 'vitrine.json')).features).toEqual({});
+  });
+
+  it('rejects a feature name that could escape the registry', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: [], registry });
+    expect(() => installFeatures(loadProject(root), ['../evil'], registry)).toThrow(/invalid feature name/);
+  });
+
+  it('rejects a manifest whose files.from escapes the feature dir', () => {
+    const reg = createRegistrySource(evilReg([{ from: '../../outside/', to: 'lib/evil/' }]));
+    expect(() => reg.loadManifest('evil')).toThrow(/files\.from/);
+  });
+
+  it('rejects a manifest whose files.to escapes the repo', () => {
+    const reg = createRegistrySource(evilReg([{ from: 'files/', to: '../../escape/' }]));
+    expect(() => reg.loadManifest('evil')).toThrow(/files\.to/);
+  });
+
+  it('circular registryDependencies are reported, not silently broken', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({
+        kitVersion: '0.0.0',
+        contracts: '1.0.0',
+        features: {
+          a: { title: 'A', kitVersion: '0.0.0', tier: ['catalog'] },
+          b: { title: 'B', kitVersion: '0.0.0', tier: ['catalog'] },
+        },
+      }),
+    );
+    for (const [name, dep] of [['a', 'b'], ['b', 'a']] as const) {
+      mkdirSync(join(dir, name, 'files', 'lib', name), { recursive: true });
+      writeFileSync(join(dir, name, 'files', 'lib', name, 'x.ts'), 'export {};\n');
+      writeFileSync(
+        join(dir, name, 'feature.json'),
+        JSON.stringify({
+          name, title: name, kitVersion: '0.0.0', requiresContracts: '>=1.0.0', tier: ['catalog'],
+          registryDependencies: [dep],
+          files: [{ from: `files/lib/${name}/`, to: `lib/${name}/` }],
+          config: { set: { [`features.${name}`]: true } },
+        }),
+      );
+    }
+    const reg = createRegistrySource(dir);
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: [], registry: reg });
+    expect(() => installFeatures(loadProject(root), ['a'], reg)).toThrow(/circular/);
   });
 });
 
@@ -565,6 +685,31 @@ describe('kit cache', () => {
     expect(populateCache(repoRoot, { home }).changelog).toEqual([]);
   });
 
+  it('an invalid source index leaves the existing cache intact (validate-then-swap)', () => {
+    const home = tmp();
+    populateCache(repoRoot, { home });
+    const before = readKitMeta(home)?.kitVersion;
+
+    // a "kit tree" whose _index.json fails the registry index schema
+    const badSrc = tmp();
+    mkdirSync(join(badSrc, 'registry'), { recursive: true });
+    writeFileSync(join(badSrc, 'registry', '_index.json'), JSON.stringify({ nope: true }));
+
+    expect(() => populateCache(badSrc, { home })).toThrow();
+    expect(readKitMeta(home)?.kitVersion).toBe(before); // meta untouched
+    expect(existsSync(join(home, 'registry', '_index.json'))).toBe(true); // old registry intact
+    expect(readdirSync(home).some((f) => f.startsWith('.staging-'))).toBe(false); // no residue
+  });
+
+  it('kit update --from a local tree populates the cache (offline path)', () => {
+    const home = tmp();
+    const res = kitUpdate({ from: repoRoot, home });
+    expect(res.kitVersion).toBe('0.0.0');
+    expect(existsSync(join(home, 'registry', '_index.json'))).toBe(true);
+    expect(existsSync(join(home, 'templates', 'base'))).toBe(true);
+    expect(readKitMeta(home)?.channel).toBe('stable');
+  });
+
   it('kitStatus reads the cache', () => {
     const home = tmp();
     expect(kitStatus(home).cached).toBe(false);
@@ -623,6 +768,97 @@ describe('kit cache', () => {
     expect(cl).toContainEqual({ kind: 'changed', name: 'x', from: '1.0.0', to: '1.1.0' });
     expect(cl).toContainEqual({ kind: 'added', name: 'z', to: '1.0.0' });
     expect(cl).toContainEqual({ kind: 'removed', name: 'y', from: '1.0.0' });
+  });
+});
+
+describe('remove cleans up feature env keys', () => {
+  it('drops the removed feature keys from .env.example, keeps user and template keys', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'vitrine-reg-'));
+    tmps.push(dir);
+    writeFileSync(
+      join(dir, '_index.json'),
+      JSON.stringify({
+        kitVersion: '0.0.0',
+        contracts: '1.0.0',
+        features: { withenv: { title: 'WithEnv', kitVersion: '0.0.0', tier: ['catalog'] } },
+      }),
+    );
+    mkdirSync(join(dir, 'withenv', 'files', 'lib', 'withenv'), { recursive: true });
+    writeFileSync(join(dir, 'withenv', 'files', 'lib', 'withenv', 'x.ts'), 'export {};\n');
+    writeFileSync(
+      join(dir, 'withenv', 'feature.json'),
+      JSON.stringify({
+        name: 'withenv', title: 'WithEnv', kitVersion: '0.0.0', requiresContracts: '>=1.0.0', tier: ['catalog'],
+        files: [{ from: 'files/lib/withenv/', to: 'lib/withenv/' }],
+        config: { set: { 'features.withenv': true } },
+        env: [{ key: 'WITHENV_TOKEN', required: false }],
+        removable: true,
+      }),
+    );
+    const reg = createRegistrySource(dir);
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['withenv'], registry: reg });
+    expect(read(root, '.env.example')).toContain('WITHENV_TOKEN=');
+    writeFileSync(join(root, '.env.example'), `${read(root, '.env.example')}MY_CUSTOM=\n`);
+
+    removeFeature(loadProject(root), 'withenv', reg);
+
+    const env = read(root, '.env.example');
+    expect(env).not.toContain('WITHENV_TOKEN=');
+    expect(env).toContain('MY_CUSTOM='); // user-added key survives
+    expect(env).toContain('PAYLOAD_SECRET='); // template baseline untouched
+  });
+});
+
+describe('doctor follow-ups (originals / markers / .env)', () => {
+  it('flags orphaned originals, unpaired markers, and an unignored .env', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
+    mkdirSync(join(root, '.vitrine/originals/ghost@9.9.9'), { recursive: true });
+    writeFileSync(
+      join(root, 'site.config.ts'),
+      read(root, 'site.config.ts').replace('// vitrine:features:end', '// gone'),
+    );
+    writeFileSync(join(root, '.env'), 'PAYLOAD_SECRET=real-secret\n');
+    writeFileSync(join(root, '.gitignore'), 'node_modules/\n'); // no .env entry
+
+    const report = runDoctor(loadProject(root), registry);
+    const scopes = report.issues.map((i) => i.scope);
+    expect(scopes).toContain('originals');
+    expect(scopes).toContain('markers');
+    expect(scopes).toContain('env');
+    expect(report.ok).toBe(false); // unpaired markers are an error
+  });
+
+  it('a healthy client stays clean', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
+    const report = runDoctor(loadProject(root), registry);
+    expect(report.issues).toEqual([]);
+  });
+});
+
+describe('--project (explicit client root)', () => {
+  it('selects the given root and validates it holds a client repo', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: ['catalog'], registry });
+    const { installed } = listFeatures(monorepoRegistry, root);
+    expect(installed).toContain('catalog');
+    expect(() => listFeatures(monorepoRegistry, join(root, '..'))).toThrow(/vitrine\.json/);
+  });
+});
+
+describe('design prompt cap', () => {
+  it('caps an oversized CLAUDE.md instruction block', () => {
+    const root = join(tmp(), 'shop');
+    initProject({ root, name: 'shop', backend: 'payload', tier: 'catalog', features: [], registry });
+    writeFileSync(
+      join(root, 'CLAUDE.md'),
+      `## INSTRUCTION: apply the design from /design\n${'x'.repeat(10000)}\n`,
+    );
+    const prompt = buildDesignPrompt(loadProject(root));
+    expect(prompt).toContain('truncated by vitrine');
+    expect(prompt.length).toBeLessThan(6000); // 4000 cap + the fixed context block
   });
 });
 
@@ -781,6 +1017,41 @@ describe('vitrine update', () => {
     expect(plan.changed).toBe(true);
     expect(read(root, 'lib/demo/x.ts')).toBe(before);
   });
+
+  it('a CRLF client checkout merges cleanly (EOL-insensitive 3-way)', () => {
+    const root = setup('line1\nline2\nline3\n');
+    // Windows + autocrlf: the working tree turned CRLF while originals stayed LF
+    writeFileSync(join(root, 'lib/demo/x.ts'), 'CLIENT1\r\nline2\r\nline3\r\n');
+    const v2 = createRegistrySource(demoReg('0.1.0', 'line1\nline2\nTHEIRS3\n'));
+    const project = loadProject(root);
+
+    const plan = planUpdate(project, 'demo', v2);
+    expect(plan.hasConflicts).toBe(false);
+    applyUpdate(project, plan, v2);
+
+    const merged = read(root, 'lib/demo/x.ts');
+    expect(merged).toContain('CLIENT1'); // client edit preserved, not seen as all-changed
+    expect(merged).toContain('THEIRS3'); // registry change merged in
+    expect(merged).not.toContain('\r'); // managed writes are LF
+  });
+
+  it('a failed applyUpdate keeps the lock at the old version (memory + disk)', () => {
+    const root = setup('line1\n');
+    const v2 = createRegistrySource(demoReg('0.1.0', 'line2\n'));
+    const project = loadProject(root);
+    const plan = planUpdate(project, 'demo', v2);
+
+    // Break the site.config markers → regenerateDerived throws after files were staged.
+    writeFileSync(
+      join(root, 'site.config.ts'),
+      read(root, 'site.config.ts').replace('// vitrine:features:start', '// broken'),
+    );
+
+    expect(() => applyUpdate(project, plan, v2)).toThrow(/markers/);
+    expect(project.lock.features.demo?.version).toBe('0.0.0'); // in-memory restored
+    expect(JSON.parse(read(root, 'vitrine.json')).features.demo.version).toBe('0.0.0'); // disk untouched
+    expect(read(root, 'lib/demo/x.ts')).toBe('line1\n'); // repo file rolled back
+  });
 });
 
 describe('generators (pure)', () => {
@@ -878,5 +1149,11 @@ describe('kit version constants', () => {
     expect(KIT_VERSION).toBe(readPkg('cli').version);
     expect(CORE_RANGE).toBe(caretRange(readPkg('core').version));
     expect(BLUEPRINT_RANGE).toBe(caretRange(readPkg('payload-blueprint').version));
+  });
+
+  it('CONTRACTS_VERSION: the generated constant equals the contracts package export', () => {
+    // Two definitions of the contract API semver exist (contracts export + the CLI's
+    // generated constant) — they must never diverge.
+    expect(CONTRACTS_VERSION).toBe(CONTRACTS_API_VERSION);
   });
 });

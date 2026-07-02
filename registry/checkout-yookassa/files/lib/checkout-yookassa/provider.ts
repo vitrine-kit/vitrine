@@ -18,9 +18,16 @@ function minorToDecimalString(amount: number, currency: string): string {
   return ZERO_DECIMAL.has(currency.toUpperCase()) ? String(amount) : (amount / 100).toFixed(2);
 }
 
+/** Required env, read at call time — `next build` must not need secrets. */
+function requiredEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`[vitrine] ${key} is not set — add it to .env (see .env.example)`);
+  return value;
+}
+
 function authHeader(): string {
-  const shopId = process.env.YOOKASSA_SHOP_ID ?? '';
-  const secret = process.env.YOOKASSA_SECRET_KEY ?? '';
+  const shopId = requiredEnv('YOOKASSA_SHOP_ID');
+  const secret = requiredEnv('YOOKASSA_SECRET_KEY');
   return `Basic ${Buffer.from(`${shopId}:${secret}`).toString('base64')}`;
 }
 
@@ -57,9 +64,12 @@ export const yookassaProvider: PaymentProvider = {
     const paymentId = body.object?.id;
     if (!paymentId) return { kind: 'unknown', raw: body };
 
-    // The notification is unsigned — re-check the payment via the API.
+    // The notification is unsigned — re-check the payment via the API. 404 = no such
+    // payment for this shop (forged/foreign notification) → ack as 'unknown'; any other
+    // failure is transient → throw (a non-200 response makes YooKassa redeliver later).
     const res = await fetch(`${API}/${paymentId}`, { headers: { Authorization: authHeader() } });
-    if (!res.ok) throw new Error(`[vitrine] YooKassa verify: ${res.status}`);
+    if (res.status === 404) return { kind: 'unknown', raw: body };
+    if (!res.ok) throw new Error(`[vitrine] YooKassa verify: ${res.status} (transient — expecting a redelivery)`);
     const payment = (await res.json()) as {
       id?: string;
       status?: string;

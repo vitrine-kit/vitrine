@@ -11,10 +11,13 @@ A YooKassa (yookassa.ru) provider — Russian acquiring: cards, SBP, wallets. Fo
   sets `integrations.payments: "yookassa"`.
 - **API (Next glue):** `POST /api/webhooks/yookassa` → `handlePaymentWebhook` →
   `fulfillOrderFromEvent`.
-- **env:** `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` (required).
+- **env:** `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` (required — read at call time, a
+  missing key throws `[vitrine] <KEY> is not set …`; webhook route → 400).
 
 **Security:** YooKassa notifications are **not signed** — the provider re-verifies the
-payment via `GET /v3/payments/{id}` and trusts only `status: "succeeded"`.
+payment via `GET /v3/payments/{id}` and trusts only `status: "succeeded"`. A 404 on that
+check (forged/foreign payment id) is acked as `kind: "unknown"`; other API failures throw,
+so the non-200 response makes YooKassa redeliver the notification.
 
 **Money:** YooKassa expects a decimal string (`"1990.00"`); `Money` is in minor
 units, so we divide by 100 (RUB and most currencies have 2 decimal places).

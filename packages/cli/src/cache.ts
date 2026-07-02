@@ -1,8 +1,9 @@
 // The local kit cache (~/.vitrine): registry + templates + version metadata. The source
 // for init/add (offline after kit update). VITRINE_HOME overrides the root
 // (for tests and non-standard installs).
-import { cpSync, existsSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, renameSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { registryIndexSchema } from '@vitrine-kit/contracts';
 import { exists, readJson, writeText } from './util.js';
 
 export interface KitMeta {
@@ -117,11 +118,25 @@ export function populateCache(
   const paths = cachePaths(home);
   const oldIndex = readIndex(paths.registry);
 
-  rmSync(paths.registry, { recursive: true, force: true });
-  cpSync(srcRegistry, paths.registry, { recursive: true });
-  if (existsSync(srcTemplates)) {
-    rmSync(paths.templates, { recursive: true, force: true });
-    cpSync(srcTemplates, paths.templates, { recursive: true });
+  // Validate-then-swap: stage the copy inside the cache root, sanity-check the index,
+  // and only then replace — a broken/partial source must not destroy a working cache.
+  const staging = join(home, `.staging-${process.pid}`);
+  try {
+    rmSync(staging, { recursive: true, force: true });
+    mkdirSync(staging, { recursive: true });
+    cpSync(srcRegistry, join(staging, 'registry'), { recursive: true });
+    registryIndexSchema.parse(readJson(join(staging, 'registry', '_index.json')));
+    const hasTemplates = existsSync(srcTemplates);
+    if (hasTemplates) cpSync(srcTemplates, join(staging, 'templates'), { recursive: true });
+
+    rmSync(paths.registry, { recursive: true, force: true });
+    renameSync(join(staging, 'registry'), paths.registry);
+    if (hasTemplates) {
+      rmSync(paths.templates, { recursive: true, force: true });
+      renameSync(join(staging, 'templates'), paths.templates);
+    }
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
   }
 
   const newIndex = readIndex(paths.registry);

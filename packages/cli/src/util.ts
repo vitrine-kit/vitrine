@@ -32,9 +32,14 @@ export function readJson<T = unknown>(p: string): T {
   return JSON.parse(readText(p)) as T;
 }
 
+/** CRLF → LF. Managed writes are always LF; the client's git converts per .gitattributes. */
+export function normalizeEol(s: string): string {
+  return s.includes('\r') ? s.replace(/\r\n/g, '\n') : s;
+}
+
 export function writeText(p: string, content: string): void {
   mkdirSync(dirname(p), { recursive: true });
-  writeFileSync(p, content, 'utf8');
+  writeFileSync(p, normalizeEol(content), 'utf8');
 }
 
 export function ensureDir(p: string): void {
@@ -58,6 +63,20 @@ export function safeJoin(root: string, ...segs: string[]): string {
     throw new Error(`[vitrine] path "${join(...segs)}" escapes "${root}"`);
   }
   return target;
+}
+
+/** Feature names are registry directory names — only [a-z0-9-], so no path tricks. */
+export function assertFeatureName(name: string): void {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) {
+    throw new Error(`[vitrine] invalid feature name "${name}"`);
+  }
+}
+
+/** Manifest-relative path (files[].from/to): no absolute paths, no ".." segments. */
+export function assertSafeRel(p: string, what: string): void {
+  if (isAbsolute(p) || p.split(/[\\/]/).some((seg) => seg === '..')) {
+    throw new Error(`[vitrine] ${what} "${p}" must be a relative path without ".."`);
+  }
 }
 
 /** Variable keys (names) from .env text; skips comments and empty lines. */

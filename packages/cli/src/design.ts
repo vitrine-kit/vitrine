@@ -11,6 +11,10 @@ import { readText } from './util.js';
 
 const DESIGN_HEADING = '## INSTRUCTION: apply the design from /design';
 
+// CLAUDE.md is client-editable — bound how much of it lands in the prompt, so a
+// runaway (or hostile) instruction block cannot dominate the agent's context.
+const MAX_INSTRUCTION_CHARS = 4000;
+
 /** Finds the Claude Code binary: explicit path → VITRINE_CLAUDE_BIN → search in PATH. */
 export function findClaudeBin(explicit?: string): string {
   const pinned = explicit ?? process.env.VITRINE_CLAUDE_BIN;
@@ -57,7 +61,10 @@ export function buildDesignPrompt(project: Project): string {
   const claudeMd = existsSync(join(project.root, 'CLAUDE.md'))
     ? readText(join(project.root, 'CLAUDE.md'))
     : '';
-  const instruction = extractDesignInstruction(claudeMd) ?? DESIGN_HEADING;
+  let instruction = extractDesignInstruction(claudeMd) ?? DESIGN_HEADING;
+  if (instruction.length > MAX_INSTRUCTION_CHARS) {
+    instruction = `${instruction.slice(0, MAX_INSTRUCTION_CHARS)}\n[…truncated by vitrine: the design instruction exceeds ${MAX_INSTRUCTION_CHARS} chars]`;
+  }
   const tokens = TOKEN_CSS_VARS.map((v) => `  ${v}`).join('\n');
 
   return [
@@ -96,6 +103,22 @@ const defaultRunner: DesignRunner = ({ bin, args, cwd }) => {
   return res.status ?? 0;
 };
 
+/** `claude --version` probe → a clear message instead of a cryptic spawn error later. */
+function preflightClaude(bin: string): void {
+  const res = spawnSync(bin, ['--version'], {
+    stdio: 'ignore',
+    // .cmd/.bat shims cannot be spawned directly on modern Node — safe here since
+    // the args carry no user input.
+    shell: process.platform === 'win32' && /\.(cmd|bat)$/i.test(bin),
+  });
+  if (res.error || res.status !== 0) {
+    throw new Error(
+      `[vitrine] "${bin}" did not answer --version — Claude Code missing or broken? ` +
+        'Reinstall it (npm i -g @anthropic-ai/claude-code) or pass another --bin.',
+    );
+  }
+}
+
 /** Builds the Claude Code launch command (without executing) — handy for dry-run/tests. */
 export function planDesignApply(project: Project, opts: DesignApplyOptions = {}): DesignCommand {
   const bin = findClaudeBin(opts.bin);
@@ -119,5 +142,7 @@ export function designApply(
     console.log(`[vitrine] dry-run: ${cmd.bin} -p <prompt ${cmd.prompt.length} chars> --permission-mode acceptEdits`);
     return 0;
   }
+  // Preflight only for the real launch — injected runners (tests) provide their own bin.
+  if (runner === defaultRunner) preflightClaude(cmd.bin);
   return runner(cmd);
 }

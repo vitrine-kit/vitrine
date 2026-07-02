@@ -8,6 +8,10 @@
 // 5 · Blueprint  → ./blueprint
 // Manifests (feature.json / vitrine.json / registry) → ./manifest
 
+// Contract API semver — NOT the npm package version: additive releases bump only the
+// package; this constant moves on a BREAKING contract change. Must equal the CLI's
+// generated CONTRACTS_VERSION (packages/cli/scripts/generate-kit-versions.mjs) — a cli
+// test enforces the pair.
 export const CONTRACTS_VERSION = '1.0.0' as const;
 
 export * from './common.js';

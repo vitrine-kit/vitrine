@@ -3,7 +3,7 @@
 // duplicated across install/update/doctor; here it's one source of truth (eliminates
 // the divergences that caused the deletion bug, see removeFeature).
 import { join } from 'node:path';
-import { exists, isDir, toPosix, walkRelFiles } from './util.js';
+import { exists, isDir, safeJoin, toPosix, walkRelFiles } from './util.js';
 
 export interface FeatureFileMap {
   from: string;
@@ -24,7 +24,7 @@ export interface FeatureFile {
  * yields nothing (the caller decides whether that's an error or a skip).
  */
 export function* eachFeatureFile(featDir: string, map: FeatureFileMap): Generator<FeatureFile> {
-  const src = join(featDir, map.from);
+  const src = safeJoin(featDir, map.from); // the source must stay inside the feature dir
   if (!exists(src)) return;
   const rels = isDir(src) ? walkRelFiles(src) : [''];
   for (const rel of rels) {

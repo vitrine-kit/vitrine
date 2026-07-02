@@ -47,3 +47,28 @@ jobs:
 
       - name: Validate schemas (no drift vs committed)
         run: pnpm schemas && git diff --exit-code schemas
+
+  # The CLI does FS-heavy, EOL-sensitive work on client machines — cover the
+  # Windows-specific surface (paths, `where`, USERPROFILE, rmSync/renameSync).
+  windows-cli:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI (with workspace deps)
+        run: pnpm turbo run build --filter=@vitrine-kit/vitrine
+
+      - name: Test CLI
+        run: pnpm --filter @vitrine-kit/vitrine test

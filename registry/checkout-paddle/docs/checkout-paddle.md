@@ -8,12 +8,15 @@ in `@vitrine-kit/core`.
 - **Provider:** `lib/checkout-paddle/provider.ts` → `paddleProvider`
   (`PaymentProvider`): `createCheckout` creates a Paddle transaction with non-catalog
   line items (prices from the cart, `customData.cartId`); `verifyWebhook` verifies the
-  `Paddle-Signature` via `@paddle/paddle-node-sdk`.
+  `Paddle-Signature` via `@paddle/paddle-node-sdk`. The notification carries no email, so
+  the provider does a best-effort `customers.get(customerId)` lookup for the order's
+  `email` — a lookup failure does not fail fulfillment.
 - **Registration:** `registerCheckoutPaddleProvider()` (from `lib/payments.ts`), sets
   `integrations.payments: "paddle"`.
 - **API (Next glue):** `POST /api/webhooks/paddle` → `handlePaymentWebhook` →
   `fulfillOrderFromEvent` (on `transaction.completed`/`transaction.paid`).
-- **env:** `PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET` (required);
+- **env:** `PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET` (required — read at call time, a
+  missing key throws `[vitrine] <KEY> is not set …`; webhook route → 400);
   `PADDLE_ENVIRONMENT` (`sandbox`|`production`, default `sandbox`),
   `PADDLE_CHECKOUT_URL` (override the hosted checkout, otherwise a default payment link
   in the Paddle dashboard is required) — optional.

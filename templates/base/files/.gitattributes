@@ -1,0 +1,12 @@
+# Normalize line endings to LF — keeps `vitrine update` 3-way merges clean on Windows
+# (.vitrine/originals and the registry are LF; a CRLF working tree would look all-changed).
+* text=auto eol=lf
+
+# Binary assets — no normalization.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

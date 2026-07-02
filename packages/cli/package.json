@@ -4,6 +4,9 @@
   "description": "Vitrine CLI — feature install primitive, init (wizard), add, update, doctor, design apply.",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "bin": {
     "vitrine": "./dist/index.js"
   },

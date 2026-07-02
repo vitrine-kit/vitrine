@@ -11,7 +11,7 @@ import type { RegistrySource } from './registry.js';
 import { FsTransaction } from './transaction.js';
 import { regenerateDerived } from './install.js';
 import { merge3 } from './merge.js';
-import { exists, readText, safeJoin } from './util.js';
+import { exists, normalizeEol, readText, safeJoin } from './util.js';
 import { eachFeatureFile } from './feature-files.js';
 
 export type FileStatus = 'unchanged' | 'clean' | 'conflict' | 'new';
@@ -46,11 +46,13 @@ export function planUpdate(project: Project, name: string, registry: RegistrySou
   const files: FileUpdate[] = [];
   for (const map of manifest.files) {
     for (const file of eachFeatureFile(featDir, map)) {
-      const theirs = readText(file.srcAbs);
-      const oursPath = join(project.root, file.repoRel);
-      const basePath = join(originalsBase, file.repoRel);
-      const ours = exists(oursPath) ? readText(oursPath) : null;
-      const base = exists(basePath) ? readText(basePath) : null;
+      // EOL-insensitive compare/merge: a Windows checkout may hold CRLF while the
+      // registry and .vitrine/originals are LF — normalize before diffing.
+      const theirs = normalizeEol(readText(file.srcAbs));
+      const oursPath = safeJoin(project.root, file.repoRel);
+      const basePath = safeJoin(originalsBase, file.repoRel);
+      const ours = exists(oursPath) ? normalizeEol(readText(oursPath)) : null;
+      const base = exists(basePath) ? normalizeEol(readText(basePath)) : null;
 
       if (ours === null) {
         files.push({ to: file.toRel, status: 'new', merged: theirs, conflicts: 0 });
@@ -99,6 +101,7 @@ export function applyUpdate(project: Project, plan: UpdatePlan, registry: Regist
     tx.commit();
   } catch (error) {
     tx.rollback();
+    project.lock.features[plan.feature] = { version: plan.fromVersion }; // restore the in-memory lock
     throw error;
   }
 

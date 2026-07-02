@@ -6,26 +6,41 @@ import { useState } from 'react';
 
 export function CheckoutButton() {
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function checkout(): Promise<void> {
     setPending(true);
+    setError(null);
     try {
       const res = await fetch('/api/checkout', { method: 'POST' });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (data.url) location.assign(data.url);
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        setError(data.error ?? 'Checkout is unavailable — try again later.');
+        return;
+      }
+      location.assign(data.url);
+    } catch {
+      setError('Checkout is unavailable — try again later.');
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={checkout}
-      disabled={pending}
-      className="vt-checkout-button rounded-md bg-primary px-gutter py-unit text-primary-fg transition hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 ring-ring"
-    >
-      {pending ? 'Redirecting to payment…' : 'Checkout'}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={checkout}
+        disabled={pending}
+        className="vt-checkout-button rounded-md bg-primary px-gutter py-unit text-primary-fg transition hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 ring-ring"
+      >
+        {pending ? 'Redirecting to payment…' : 'Checkout'}
+      </button>
+      {error ? (
+        <p role="alert" className="vt-checkout-error text-danger">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 }

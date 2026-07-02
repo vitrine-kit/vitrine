@@ -3,7 +3,7 @@
 // (--from <dir>: a kit clone or an unpacked tarball; the offline path). After update,
 // init/add work offline from the cache.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { KIT_VERSION } from './kit.js';
@@ -18,14 +18,13 @@ function hasBin(bin: string): boolean {
 }
 
 /** Network path: gh release download (source tarball) → tar -xzf → the kit tree root. */
-function acquireFromGh(version?: string): string {
+function acquireFromGh(tmp: string, version?: string): string {
   if (!hasBin('gh')) {
     throw new Error('[vitrine] network update needs gh (GitHub CLI), or pass --from <dir>');
   }
   if (!hasBin('tar')) {
     throw new Error('[vitrine] unpacking needs tar, or pass --from <dir>');
   }
-  const tmp = mkdtempSync(join(tmpdir(), 'vitrine-kit-'));
   const dl = spawnSync(
     'gh',
     ['release', 'download', ...(version ? [version] : []), '--repo', REPO, '--archive=tar.gz', '--dir', tmp, '--clobber'],
@@ -53,9 +52,36 @@ export interface KitUpdateOptions {
   home?: string;
 }
 
+/**
+ * Warn-only version cross-check: `_index.json` carries the kit channel version
+ * (pre-release: 0.0.0), so the only comparable stamp in a source tarball is the CLI
+ * package version. Only tags that name the CLI package (or a bare semver) are compared.
+ */
+function warnOnVersionMismatch(root: string, requested?: string): void {
+  if (!requested) return;
+  const tagSemver =
+    requested.match(/^@vitrine-kit\/vitrine@(.+)$/)?.[1] ?? requested.match(/^v?(\d+\.\d+\.\d+\S*)$/)?.[1];
+  const pkgFile = join(root, 'packages', 'cli', 'package.json');
+  if (!tagSemver || !exists(pkgFile)) return;
+  const version = readJson<{ version?: string }>(pkgFile).version;
+  if (version && version !== tagSemver) {
+    console.warn(`[vitrine] requested "${requested}" but the downloaded kit is @vitrine-kit/vitrine@${version}`);
+  }
+}
+
 export function kitUpdate(opts: KitUpdateOptions = {}): PopulateResult {
-  const source = opts.from ? resolve(opts.from) : acquireFromGh(opts.version);
-  return populateCache(source, { home: opts.home, channel: opts.channel ?? 'stable' });
+  if (opts.from) {
+    return populateCache(resolve(opts.from), { home: opts.home, channel: opts.channel ?? 'stable' });
+  }
+  // The temp download dir is ours (never a user-supplied --from) — always clean it up.
+  const tmp = mkdtempSync(join(tmpdir(), 'vitrine-kit-'));
+  try {
+    const source = acquireFromGh(tmp, opts.version);
+    warnOnVersionMismatch(source, opts.version);
+    return populateCache(source, { home: opts.home, channel: opts.channel ?? 'stable' });
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 export interface KitStatusReport {

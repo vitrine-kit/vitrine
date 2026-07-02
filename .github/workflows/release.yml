@@ -43,6 +43,17 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Gate: the exact tree being published must pass the same checks as CI
+      # (this job is independent of ci.yml and used to publish untested code).
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
       - name: Version PR / Publish
         uses: changesets/action@v1
         with:

@@ -3,6 +3,7 @@
 // Makes the install primitive partially transactional (plan §8).
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { normalizeEol } from './util.js';
 
 interface Backup {
   path: string;
@@ -22,7 +23,8 @@ export class FsTransaction {
   write(path: string, content: string): void {
     this.snapshot(path);
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, content, 'utf8');
+    // LF policy for every managed write; rollback stays byte-exact (restores prev as-is).
+    writeFileSync(path, normalizeEol(content), 'utf8');
   }
 
   remove(path: string): void {

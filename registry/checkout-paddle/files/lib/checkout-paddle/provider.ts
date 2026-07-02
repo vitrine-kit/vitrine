@@ -9,8 +9,15 @@
 import { Environment, Paddle, type EventEntity } from '@paddle/paddle-node-sdk';
 import type { CreateCheckoutArgs, NormalizedPaymentEvent, PaymentProvider, PaymentWebhookRequest } from '@vitrine-kit/core';
 
+/** Required env, read at call time — `next build` must not need secrets. */
+function requiredEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`[vitrine] ${key} is not set — add it to .env (see .env.example)`);
+  return value;
+}
+
 function client(): Paddle {
-  return new Paddle(process.env.PADDLE_API_KEY ?? '', {
+  return new Paddle(requiredEnv('PADDLE_API_KEY'), {
     environment:
       process.env.PADDLE_ENVIRONMENT === 'production' ? Environment.production : Environment.sandbox,
   });
@@ -40,16 +47,30 @@ export const paddleProvider: PaymentProvider = {
 
   async verifyWebhook(req: PaymentWebhookRequest): Promise<NormalizedPaymentEvent> {
     const paddle = client();
-    const secret = process.env.PADDLE_WEBHOOK_SECRET ?? '';
+    const secret = requiredEnv('PADDLE_WEBHOOK_SECRET');
     const signature = req.headers['paddle-signature'] ?? '';
     // Throws on an invalid signature — handlePaymentWebhook returns a 400.
     const event = (await paddle.webhooks.unmarshal(req.rawBody, secret, signature)) as EventEntity | null;
     if (!event) return { kind: 'unknown', raw: req.rawBody };
 
     if (event.eventType === 'transaction.completed' || event.eventType === 'transaction.paid') {
-      const data = event.data as { id?: string; customData?: { cartId?: string } | null };
+      const data = event.data as {
+        id?: string;
+        customData?: { cartId?: string } | null;
+        customerId?: string | null;
+      };
       const cartId = (data.customData ?? undefined)?.cartId;
-      return { kind: 'checkout_completed', cartId, providerRef: data.id, raw: event };
+      // The notification carries no email — best-effort lookup on the Customer entity.
+      // A lookup failure must not fail fulfillment: email is optional on the event.
+      let email: string | undefined;
+      if (data.customerId) {
+        try {
+          email = (await paddle.customers.get(data.customerId)).email ?? undefined;
+        } catch {
+          // keep email undefined — the order is still created
+        }
+      }
+      return { kind: 'checkout_completed', cartId, providerRef: data.id, email, raw: event };
     }
     if (event.eventType === 'transaction.payment_failed') {
       return { kind: 'payment_failed', raw: event };

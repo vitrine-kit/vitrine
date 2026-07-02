@@ -10,6 +10,13 @@ import type {
   PaymentWebhookRequest,
 } from '@vitrine-kit/core';
 
+/** Required env, read at call time — `next build` must not need secrets. */
+function requiredEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`[vitrine] ${key} is not set — add it to .env (see .env.example)`);
+  return value;
+}
+
 interface StripeLineItem {
   quantity: number;
   price_data: { currency: string; unit_amount: number; product_data: { name: string } };
@@ -32,7 +39,7 @@ export const stripeProvider: PaymentProvider = {
   async createCheckout(args: CreateCheckoutArgs): Promise<{ redirectUrl: string }> {
     const { cart, baseUrl, successPath = '/order/success', cancelPath = '/cart' } = args;
     const { default: Stripe } = await import('stripe');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '');
+    const stripe = new Stripe(requiredEnv('STRIPE_SECRET_KEY'));
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: cartToStripeLineItems(cart),
@@ -45,8 +52,8 @@ export const stripeProvider: PaymentProvider = {
 
   async verifyWebhook(req: PaymentWebhookRequest): Promise<NormalizedPaymentEvent> {
     const { default: Stripe } = await import('stripe');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '');
-    const secret = process.env.STRIPE_WEBHOOK_SECRET ?? '';
+    const stripe = new Stripe(requiredEnv('STRIPE_SECRET_KEY'));
+    const secret = requiredEnv('STRIPE_WEBHOOK_SECRET');
     const signature = req.headers['stripe-signature'] ?? '';
     // Throws on an invalid signature — handlePaymentWebhook surfaces it as a 400.
     const event = stripe.webhooks.constructEvent(req.rawBody, signature, secret);

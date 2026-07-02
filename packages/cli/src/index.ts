@@ -36,8 +36,9 @@ program
   .description('Add feature(s) to the current repository')
   .argument('<features...>', 'feature names')
   .option('--registry <path>', 'path to the registry')
-  .action((features: string[], opts: { registry?: string }) => {
-    const res = addFeatures(features, opts.registry);
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((features: string[], opts: { registry?: string; project?: string }) => {
+    const res = addFeatures(features, opts.registry, opts.project);
     console.log(res.installed.length ? `Installed: ${res.installed.join(', ')}` : 'Already installed — no changes.');
   });
 
@@ -46,8 +47,9 @@ program
   .description('Remove a feature (if removable)')
   .argument('<feature>', 'feature name')
   .option('--registry <path>', 'path to the registry')
-  .action((feature: string, opts: { registry?: string }) => {
-    removeFeatureCmd(feature, opts.registry);
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((feature: string, opts: { registry?: string; project?: string }) => {
+    removeFeatureCmd(feature, opts.registry, opts.project);
     console.log(`Removed: ${feature}`);
   });
 
@@ -57,8 +59,9 @@ program
   .argument('[features...]', 'feature names')
   .option('--registry <path>', 'path to the registry')
   .option('--dry-run', 'show the plan without writing')
-  .action((features: string[], opts: { registry?: string; dryRun?: boolean }) => {
-    const outcomes = updateFeaturesCmd(features, opts.registry, { dryRun: opts.dryRun });
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((features: string[], opts: { registry?: string; dryRun?: boolean; project?: string }) => {
+    const outcomes = updateFeaturesCmd(features, opts.registry, { dryRun: opts.dryRun, projectRoot: opts.project });
     let conflicts = 0;
     for (const { plan, applied } of outcomes) {
       console.log(renderPlan(plan));
@@ -75,16 +78,18 @@ program
   .description('Preview update changes (without writing)')
   .argument('<feature>', 'feature name')
   .option('--registry <path>', 'path to the registry')
-  .action((feature: string, opts: { registry?: string }) => {
-    console.log(renderPlan(diffFeatureCmd(feature, opts.registry)));
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((feature: string, opts: { registry?: string; project?: string }) => {
+    console.log(renderPlan(diffFeatureCmd(feature, opts.registry, opts.project)));
   });
 
 program
   .command('list')
   .description('Installed and available features')
   .option('--registry <path>', 'path to the registry')
-  .action((opts: { registry?: string }) => {
-    const { installed, available } = listFeatures(opts.registry);
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((opts: { registry?: string; project?: string }) => {
+    const { installed, available } = listFeatures(opts.registry, opts.project);
     console.log('Installed:', installed.join(', ') || '—');
     console.log('Available:', available.join(', ') || '—');
   });
@@ -95,8 +100,9 @@ design
   .description('Apply the design from /design to the tokens (via Claude Code)')
   .option('--bin <path>', 'path to Claude Code (otherwise VITRINE_CLAUDE_BIN / PATH)')
   .option('--dry-run', 'show the command without running')
-  .action((opts: { bin?: string; dryRun?: boolean }) => {
-    const code = designApplyCmd({ bin: opts.bin, dryRun: opts.dryRun });
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((opts: { bin?: string; dryRun?: boolean; project?: string }) => {
+    const code = designApplyCmd({ bin: opts.bin, dryRun: opts.dryRun, projectRoot: opts.project });
     if (code !== 0) process.exit(code);
   });
 
@@ -138,8 +144,9 @@ program
   .command('doctor')
   .description('Check consistency: vitrine.json ↔ files ↔ packages ↔ env')
   .option('--registry <path>', 'path to the registry')
-  .action((opts: { registry?: string }) => {
-    const report = doctorCmd(opts.registry);
+  .option('--project <path>', 'client repo root (default: walk up from cwd)')
+  .action((opts: { registry?: string; project?: string }) => {
+    const report = doctorCmd(opts.registry, opts.project);
     if (report.issues.length === 0) {
       console.log('✓ No issues found.');
       return;

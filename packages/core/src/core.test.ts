@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { isValidElement, type ComponentType, type ReactElement } from 'react';
 import type { CatalogSource, CommerceBackend, Order, SiteConfig } from '@vitrine-kit/contracts';
-import { createSlotRegistry } from './slots/registry.js';
+import { createSlotRegistry, getSlotMounts, registerSlot, slotRegistry } from './slots/registry.js';
 import { createAdapterRegistry, type AdapterFactory } from './adapter/resolver.js';
 import { runPipeline, type OrderStage } from './order/pipeline.js';
 import { handlePaymentWebhook } from './payment/webhook.js';
@@ -10,6 +10,7 @@ import type { PaymentProvider, PaymentProviderName } from './payment/provider.js
 import {
   addCartLine,
   cartItemCount,
+  computeLineTotal,
   emptyCart,
   recalcCart,
   removeCartLine,
@@ -46,6 +47,27 @@ describe('slot registry', () => {
     reg.register(mount);
     expect(reg.get('home.hero')).toHaveLength(1);
   });
+
+  it('registerMany registers in order; empty slot → []', () => {
+    const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
+    reg.registerMany([
+      { slot: 'home.hero', component: A },
+      { slot: 'home.hero', component: B },
+    ]);
+    expect(reg.get('home.hero').map((m) => m.component)).toEqual([A, B]);
+    expect(reg.get('product.below-description')).toEqual([]);
+  });
+
+  it('global accessors: registerSlot + getSlotMounts share the default registry', () => {
+    try {
+      registerSlot({ slot: 'home.hero', component: A, order: 2 });
+      slotRegistry.registerMany([{ slot: 'home.hero', component: B, order: 1 }]);
+      expect(getSlotMounts('home.hero').map((m) => m.component)).toEqual([B, A]);
+    } finally {
+      slotRegistry.clear(); // the global registry is module state — leave it clean
+    }
+    expect(getSlotMounts('home.hero')).toEqual([]);
+  });
 });
 
 describe('<Slot>', () => {
@@ -62,6 +84,32 @@ describe('<Slot>', () => {
   it('empty slot → fallback', () => {
     const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
     expect(Slot({ name: 'home.hero', registry: reg, fallback: 'empty' })).toBe('empty');
+  });
+
+  it('keys follow the component, not the index (reorder keeps identity)', () => {
+    const keysOf = (reg: ReturnType<typeof createSlotRegistry<ComponentType<Record<string, unknown>>>>) => {
+      const el = Slot({ name: 'home.hero', registry: reg }) as ReactElement;
+      return ((el.props as { children: ReactElement[] }).children).map((c) => c.key);
+    };
+    const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
+    reg.register({ slot: 'home.hero', component: A, order: 1 });
+    reg.register({ slot: 'home.hero', component: B, order: 2 });
+    const before = keysOf(reg);
+    reg.clear();
+    reg.register({ slot: 'home.hero', component: A, order: 2 }); // same components, reordered
+    reg.register({ slot: 'home.hero', component: B, order: 1 });
+    const after = keysOf(reg);
+    expect(after).toEqual([...before].reverse()); // keys moved WITH their components
+    expect(new Set(after)).toEqual(new Set(before));
+  });
+
+  it('duplicate components get distinct keys', () => {
+    const reg = createSlotRegistry<ComponentType<Record<string, unknown>>>();
+    reg.register({ slot: 'home.hero', component: A });
+    reg.register({ slot: 'home.hero', component: A });
+    const el = Slot({ name: 'home.hero', registry: reg }) as ReactElement;
+    const keys = ((el.props as { children: ReactElement[] }).children).map((c) => c.key);
+    expect(new Set(keys).size).toBe(2);
   });
 });
 
@@ -90,6 +138,13 @@ describe('adapter registry', () => {
     reg.register(factory);
     const catalogCfg = { backend: 'payload', tier: 'catalog' } as unknown as SiteConfig;
     expect(() => reg.resolveCommerce(catalogCfg)).toThrow();
+  });
+
+  it('clear() drops registered factories', () => {
+    const reg = createAdapterRegistry();
+    reg.register(factory);
+    reg.clear();
+    expect(() => reg.resolveCatalog(config)).toThrow(/no adapter registered/);
   });
 });
 
@@ -128,6 +183,14 @@ describe('payment registry', () => {
     expect(() => reg.resolve(cfg(undefined))).toThrow(/not set/);
     expect(() => reg.resolve(cfg('paddle'))).toThrow(/is not registered/);
   });
+
+  it('clear() drops providers', () => {
+    const reg = createPaymentRegistry();
+    reg.register(provider('stripe'));
+    reg.clear();
+    expect(reg.get('stripe')).toBeUndefined();
+    expect(() => reg.resolve(cfg('stripe'))).toThrow(/is not registered/);
+  });
 });
 
 describe('payment webhook (provider-agnostic)', () => {
@@ -157,6 +220,39 @@ describe('payment webhook (provider-agnostic)', () => {
     await expect(
       handlePaymentWebhook({ provider: badProvider, req: { rawBody: '{}', headers: {} } }),
     ).rejects.toThrow('bad signature');
+  });
+
+  it('unknown event → received but not handled, no handler runs', async () => {
+    const unknownProvider: PaymentProvider = {
+      name: 'stripe',
+      createCheckout: async () => ({ redirectUrl: '' }),
+      verifyWebhook: async () => ({ kind: 'unknown', raw: {} }),
+    };
+    const onCheckoutCompleted = vi.fn();
+    const res = await handlePaymentWebhook({
+      provider: unknownProvider, req: { rawBody: '{}', headers: {} }, handlers: { onCheckoutCompleted },
+    });
+    expect(res).toEqual({ received: true, kind: 'unknown', handled: false });
+    expect(onCheckoutCompleted).not.toHaveBeenCalled();
+  });
+
+  it('payment_failed dispatches onPaymentFailed', async () => {
+    const failedProvider: PaymentProvider = {
+      name: 'stripe',
+      createCheckout: async () => ({ redirectUrl: '' }),
+      verifyWebhook: async () => ({ kind: 'payment_failed', raw: {} }),
+    };
+    const onPaymentFailed = vi.fn();
+    const res = await handlePaymentWebhook({
+      provider: failedProvider, req: { rawBody: '{}', headers: {} }, handlers: { onPaymentFailed },
+    });
+    expect(res).toEqual({ received: true, kind: 'payment_failed', handled: true });
+    expect(onPaymentFailed).toHaveBeenCalledOnce();
+  });
+
+  it('checkout_completed without a handler → handled: false', async () => {
+    const res = await handlePaymentWebhook({ provider: okProvider, req: { rawBody: '{}', headers: {} } });
+    expect(res).toEqual({ received: true, kind: 'checkout_completed', handled: false });
   });
 });
 
@@ -206,6 +302,24 @@ describe('cart arithmetic (commerce)', () => {
     expect(cart.total).toBe(1500);
     cart = removeCartLine(cart, 'l1');
     expect(cart.lines).toHaveLength(0);
+  });
+
+  it('computeLineTotal: unitPrice × quantity in minor units', () => {
+    expect(computeLineTotal(199000, 3)).toBe(597000);
+    expect(computeLineTotal(0, 5)).toBe(0);
+  });
+
+  it('buildOrderFromCart snapshots the cart (totals NOT recomputed)', () => {
+    const cart = addCartLine(emptyCart('c1', 'EUR'), line({ unitPrice: 500, quantity: 2 }));
+    const order = buildOrderFromCart(cart, { id: 'o1', number: 'N1', email: 'a@b.c' });
+    expect(order).toMatchObject({
+      id: 'o1', number: 'N1', email: 'a@b.c', currency: 'EUR', subtotal: 1000, total: 1000, status: 'paid',
+    });
+    expect(order.lines).toEqual([
+      { variantId: 'v1', productId: 'p1', title: 'T-Shirt', quantity: 2, unitPrice: 500, lineTotal: 1000 },
+    ]);
+    expect(order.createdAt).toBeTruthy();
+    expect(buildOrderFromCart(cart, { id: 'o2', status: 'pending' }).status).toBe('pending');
   });
 
   it('shouldCreateOrder: converted/existing ref → false, fresh → true', () => {

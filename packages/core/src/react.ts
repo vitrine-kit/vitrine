@@ -27,9 +27,19 @@ export function Slot(props: SlotProps): ReactNode {
   const reg = registry ?? (slotRegistry as unknown as SlotComponentRegistry);
   const mounts = reg.get(name);
   if (mounts.length === 0) return fallback;
+  // Keys: component name + occurrence, not the array index — an index key would hand
+  // a component's state to a DIFFERENT component when mounts are re-registered in
+  // another order at runtime.
+  const seen = new Map<string, number>();
   return createElement(
     Fragment,
     null,
-    ...mounts.map((m, i) => createElement(m.component, { key: i, ...rest })),
+    ...mounts.map((m) => {
+      const c = m.component as { displayName?: string; name?: string };
+      const base = c.displayName ?? (c.name || 'mount');
+      const n = seen.get(base) ?? 0;
+      seen.set(base, n + 1);
+      return createElement(m.component, { key: n === 0 ? base : `${base}:${n}`, ...rest });
+    }),
   );
 }
