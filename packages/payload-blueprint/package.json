@@ -29,8 +29,8 @@
     "directory": "packages/payload-blueprint"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
-    "typecheck": "tsc --noEmit",
+    "build": "node scripts/generate-version.mjs && tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "node scripts/generate-version.mjs && tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
