@@ -1,5 +1,14 @@
 # @vitrine-kit/contracts
 
+## 1.2.1
+
+### Patch Changes
+
+- 394587f: Package hygiene: declare `engines.node >= 20` and `sideEffects: false` on the published
+  packages; document the contract-API semantics of `CONTRACTS_VERSION` (stable until a
+  breaking contract change — not the npm package version) and enforce the contracts/CLI pair
+  with a test.
+
 ## 1.2.0
 
 ### Minor Changes
