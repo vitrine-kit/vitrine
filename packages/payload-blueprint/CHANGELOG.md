@@ -1,5 +1,20 @@
 # @vitrine-kit/payload-blueprint
 
+## 0.2.2
+
+### Patch Changes
+
+- 818f948: `CORE_VERSION` / `PAYLOAD_BLUEPRINT_VERSION` are now generated from package.json at
+  build/typecheck time (the same pattern as the CLI's kit constants) instead of being
+  hand-maintained — the "Version Packages" PR no longer fails the version-pin tests when
+  the changesets bot bumps versions.
+- 394587f: Package hygiene: declare `engines.node >= 20` and `sideEffects: false` on the published
+  packages; document the contract-API semantics of `CONTRACTS_VERSION` (stable until a
+  breaking contract change — not the npm package version) and enforce the contracts/CLI pair
+  with a test.
+- Updated dependencies [394587f]
+  - @vitrine-kit/contracts@1.2.1
+
 ## 0.2.1
 
 ### Patch Changes
