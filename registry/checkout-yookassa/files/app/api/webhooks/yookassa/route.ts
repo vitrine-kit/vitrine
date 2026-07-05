@@ -2,11 +2,16 @@
 // re-checks the payment via the API (we trust only succeeded) → normalized
 // event → handlePaymentWebhook → the shared fulfillOrderFromEvent.
 import { NextResponse } from 'next/server';
-import { handlePaymentWebhook } from '@vitrine-kit/core';
+import { checkRateLimit, clientIpFromHeaders, handlePaymentWebhook } from '@vitrine-kit/core';
 import { yookassaProvider } from '@/lib/checkout-yookassa/provider';
 import { fulfillOrderFromEvent } from '@/lib/checkout/fulfill';
 
+const RATE_LIMIT = { limit: 120, windowMs: 60_000 };
+
 export async function POST(req: Request) {
+  const { allowed } = checkRateLimit(`webhook:yookassa:${clientIpFromHeaders(req.headers)}`, RATE_LIMIT);
+  if (!allowed) return NextResponse.json({ error: 'too many requests' }, { status: 429 });
+
   const rawBody = await req.text();
 
   try {
@@ -17,6 +22,8 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(result);
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 400 });
+    // Don't echo provider-specific error text (e.g. re-confirmation failure detail) to the caller.
+    console.error('[vitrine] yookassa webhook error:', err);
+    return NextResponse.json({ error: 'invalid webhook' }, { status: 400 });
   }
 }

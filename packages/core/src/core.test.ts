@@ -18,6 +18,7 @@ import {
 } from './commerce/cart.js';
 import { buildOrderFromCart } from './commerce/order.js';
 import { shouldCreateOrder } from './order/idempotency.js';
+import { checkRateLimit, clientIpFromHeaders } from './security/rate-limit.js';
 import { CORE_VERSION } from './index.js';
 import { Slot } from './react.js';
 
@@ -390,6 +391,33 @@ describe('cart arithmetic (commerce)', () => {
     expect(created[0]?.status).toBe('paid');
     expect(created[0]?.total).toBe(398000);
     expect(created[0]?.email).toBe('x@y.z');
+  });
+});
+
+describe('rate limit', () => {
+  it('allows requests under the limit, blocks once exceeded', () => {
+    const key = `test:${Math.random()}`;
+    const opts = { limit: 2, windowMs: 60_000 };
+    expect(checkRateLimit(key, opts).allowed).toBe(true);
+    expect(checkRateLimit(key, opts).allowed).toBe(true);
+    const blocked = checkRateLimit(key, opts);
+    expect(blocked.allowed).toBe(false);
+    expect(blocked.retryAfterMs).toBeGreaterThan(0);
+  });
+
+  it('tracks independent keys separately', () => {
+    const opts = { limit: 1, windowMs: 60_000 };
+    const a = `test-a:${Math.random()}`;
+    const b = `test-b:${Math.random()}`;
+    expect(checkRateLimit(a, opts).allowed).toBe(true);
+    expect(checkRateLimit(b, opts).allowed).toBe(true);
+    expect(checkRateLimit(a, opts).allowed).toBe(false);
+  });
+
+  it('clientIpFromHeaders reads x-forwarded-for, falls back to x-real-ip then unknown', () => {
+    expect(clientIpFromHeaders(new Headers({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }))).toBe('1.2.3.4');
+    expect(clientIpFromHeaders(new Headers({ 'x-real-ip': '9.9.9.9' }))).toBe('9.9.9.9');
+    expect(clientIpFromHeaders(new Headers())).toBe('unknown');
   });
 });
 

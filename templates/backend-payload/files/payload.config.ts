@@ -14,6 +14,12 @@ import { ensureDevAdmin } from './lib/seed/admin.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const payloadSecret = process.env.PAYLOAD_SECRET;
+if (!payloadSecret && process.env.NODE_ENV === 'production') {
+  // No silent fallback to the dev secret in production (mirrors the Vendure DATABASE_URL guard).
+  throw new Error('[vitrine] PAYLOAD_SECRET is required in production');
+}
+
 export default buildConfig({
   admin: {
     user: 'users',
@@ -21,7 +27,7 @@ export default buildConfig({
   },
   collections: collections as unknown as CollectionConfig[],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET ?? 'dev-secret-change-me',
+  secret: payloadSecret ?? 'dev-secret-change-me',
   db: await resolveDbAdapter(),
   sharp,
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },

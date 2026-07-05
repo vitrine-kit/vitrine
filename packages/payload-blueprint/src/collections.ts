@@ -22,10 +22,14 @@ const f = (
 // don't pull payload into the contract-collections package.
 const authenticated = ({ req }: { req?: { user?: unknown } }): boolean => Boolean(req?.user);
 const adminOnly = { read: authenticated, create: authenticated, update: authenticated, delete: authenticated };
+// Public read (storefront catalog data), writes restricted to authenticated admin users —
+// otherwise Payload's default access (no `access` block) is public read *and* write.
+const publicRead = { read: () => true, create: authenticated, update: authenticated, delete: authenticated };
 
 export const categoriesCollection: BlueprintCollectionConfig = {
   slug: 'categories',
   admin: { useAsTitle: 'title' },
+  access: publicRead,
   fields: [
     f('title', 'text', { required: true }),
     f('slug', 'text', { required: true, unique: true, index: true }),
@@ -37,18 +41,22 @@ export const categoriesCollection: BlueprintCollectionConfig = {
 export const mediaCollection: BlueprintCollectionConfig = {
   slug: 'media',
   upload: true,
+  access: publicRead,
   fields: [f('alt', 'text')],
 };
 
 export const usersCollection: BlueprintCollectionConfig = {
   slug: 'users',
-  auth: true,
+  // maxLoginAttempts/lockTime — Payload's built-in brute-force lockout on the login endpoint.
+  auth: { maxLoginAttempts: 5, lockTime: 10 * 60 * 1000 },
+  access: adminOnly,
   fields: [f('email', 'text', { required: true })],
 };
 
 export const variantsCollection: BlueprintCollectionConfig = {
   slug: 'variants',
   admin: { useAsTitle: 'sku' },
+  access: publicRead,
   fields: [
     f('sku', 'text', { required: true, unique: true, index: true }),
     f('product', 'relationship', { relationTo: 'products', required: true }),
@@ -61,6 +69,7 @@ export const variantsCollection: BlueprintCollectionConfig = {
 export const productsCollection: BlueprintCollectionConfig = {
   slug: 'products',
   admin: { useAsTitle: 'title' },
+  access: publicRead,
   fields: [
     f('title', 'text', { required: true }),
     f('slug', 'text', { required: true, unique: true, index: true }),

@@ -15,3 +15,4 @@ export * from './payment/registry.js';
 export * from './payment/webhook.js';
 export * from './commerce/cart.js';
 export * from './commerce/order.js';
+export * from './security/rate-limit.js';
