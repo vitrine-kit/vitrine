@@ -20,7 +20,7 @@ export default async function AccountOrdersPage({ searchParams }: PageProps) {
   const guestEmail = raw?.trim().toLowerCase() ?? '';
   const email = customer?.email?.trim().toLowerCase() || guestEmail;
 
-  if (!email || !email.includes('@')) {
+  if (!email?.includes('@')) {
     return (
       <div className="flex flex-col gap-gutter">
         <h1 className="font-heading text-fg">Your orders</h1>

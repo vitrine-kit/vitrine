@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     );
   }
   const email = new URL(req.url).searchParams.get('email')?.trim().toLowerCase() ?? '';
-  if (!email || !email.includes('@')) {
+  if (!email?.includes('@')) {
     return NextResponse.json({ error: 'email required' }, { status: 400 });
   }
   const payload = await getPayload({ config });

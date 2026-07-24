@@ -10,6 +10,7 @@ function readCookie(): string | null {
 }
 
 function writeCookie(locale: string): void {
+  // biome-ignore lint/suspicious/noDocumentCookie: locale preference cookie; Cookie Store API is not universal enough yet.
   document.cookie = `${COOKIE}=${encodeURIComponent(locale)};path=/;max-age=31536000;samesite=lax`;
 }
 
