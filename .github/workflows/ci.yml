@@ -67,8 +67,12 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Prefer pnpm's recursive filter over turbo on Windows: turbo has
+      # exited 1 with zero task logs on trees that just passed the same
+      # step on the PR (e.g. run 30177869478 after green 30177813590).
+      # This job is about CLI FS behavior, not turbo itself.
       - name: Build CLI (with workspace deps)
-        run: pnpm turbo run build --filter=@vitrine-kit/vitrine
+        run: pnpm --filter "@vitrine-kit/vitrine..." build
 
       - name: Test CLI
         run: pnpm --filter @vitrine-kit/vitrine test
