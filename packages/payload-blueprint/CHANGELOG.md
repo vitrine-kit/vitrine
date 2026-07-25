@@ -1,5 +1,18 @@
 # @vitrine-kit/payload-blueprint
 
+## 0.3.0
+
+### Minor Changes
+
+- 7c95387: Deepen remaining storefront ops: SMTP via `@payloadcms/email-nodemailer` in Payload config, customer register/login (`customers` collection via blueprint `addCollection`), and locale path-prefix middleware when `locales.length > 1`.
+- 7c95387: Docker compose first-boot seed/admin, Payload CMS locales for product copy, console email adapter for password reset, and catalog option/price facets.
+
+### Patch Changes
+
+- Updated dependencies [7c95387]
+- Updated dependencies [7c95387]
+  - @vitrine-kit/contracts@1.3.0
+
 ## 0.2.4
 
 ### Patch Changes

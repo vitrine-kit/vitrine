@@ -1,5 +1,14 @@
 # @vitrine-kit/core
 
+## 0.3.2
+
+### Patch Changes
+
+- 7c95387: Make `@vitrine-kit/core/react` `<Slot>` a Client Component and wrap the storefront layout with `SlotsProvider` so registry-mounted client UI hydrates. Allow `'unsafe-eval'` in the template CSP during `next dev` (webpack/Fast Refresh); without it Add to cart and other client handlers never attach.
+- Updated dependencies [7c95387]
+- Updated dependencies [7c95387]
+  - @vitrine-kit/contracts@1.3.0
+
 ## 0.3.1
 
 ### Patch Changes
