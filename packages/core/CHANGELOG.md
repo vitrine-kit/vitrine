@@ -1,5 +1,12 @@
 # @vitrine-kit/core
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [ebf83ec]
+  - @vitrine-kit/contracts@1.2.2
+
 ## 0.3.0
 
 ### Minor Changes
