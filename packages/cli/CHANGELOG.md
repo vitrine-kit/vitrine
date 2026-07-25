@@ -1,5 +1,25 @@
 # @vitrine-kit/vitrine
 
+## 0.5.0
+
+### Minor Changes
+
+- 7c95387: Add remaining storefront features: Playwright smoke suite, wishlist, reviews, guest order accounts, cookie i18n switcher, and transactional email stub/env.
+- 7c95387: Add `search` and `filters` registry features (default on init), expand SEO with sitemap/robots, honor ProductQuery search/filters/price-sort in the Payload adapter, interactive product gallery, and order-confirmation email stub with shipping/tax docs for hosted checkout.
+
+### Patch Changes
+
+- 7c95387: Deepen remaining storefront ops: SMTP via `@payloadcms/email-nodemailer` in Payload config, customer register/login (`customers` collection via blueprint `addCollection`), and locale path-prefix middleware when `locales.length > 1`.
+- 7c95387: Link `orders.customer` on webhook fulfill when the checkout email matches a customer; ship a base `lib/i18n` dictionary stub and wire chrome labels (cart/search/checkout/wishlist/account/add-to-cart) through `useChromeLabel`; expand Playwright smoke for wishlist, reviews, and register.
+- 7c95387: Docker compose first-boot seed/admin, Payload CMS locales for product copy, console email adapter for password reset, and catalog option/price facets.
+- 7c95387: Switch `vitrine kit update` from GitHub `gh release` downloads to public npm (`npm install @vitrine-kit/vitrine` into a temp prefix), using the package's bundled `kit/` registry + templates. Version is an optional positional arg (`vitrine kit update [version]`).
+- 7c95387: Add storefront `not-found` page, customer forgot/reset password flows, localize empty-cart chrome, and expand Playwright smoke for 404 + forgot-password.
+- 7c95387: Make `@vitrine-kit/core/react` `<Slot>` a Client Component and wrap the storefront layout with `SlotsProvider` so registry-mounted client UI hydrates. Allow `'unsafe-eval'` in the template CSP during `next dev` (webpack/Fast Refresh); without it Add to cart and other client handlers never attach.
+- 7c95387: Close the highest-impact simple-store gaps from live client review: treat blank `PAYLOAD_SECRET` as unset and write a filled `.env` at init; add `/order/success`; wire cart qty/remove + badge; drive storefront branding from `siteConfig.name`; return JSON checkout/cart errors; enforce stock on add/checkout.
+- Updated dependencies [7c95387]
+- Updated dependencies [7c95387]
+  - @vitrine-kit/contracts@1.3.0
+
 ## 0.4.3
 
 ### Patch Changes
