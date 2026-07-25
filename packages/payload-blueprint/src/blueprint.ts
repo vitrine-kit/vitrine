@@ -1,6 +1,7 @@
 // Implementation of contract 5 (Blueprint): features additively extend collections via
 // extend('product', { addFields }); build() assembles the final collections,
-// checking that no added field overwrites an existing one.
+// checking that no added field overwrites an existing one. Features may also
+// addCollection() for auth/ops collections that are not in the base set.
 import type { BlueprintCollection, BlueprintFieldDef, Extend } from '@vitrine-kit/contracts';
 import { baseCollections, type BlueprintCollectionConfig } from './collections.js';
 
@@ -16,12 +17,15 @@ const SLUG_BY_COLLECTION: Record<BlueprintCollection, string> = {
 
 export interface Blueprint {
   extend: Extend;
-  /** Assembles the base collections + additive extensions. */
+  /** Add a collection that is not in the base set (e.g. storefront customers). */
+  addCollection(config: BlueprintCollectionConfig): void;
+  /** Assembles the base collections + additive extensions + extras. */
   build(): BlueprintCollectionConfig[];
 }
 
 export function createBlueprint(): Blueprint {
   const additions = new Map<string, BlueprintFieldDef[]>();
+  const extras: BlueprintCollectionConfig[] = [];
 
   const extend: Extend = (collection, patch) => {
     const slug = SLUG_BY_COLLECTION[collection];
@@ -30,8 +34,21 @@ export function createBlueprint(): Blueprint {
     additions.set(slug, list);
   };
 
+  function addCollection(config: BlueprintCollectionConfig): void {
+    const taken = new Set([
+      ...baseCollections.map((c) => c.slug),
+      ...extras.map((c) => c.slug),
+    ]);
+    if (taken.has(config.slug)) {
+      throw new Error(
+        `[vitrine] blueprint: collection "${config.slug}" already exists — addCollection() is additive only`,
+      );
+    }
+    extras.push(config);
+  }
+
   function build(): BlueprintCollectionConfig[] {
-    return baseCollections.map((base) => {
+    const extended = baseCollections.map((base) => {
       const adds = additions.get(base.slug) ?? [];
       if (adds.length === 0) return base;
 
@@ -46,7 +63,8 @@ export function createBlueprint(): Blueprint {
       }
       return { ...base, fields: [...base.fields, ...adds] };
     });
+    return [...extended, ...extras];
   }
 
-  return { extend, build };
+  return { extend, addCollection, build };
 }

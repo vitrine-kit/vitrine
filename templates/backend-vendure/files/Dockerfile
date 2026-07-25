@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Vitrine client image on Vendure. One image, two commands (compose): the Vendure server
-# (`node dist/index.js`) and the Next storefront (`next start`). Target — VPS.
+# (`pnpm exec tsx src/index.ts`) and the Next storefront (`pnpm start`). Target — VPS.
 FROM node:20-alpine AS base
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app

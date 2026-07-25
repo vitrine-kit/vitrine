@@ -3,6 +3,7 @@
 // add (equivalence guarantee). The template provides the static skeleton (Next/Payload,
 // configs, adapters, zero-config dev, Docker); the CLI generates the managed files
 // (site.config.ts, vitrine.json, CLAUDE.md, package.json, slots/blueprint/theme).
+import { randomBytes } from 'node:crypto';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Backend, Tier } from '@vitrine-kit/contracts';
@@ -53,7 +54,7 @@ export function suggestFeatures(
   registry: RegistrySource,
   backend: Backend = defaultBackend(tier),
 ): string[] {
-  const core = ['catalog', 'product-page', 'seo'];
+  const core = ['catalog', 'product-page', 'seo', 'search', 'filters'];
   // On Vendure, checkout is native (Vendure's Stripe plugin); the checkout-stripe feature is Payload-specific.
   const shop = backend === 'vendure' ? ['cart'] : ['cart', 'checkout-stripe'];
   const desired = tier === 'catalog' ? core : [...core, ...shop];
@@ -180,9 +181,13 @@ function clientEnvExample(backend: Backend): string {
     '# Payload secret (required; generate a random one for prod).',
     'PAYLOAD_SECRET=',
     '',
-    '# Dev admin (created only in dev when the DB is empty; the password is printed to the console).',
+    '# Dev / bootstrap admin (created when the users collection is empty in dev,',
+    '# or in production when SEED_ON_BOOT=1 — password printed to the console).',
     'DEV_ADMIN_EMAIL=',
     'DEV_ADMIN_PASSWORD=',
+    '',
+    '# Docker compose: seed demo catalog + admin on first boot (default 1 in compose).',
+    '# SEED_ON_BOOT=1',
     '',
     '# Site base URL (canonical, OG).',
     'NEXT_PUBLIC_SITE_URL=http://localhost:3000',
@@ -190,7 +195,24 @@ function clientEnvExample(backend: Backend): string {
     '# Disable the SQLite fallback even in dev (to catch config typos):',
     '# VITRINE_DB_STRICT=1',
     '',
-  ].join('\n');
+    ].join('\n');
+}
+
+/**
+ * Dev `.env` written at init so `pnpm dev` works after `cp` is skipped.
+ * `.env.example` stays blank for secrets; this file fills Payload's required secret.
+ */
+function clientEnvFile(backend: Backend): string {
+  const example = clientEnvExample(backend);
+  if (backend === 'payload') {
+    const secret = randomBytes(24).toString('base64url');
+    return example.replace(/^PAYLOAD_SECRET=$/m, `PAYLOAD_SECRET=${secret}`);
+  }
+  if (backend === 'vendure') {
+    const secret = randomBytes(24).toString('base64url');
+    return example.replace(/^VENDURE_COOKIE_SECRET=$/m, `VENDURE_COOKIE_SECRET=${secret}`);
+  }
+  return example;
 }
 
 /**
@@ -217,17 +239,17 @@ function clientReadme(name: string, backend: Backend, tier: Tier): string {
       : [
           '```bash',
           'pnpm install',
-          'cp .env.example .env',
           'pnpm dev',
           '```',
           '',
           '- Storefront: http://localhost:3000',
           '- Admin: http://localhost:3000/admin',
           '',
-          'Without Postgres, dev starts a built-in SQLite (`.vitrine/dev.sqlite`), seeds a',
-          'demo catalog (5 products, 2 categories, size/color variants, gallery images) and creates a',
-          'dev admin (login/password printed to the console once). Disable the fallback in',
-          'dev too with `VITRINE_DB_STRICT=1`.',
+          '`vitrine init` writes a starter `.env` (including `PAYLOAD_SECRET`). Copy from',
+          '`.env.example` only if you need a fresh file. Without Postgres, dev starts a built-in',
+          'SQLite (`.vitrine/dev.sqlite`), seeds a demo catalog (5 products, 2 categories,',
+          'size/color variants, gallery images) and creates a dev admin (login/password printed',
+          'to the console once). Disable the fallback in dev too with `VITRINE_DB_STRICT=1`.',
         ].join('\n');
 
   const deploySecret =
@@ -271,7 +293,7 @@ vitrine design apply     # style the new feature
 ## 5. Updates and checks
 
 \`\`\`bash
-vitrine kit update       # update the local registry/templates cache from GitHub
+vitrine kit update       # update the local registry/templates cache from npm
 vitrine diff <feature>   # preview a feature update
 vitrine update [feature] # 3-way merge of the new feature version (base = your snapshot)
 vitrine doctor           # consistency: vitrine.json ↔ files ↔ packages ↔ env
@@ -323,6 +345,7 @@ function scaffoldBase(opts: InitOptions): void {
     `import type { SiteConfig } from '@vitrine-kit/contracts';
 
 export const siteConfig: SiteConfig = {
+  name: ${JSON.stringify(name)},
   backend: ${JSON.stringify(backend)},
   tier: ${JSON.stringify(tier)},
   // vitrine:features:start
@@ -364,7 +387,7 @@ _No features installed yet._
 | \`vitrine diff <feature>\` | Preview an update (without writing) | before \`update\` | \`--registry\` |
 | \`vitrine doctor\` | Consistency: \`vitrine.json\` ↔ files ↔ packages ↔ env | after edits, when in doubt | \`--registry\` |
 | \`vitrine design apply\` | Apply the design from \`/design\` to tokens (via Claude Code) | after \`add\` or a rebrand | \`--bin\`, \`--dry-run\` |
-| \`vitrine kit update\` | Update the local registry/templates cache from GitHub | before updating features | \`--from\`, \`--version\`, \`--channel\` |
+| \`vitrine kit update\` | Update the local registry/templates cache from npm | before updating features | \`[version]\`, \`--from\`, \`--channel\` |
 | \`vitrine kit status\` | Cache version vs the CLI's expected one | diagnostics | — |
 | \`vitrine self-update\` | Update the CLI itself | rarely | \`--dry-run\` |
 
@@ -413,6 +436,7 @@ The step is idempotent: re-running converges and doesn't accumulate cruft.
   writeText(join(root, 'lib', 'blueprint.ts'), renderBlueprintFile([]));
   writeText(join(root, 'theme', 'client.css'), renderNeutralTheme());
   writeText(join(root, '.env.example'), clientEnvExample(backend));
+  writeText(join(root, '.env'), clientEnvFile(backend));
   writeText(join(root, 'package.json'), `${JSON.stringify(clientPackageJson(name, backend), null, 2)}\n`);
 }
 

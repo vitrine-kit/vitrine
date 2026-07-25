@@ -27,7 +27,7 @@ import {
 import { runDoctor } from './doctor.js';
 import { listFeatures } from './commands.js';
 import { computeChangelog, populateCache, readKitMeta } from './cache.js';
-import { kitStatus, kitUpdate } from './kit-update.js';
+import { kitStatus, kitUpdate, resolveKitNpmSpec } from './kit-update.js';
 import { merge3 } from './merge.js';
 import { applyUpdate, planUpdate } from './update.js';
 import { preflightNode, replaceBetween } from './util.js';
@@ -49,6 +49,30 @@ afterEach(() => {
 });
 
 const read = (root: string, rel: string) => readFileSync(join(root, rel), 'utf8');
+
+describe('suggestFeatures', () => {
+  it('includes search and filters in the catalog baseline', () => {
+    expect(suggestFeatures('catalog', registry)).toEqual([
+      'catalog',
+      'product-page',
+      'seo',
+      'search',
+      'filters',
+    ]);
+  });
+
+  it('adds cart + checkout-stripe for payload simple-store', () => {
+    expect(suggestFeatures('simple-store', registry, 'payload')).toEqual([
+      'catalog',
+      'product-page',
+      'seo',
+      'search',
+      'filters',
+      'cart',
+      'checkout-stripe',
+    ]);
+  });
+});
 
 describe('init + install primitive (DoD)', () => {
   it('catalog init installs catalog/product-page/seo and writes everything consistently', () => {
@@ -74,6 +98,7 @@ describe('init + install primitive (DoD)', () => {
 
     // flags in site.config
     const config = read(root, 'site.config.ts');
+    expect(config).toContain('name: "shop"');
     expect(config).toContain('"catalog": true');
     expect(config).toContain('"seo": true');
 
@@ -86,6 +111,10 @@ describe('init + install primitive (DoD)', () => {
 
     // pristine snapshots for 3-way merge
     expect(existsSync(join(root, '.vitrine/originals/catalog@0.0.0/components/catalog/ProductCard.tsx'))).toBe(true);
+
+    // .env.example stays blank for secrets; .env is filled so pnpm dev works immediately
+    expect(read(root, '.env.example')).toMatch(/^PAYLOAD_SECRET=$/m);
+    expect(read(root, '.env')).toMatch(/^PAYLOAD_SECRET=.+$/m);
   });
 
   it('scaffolds agent artifacts: reference in CLAUDE.md, slash commands, AGENTS.md', () => {
@@ -432,13 +461,14 @@ describe('remove deletes only the feature files (shared app/, P0)', () => {
     const root = join(tmp(), 'shop');
     initProject({
       root, name: 'shop', backend: 'payload', tier: 'simple-store',
-      features: ['cart', 'checkout-stripe'], registry,
+      features: ['checkout-stripe'], registry,
     });
     // checkout-stripe pulls checkout (→ cart); all map files/app/ → app/
     expect(existsSync(join(root, 'app/api/webhooks/stripe/route.ts'))).toBe(true); // checkout-stripe
     expect(existsSync(join(root, 'lib/checkout-stripe/provider.ts'))).toBe(true);
     expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true); // checkout (dependency)
     expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/order/success/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true); // base template
 
     removeFeature(loadProject(root), 'checkout-stripe', registry);
@@ -449,10 +479,66 @@ describe('remove deletes only the feature files (shared app/, P0)', () => {
     expect(existsSync(join(root, '.vitrine/originals/checkout-stripe@0.0.0/app/api/webhooks/stripe/route.ts'))).toBe(false);
     // checkout (parent dependency), cart and the base template survived
     expect(existsSync(join(root, 'app/api/checkout/route.ts'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/order/success/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'components/checkout/CheckoutButton.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/cart/page.tsx'))).toBe(true);
     expect(existsSync(join(root, 'app/api/cart/route.ts'))).toBe(true);
     expect(existsSync(join(root, 'app/(frontend)/page.tsx'))).toBe(true);
+  });
+});
+
+describe('search + filters + seo crawl files', () => {
+  it('installs search page, filters toolbar registration, and sitemap/robots', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root,
+      name: 'shop',
+      backend: 'payload',
+      tier: 'catalog',
+      features: ['catalog', 'search', 'filters', 'seo'],
+      registry,
+    });
+    expect(existsSync(join(root, 'app/(frontend)/search/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'components/search/SearchForm.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'components/filters/CatalogToolbar.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/sitemap.ts'))).toBe(true);
+    expect(existsSync(join(root, 'app/robots.ts'))).toBe(true);
+    const slots = read(root, 'lib/slots.ts');
+    expect(slots).toContain('registerSearchSlots');
+    expect(slots).toContain('registerFiltersSlots');
+  });
+});
+
+describe('wishlist / reviews / accounts / i18n / email', () => {
+  it('installs optional merchandising and ops features', () => {
+    const root = join(tmp(), 'shop');
+    initProject({
+      root,
+      name: 'shop',
+      backend: 'payload',
+      tier: 'simple-store',
+      features: ['wishlist', 'reviews', 'accounts', 'i18n', 'email', 'checkout-stripe'],
+      registry,
+    });
+    expect(existsSync(join(root, 'app/(frontend)/wishlist/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'components/reviews/ReviewList.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'lib/reviews/blueprint.ts'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/account/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/account/login/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/account/forgot-password/page.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'app/(frontend)/not-found.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'middleware.ts'))).toBe(true);
+    expect(existsSync(join(root, 'components/i18n/LocaleSwitcher.tsx'))).toBe(true);
+    expect(existsSync(join(root, 'lib/email/adapter.ts'))).toBe(true);
+    expect(read(root, 'lib/blueprint.ts')).toContain('extendReviewsBlueprint');
+    expect(read(root, 'lib/blueprint.ts')).toContain('extendAccountsBlueprint');
+    expect(read(root, '.env.example')).toContain('EMAIL_FROM=');
+    expect(read(root, 'site.config.ts')).toContain('email: "smtp"');
+    const slots = read(root, 'lib/slots.ts');
+    expect(slots).toContain('registerWishlistSlots');
+    expect(slots).toContain('registerReviewsSlots');
+    expect(slots).toContain('registerAccountsSlots');
+    expect(slots).toContain('registerI18nSlots');
   });
 });
 
@@ -485,6 +571,7 @@ describe('payment providers (multi-provider)', () => {
       features: ['cart', 'checkout', 'checkout-stripe'], registry,
     });
     const cartRoute = read(root, 'app/api/cart/route.ts');
+    expect(cartRoute).toContain('export async function GET');
     expect(cartRoute).toContain('export async function POST');
     expect(cartRoute).toContain('export async function PATCH');
     expect(cartRoute).toContain('export async function DELETE');
@@ -708,6 +795,14 @@ describe('kit cache', () => {
     expect(existsSync(join(home, 'registry', '_index.json'))).toBe(true);
     expect(existsSync(join(home, 'templates', 'base'))).toBe(true);
     expect(readKitMeta(home)?.channel).toBe('stable');
+  });
+
+  it('resolveKitNpmSpec targets the public @vitrine-kit/vitrine package', () => {
+    expect(resolveKitNpmSpec()).toBe('@vitrine-kit/vitrine@latest');
+    expect(resolveKitNpmSpec('latest')).toBe('@vitrine-kit/vitrine@latest');
+    expect(resolveKitNpmSpec('0.4.3')).toBe('@vitrine-kit/vitrine@0.4.3');
+    expect(resolveKitNpmSpec('v0.4.3')).toBe('@vitrine-kit/vitrine@0.4.3');
+    expect(resolveKitNpmSpec('@vitrine-kit/vitrine@0.4.3')).toBe('@vitrine-kit/vitrine@0.4.3');
   });
 
   it('kitStatus reads the cache', () => {

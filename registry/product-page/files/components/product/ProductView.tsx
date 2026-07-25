@@ -31,15 +31,15 @@ export function ProductView({ product }: ProductViewProps) {
               : formatPrice(price, currency)}
           </p>
         ) : null}
-        <Slot name="product.below-price" />
+        <Slot name="product.below-price" product={product} />
         <div className="vt-product-purchase">
           <Slot name="product.purchase" product={product} />
         </div>
         {product.description ? (
           <div className="vt-product-description text-fg">{product.description}</div>
         ) : null}
-        <Slot name="product.below-description" />
-        <Slot name="product.tabs" />
+        <Slot name="product.below-description" product={product} />
+        <Slot name="product.tabs" product={product} />
       </div>
     </article>
   );

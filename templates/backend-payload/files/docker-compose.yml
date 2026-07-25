@@ -1,5 +1,6 @@
 # Reference Vitrine deployment on a VPS: app (Next+Payload) + Postgres.
 # Run: PAYLOAD_SECRET=... docker compose up --build
+# First boot seeds demo catalog + admin when SEED_ON_BOOT=1 (default here).
 services:
   db:
     image: postgres:16-alpine
@@ -25,11 +26,18 @@ services:
       DATABASE_URL: postgres://vitrine:${POSTGRES_PASSWORD:-vitrine}@db:5432/vitrine
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?set PAYLOAD_SECRET}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      SEED_ON_BOOT: ${SEED_ON_BOOT:-1}
+      DEV_ADMIN_EMAIL: ${DEV_ADMIN_EMAIL:-admin@example.com}
+      DEV_ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@localhost}
     ports:
       - '3000:3000'
+    volumes:
+      - media:/app/media
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   pgdata:
+  media:

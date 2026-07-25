@@ -139,9 +139,11 @@ describe('demo seed (§18.2) — invariants', () => {
 });
 
 describe('dev-procedure guards (§18.3)', () => {
-  it('dev only + empty collection', () => {
+  it('dev only + empty collection, or SEED_ON_BOOT in production', () => {
     expect(shouldRunDevTask({ isProd: false, existingCount: 0 })).toBe(true);
     expect(shouldRunDevTask({ isProd: true, existingCount: 0 })).toBe(false);
+    expect(shouldRunDevTask({ isProd: true, existingCount: 0, seedOnBoot: true })).toBe(true);
     expect(shouldRunDevTask({ isProd: false, existingCount: 3 })).toBe(false);
+    expect(shouldRunDevTask({ isProd: true, existingCount: 3, seedOnBoot: true })).toBe(false);
   });
 });

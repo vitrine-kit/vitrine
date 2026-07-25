@@ -26,6 +26,11 @@ describe('site.config', () => {
     expect(cfg.i18n.defaultLocale).toBe('en');
     expect(cfg.theme.cssFile).toBe('theme/client.css');
   });
+
+  it('accepts an optional storefront name', () => {
+    const cfg = siteConfigSchema.parse({ backend: 'payload', tier: 'catalog', name: 'Acme Shop' });
+    expect(cfg.name).toBe('Acme Shop');
+  });
 });
 
 describe('feature.json (reviews example from §8 of the spec)', () => {

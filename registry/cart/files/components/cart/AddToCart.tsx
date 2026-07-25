@@ -4,10 +4,14 @@
 'use client';
 import { useMemo, useState } from 'react';
 import type { Product, Variant } from '@vitrine-kit/contracts';
+import { formatMoney } from '../../lib/cart/data.js';
+import { useChromeLabel } from '@/lib/i18n/useChromeLabel';
 
 export interface AddToCartProps {
   product: Product;
 }
+
+const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
 function optionKeys(variants: Variant[]): string[] {
   const keys = new Set<string>();
@@ -23,7 +27,18 @@ function valuesFor(variants: Variant[], key: string): string[] {
     const value = v.options?.[key];
     if (value) values.add(value);
   }
-  return [...values];
+  const list = [...values];
+  if (key.toLowerCase() === 'size') {
+    return list.sort((a, b) => {
+      const ia = SIZE_ORDER.indexOf(a.toUpperCase());
+      const ib = SIZE_ORDER.indexOf(b.toUpperCase());
+      if (ia >= 0 && ib >= 0) return ia - ib;
+      if (ia >= 0) return -1;
+      if (ib >= 0) return 1;
+      return a.localeCompare(b);
+    });
+  }
+  return list.sort((a, b) => a.localeCompare(b));
 }
 
 function matchVariant(
@@ -52,6 +67,8 @@ export function AddToCart({ product }: AddToCartProps) {
   const variants = product.variants;
   const keys = useMemo(() => optionKeys(variants), [variants]);
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const addLabel = useChromeLabel('addToCart');
   const [selected, setSelected] = useState<Record<string, string>>(() => ({
     ...(firstAvailable(variants)?.options ?? {}),
   }));
@@ -62,17 +79,26 @@ export function AddToCart({ product }: AddToCartProps) {
   const active = matched ?? firstAvailable(variants);
   const activeId = active?.id;
   const outOfStock = active != null && active.stock != null && active.stock <= 0;
+  const currency = active?.currency ?? product.priceRange?.currency ?? 'USD';
 
   async function add(): Promise<void> {
     if (!activeId || outOfStock) return;
     setPending(true);
+    setError(null);
     try {
-      await fetch('/api/cart', {
+      const res = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ variantId: activeId, quantity: 1 }),
       });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? 'Could not add to cart.');
+        return;
+      }
       location.assign('/cart');
+    } catch {
+      setError('Could not add to cart.');
     } finally {
       setPending(false);
     }
@@ -119,14 +145,23 @@ export function AddToCart({ product }: AddToCartProps) {
         </label>
       ) : null}
 
+      {active?.price != null ? (
+        <p className="text-price text-lg">{formatMoney(active.price, currency)}</p>
+      ) : null}
+
       <button
         type="button"
         onClick={add}
         disabled={pending || !activeId || outOfStock}
         className="vt-add-to-cart rounded-md bg-primary px-gutter py-unit text-primary-fg transition hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 ring-ring"
       >
-        {pending ? 'Adding…' : outOfStock ? 'Out of stock' : 'Add to cart'}
+        {pending ? 'Adding…' : outOfStock ? 'Out of stock' : addLabel}
       </button>
+      {error ? (
+        <p role="alert" className="vt-add-to-cart-error text-danger">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

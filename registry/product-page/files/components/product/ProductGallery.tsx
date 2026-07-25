@@ -1,4 +1,6 @@
-// Product gallery — presentational, neutral.
+// Product gallery — client component so thumbnails switch the cover image.
+'use client';
+import { useState } from 'react';
 import type { ProductImage } from '@vitrine-kit/contracts';
 
 export interface ProductGalleryProps {
@@ -7,11 +9,12 @@ export interface ProductGalleryProps {
 }
 
 export function ProductGallery({ images, title }: ProductGalleryProps) {
-  const cover = images[0];
+  const [active, setActive] = useState(0);
+  const cover = images[active] ?? images[0];
   if (!cover) {
     return <div className="aspect-square w-full rounded-md bg-muted" aria-hidden="true" />;
   }
-  const rest = images.slice(1);
+
   return (
     <div className="vt-product-gallery">
       <img
@@ -19,15 +22,25 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
         alt={cover.alt ?? title}
         className="w-full rounded-md object-cover"
       />
-      {rest.length > 0 ? (
+      {images.length > 1 ? (
         <ul role="list" className="mt-gutter flex gap-gutter">
-          {rest.map((img, i) => (
-            <li key={img.url}>
-              <img
-                src={img.url}
-                alt={img.alt ?? `${title} — image ${i + 2}`}
-                className="h-16 w-16 rounded-md object-cover"
-              />
+          {images.map((img, i) => (
+            <li key={`${img.url}-${i}`}>
+              <button
+                type="button"
+                onClick={() => setActive(i)}
+                aria-label={`Show image ${i + 1}`}
+                aria-current={i === active ? 'true' : undefined}
+                className={`rounded-md focus-visible:outline-none focus-visible:ring-2 ring-ring ${
+                  i === active ? 'ring-2 ring-ring' : 'opacity-80 hover:opacity-100'
+                }`}
+              >
+                <img
+                  src={img.url}
+                  alt={img.alt ?? `${title} — image ${i + 1}`}
+                  className="h-16 w-16 rounded-md object-cover"
+                />
+              </button>
             </li>
           ))}
         </ul>

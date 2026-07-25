@@ -19,6 +19,10 @@
             "full-store"
           ]
         },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
         "features": {
           "type": "object",
           "additionalProperties": {

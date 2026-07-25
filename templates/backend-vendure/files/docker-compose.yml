@@ -20,7 +20,8 @@ services:
     build:
       context: .
     restart: unless-stopped
-    command: ['node', 'dist/index.js']
+    # tsx is available from the full build image; avoids a separate server compile step.
+    command: ['pnpm', 'exec', 'tsx', 'src/index.ts']
     environment:
       NODE_ENV: production
       DATABASE_URL: postgres://vitrine:${POSTGRES_PASSWORD:-vitrine}@db:5432/vitrine

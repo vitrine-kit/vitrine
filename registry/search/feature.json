@@ -1,0 +1,22 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "search",
+  "title": "Product search",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": ["catalog"],
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/search/", "to": "components/search/" },
+    { "from": "files/lib/search/", "to": "lib/search/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.search": true } },
+  "slots": [{ "slot": "global.header-actions", "component": "SearchForm", "order": 5 }],
+  "env": [],
+  "claudeDoc": "docs/search.md",
+  "conflicts": [],
+  "removable": true
+}

@@ -31,9 +31,9 @@ export const categoriesCollection: BlueprintCollectionConfig = {
   admin: { useAsTitle: 'title' },
   access: publicRead,
   fields: [
-    f('title', 'text', { required: true }),
+    f('title', 'text', { required: true, localized: true }),
     f('slug', 'text', { required: true, unique: true, index: true }),
-    f('description', 'textarea'),
+    f('description', 'textarea', { localized: true }),
     f('parent', 'relationship', { relationTo: 'categories' }),
   ],
 };
@@ -73,13 +73,17 @@ export const productsCollection: BlueprintCollectionConfig = {
   admin: { useAsTitle: 'title' },
   access: publicRead,
   fields: [
-    f('title', 'text', { required: true }),
+    f('title', 'text', { required: true, localized: true }),
     f('slug', 'text', { required: true, unique: true, index: true }),
-    f('description', 'richText'),
+    f('description', 'richText', { localized: true }),
     f('categories', 'relationship', { relationTo: 'categories', hasMany: true }),
     f('images', 'relationship', { relationTo: 'media', hasMany: true }),
     f('seo', 'group', {
-      fields: [f('title', 'text'), f('description', 'textarea'), f('image', 'relationship', { relationTo: 'media' })],
+      fields: [
+        f('title', 'text', { localized: true }),
+        f('description', 'textarea', { localized: true }),
+        f('image', 'relationship', { relationTo: 'media' }),
+      ],
     }),
   ],
 };

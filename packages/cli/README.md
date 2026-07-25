@@ -31,4 +31,4 @@ with flags is in the generated project's `CLAUDE.md`.
 
 At its core is the **feature install primitive**, shared by `init` and `add` (guarantee: "added by
 the wizard" ≡ "added later"). `add`/`update` work offline from the `~/.vitrine` cache; the network
-is only needed for `kit update`.
+is only needed for `kit update` (public npm — `@vitrine-kit/vitrine`).

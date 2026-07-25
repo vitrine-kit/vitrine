@@ -1,0 +1,22 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "i18n",
+  "title": "Locale switcher and path prefixes",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": [],
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/i18n/", "to": "components/i18n/" },
+    { "from": "files/lib/i18n/", "to": "lib/i18n/" },
+    { "from": "files/middleware.ts", "to": "middleware.ts" }
+  ],
+  "config": { "set": { "features.i18n": true } },
+  "slots": [{ "slot": "global.header-actions", "component": "LocaleSwitcher", "order": 30 }],
+  "env": [],
+  "claudeDoc": "docs/i18n.md",
+  "conflicts": [],
+  "removable": true
+}

@@ -1,6 +1,9 @@
 // Cart contents — presentational. Hosts the cart.items-bottom / cart.below slots.
+'use client';
+
 import type { Cart } from '@vitrine-kit/contracts';
 import { Slot } from '@vitrine-kit/core/react';
+import { useChromeLabel } from '@/lib/i18n/useChromeLabel';
 import { CartLineItem } from './CartLineItem.js';
 import { CartSummary } from './CartSummary.js';
 
@@ -9,23 +12,22 @@ export interface CartViewProps {
 }
 
 export function CartView({ cart }: CartViewProps) {
+  const continueShopping = useChromeLabel('continueShopping');
+  const addToCart = useChromeLabel('addToCart');
+
   if (cart.lines.length === 0) {
     return (
       <div className="vt-cart-empty flex flex-col gap-gutter">
         <p className="text-muted-fg">Your cart is empty.</p>
         <p className="text-sm text-muted-fg">
-          Open a product such as{' '}
-          <a href="/products/classic-tee" className="text-fg underline underline-offset-2">
-            Classic T-Shirt
-          </a>
-          , pick a size, then use <span className="text-fg">Add to cart</span> to try the checkout
-          flow.
+          Browse the catalog, open a product, then use <span className="text-fg">{addToCart}</span>{' '}
+          to start checkout.
         </p>
         <a
           href="/"
           className="w-fit rounded-md border border-border px-gutter py-unit text-fg transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 ring-ring"
         >
-          Continue shopping
+          {continueShopping}
         </a>
       </div>
     );

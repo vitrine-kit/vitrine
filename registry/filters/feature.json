@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "filters",
+  "title": "Catalog sort, facets, and price filters",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": ["catalog"],
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/filters/", "to": "components/filters/" },
+    { "from": "files/lib/filters/", "to": "lib/filters/" }
+  ],
+  "config": { "set": { "features.filters": true } },
+  "slots": [{ "slot": "catalog.toolbar", "component": "CatalogToolbar", "order": 10 }],
+  "env": [],
+  "claudeDoc": "docs/filters.md",
+  "conflicts": [],
+  "removable": true
+}

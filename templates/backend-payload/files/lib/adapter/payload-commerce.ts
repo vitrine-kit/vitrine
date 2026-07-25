@@ -72,6 +72,15 @@ export class PayloadCommerceBackend implements CommerceBackend {
       id: variantId,
       depth: 1,
     })) as unknown as VariantDoc;
+    if (typeof variant.stock === 'number') {
+      if (variant.stock <= 0) throw new Error('[vitrine] variant is out of stock');
+      const alreadyInCart = cart.lines
+        .filter((l) => l.variantId === String(variant.id))
+        .reduce((sum, l) => sum + l.quantity, 0);
+      if (alreadyInCart + qty > variant.stock) {
+        throw new Error('[vitrine] not enough stock for this variant');
+      }
+    }
     const product = variant.product && typeof variant.product === 'object' ? (variant.product as ProductDoc) : null;
     const firstImage =
       product?.images && product.images.length > 0 && typeof product.images[0] === 'object'
@@ -120,6 +129,15 @@ export class PayloadCommerceBackend implements CommerceBackend {
     const current = await this.getCart(cartId);
     if (!current || current.lines.length === 0) throw new Error('[vitrine] cart is empty');
     const cart = await this.reprice(current);
+    for (const line of cart.lines) {
+      const variant = (await this.payload
+        .findByID({ collection: 'variants', id: line.variantId })
+        .catch(() => null)) as unknown as VariantDoc | null;
+      if (!variant) throw new Error('[vitrine] a cart line refers to a missing variant');
+      if (typeof variant.stock === 'number' && line.quantity > variant.stock) {
+        throw new Error('[vitrine] not enough stock for this variant');
+      }
+    }
     // The active provider (Stripe/Paddle/YooKassa) is resolved by integrations.payments;
     // its checkout-<provider> feature registered it in the registry via lib/payments.ts.
     return payments.resolve(this.siteConfig).createCheckout({ cart, baseUrl: this.baseUrl });

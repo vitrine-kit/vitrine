@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "wishlist",
+  "title": "Wishlist",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": ["catalog", "product-page"],
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/wishlist/", "to": "components/wishlist/" },
+    { "from": "files/lib/wishlist/", "to": "lib/wishlist/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.wishlist": true } },
+  "slots": [
+    { "slot": "product.below-price", "component": "WishlistButton", "order": 20 },
+    { "slot": "global.header-actions", "component": "WishlistIndicator", "order": 15 }
+  ],
+  "env": [],
+  "claudeDoc": "docs/wishlist.md",
+  "conflicts": [],
+  "removable": true
+}

@@ -8,6 +8,11 @@ import { getCommerceBackend } from '@/lib/adapter';
 
 const RATE_LIMIT = { limit: 10, windowMs: 60_000 };
 
+function publicError(error: unknown): string {
+  if (!(error instanceof Error)) return 'Checkout is unavailable — try again later.';
+  return error.message.replace(/^\[vitrine\]\s*/, '');
+}
+
 export async function POST(req: Request) {
   const { allowed, retryAfterMs } = checkRateLimit(`checkout:${clientIpFromHeaders(req.headers)}`, RATE_LIMIT);
   if (!allowed) {
@@ -18,7 +23,13 @@ export async function POST(req: Request) {
   }
   const cartId = (await cookies()).get('vitrine_cart')?.value;
   if (!cartId) return NextResponse.json({ error: 'cart is empty' }, { status: 400 });
-  const commerce = await getCommerceBackend();
-  const { redirectUrl } = await commerce.startCheckout(cartId);
-  return NextResponse.json({ url: redirectUrl });
+  try {
+    const commerce = await getCommerceBackend();
+    const { redirectUrl } = await commerce.startCheckout(cartId);
+    return NextResponse.json({ url: redirectUrl });
+  } catch (error) {
+    const message = publicError(error);
+    const status = /is not set|empty/i.test(message) ? 503 : 500;
+    return NextResponse.json({ error: message }, { status });
+  }
 }

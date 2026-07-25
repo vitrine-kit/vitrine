@@ -1,0 +1,27 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "email",
+  "title": "Transactional email",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["simple-store", "full-store"],
+  "registryDependencies": ["checkout"],
+  "corePackages": {},
+  "npm": ["@payloadcms/email-nodemailer@^3.0.0", "nodemailer@^6.9.0"],
+  "files": [
+    { "from": "files/lib/email/", "to": "lib/email/" }
+  ],
+  "config": { "set": { "features.email": true } },
+  "slots": [],
+  "env": [
+    { "key": "EMAIL_FROM", "required": false },
+    { "key": "EMAIL_FROM_NAME", "required": false },
+    { "key": "SMTP_HOST", "required": false },
+    { "key": "SMTP_PORT", "required": false },
+    { "key": "SMTP_USER", "required": false },
+    { "key": "SMTP_PASS", "required": false }
+  ],
+  "claudeDoc": "docs/email.md",
+  "conflicts": [],
+  "removable": true
+}

@@ -109,12 +109,12 @@ design
 const kit = program.command('kit').description('Local tooling (the ~/.vitrine registry cache)');
 kit
   .command('update')
-  .description('Update the local registry/templates cache from GitHub (or --from <dir>)')
-  .option('--from <path>', 'local kit tree (clone / unpacked tarball) instead of the network')
-  .option('--version <tag>', 'a specific release')
+  .description('Update the local registry/templates cache from npm (or --from <dir>)')
+  .argument('[version]', 'npm version or dist-tag (default: latest)')
+  .option('--from <path>', 'local kit tree (clone / unpacked package) instead of the network')
   .option('--channel <channel>', 'stable | main', 'stable')
-  .action((opts: { from?: string; version?: string; channel?: string }) => {
-    const res = kitUpdate({ from: opts.from, version: opts.version, channel: opts.channel });
+  .action((version: string | undefined, opts: { from?: string; channel?: string }) => {
+    const res = kitUpdate({ from: opts.from, version, channel: opts.channel });
     console.log(`Cache updated to kit ${res.kitVersion}.`);
     console.log(formatChangelog(res.changelog));
   });

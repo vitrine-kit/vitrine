@@ -5,6 +5,9 @@ import { siteConfig } from '@/site.config';
 /** Base URL for canonical/OG. Overridden by NEXT_PUBLIC_SITE_URL. */
 export const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
+/** Storefront display name from `vitrine init` (falls back for older clients). */
+export const siteName = siteConfig.name?.trim() || 'Store';
+
 export const currency = siteConfig.i18n.currency;
 export const defaultLocale = siteConfig.i18n.defaultLocale;
 export const locales = siteConfig.i18n.locales;

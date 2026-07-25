@@ -3,7 +3,7 @@
 // to the console once.
 import { randomBytes } from 'node:crypto';
 import type { Payload } from 'payload';
-import { shouldRunDevTask } from './guards.js';
+import { seedOnBootEnabled, shouldRunDevTask } from './guards.js';
 
 function randomPassword(length = 16): string {
   return randomBytes(length).toString('base64url').slice(0, length);
@@ -12,7 +12,9 @@ function randomPassword(length = 16): string {
 export async function ensureDevAdmin(payload: Payload): Promise<void> {
   const isProd = process.env.NODE_ENV === 'production';
   const { totalDocs } = await payload.count({ collection: 'users' });
-  if (!shouldRunDevTask({ isProd, existingCount: totalDocs })) return;
+  if (!shouldRunDevTask({ isProd, existingCount: totalDocs, seedOnBoot: seedOnBootEnabled() })) {
+    return;
+  }
 
   // `.env.example` ships `DEV_ADMIN_EMAIL=` / `DEV_ADMIN_PASSWORD=` — empty strings must
   // not win over defaults (`??` only treats null/undefined).
@@ -24,6 +26,8 @@ export async function ensureDevAdmin(payload: Payload): Promise<void> {
     overrideAccess: true,
   });
   payload.logger.warn(
-    `[vitrine] DEV ADMIN ${email} / ${password} — development only, change before deploying`,
+    isProd
+      ? `[vitrine] BOOTSTRAP ADMIN ${email} / ${password} — change immediately (SEED_ON_BOOT)`
+      : `[vitrine] DEV ADMIN ${email} / ${password} — development only, change before deploying`,
   );
 }

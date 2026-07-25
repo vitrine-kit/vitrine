@@ -12,6 +12,7 @@ import {
   type NormalizedPaymentEvent,
   type PaymentProviderName,
 } from '@vitrine-kit/core';
+import { notifyOrderConfirmation } from './notify.js';
 
 /** Creates an order from the cart on a payment event and marks the cart converted. */
 export async function fulfillOrderFromEvent(
@@ -50,6 +51,22 @@ export async function fulfillOrderFromEvent(
   };
   const order = buildOrderFromCart(cart, { id: cartId, email: event.email });
 
+  // When the accounts feature is installed, attach the matching customer by checkout email.
+  let customerId: string | undefined;
+  const email = event.email?.trim().toLowerCase();
+  if (email) {
+    const customers = await payload
+      .find({
+        collection: 'customers',
+        where: { email: { equals: email } },
+        limit: 1,
+        overrideAccess: true,
+      })
+      .catch(() => null);
+    const doc = customers?.docs[0];
+    if (doc) customerId = String(doc.id);
+  }
+
   await payload.create({
     collection: 'orders',
     data: {
@@ -62,11 +79,16 @@ export async function fulfillOrderFromEvent(
       createdAt: order.createdAt,
       paymentProvider: providerName,
       paymentRef: event.providerRef,
+      ...(customerId ? { customer: customerId } : {}),
     },
   });
   await payload.update({
     collection: 'carts',
     id: cartId,
     data: { status: 'converted', paymentRef: event.providerRef },
+  });
+
+  await notifyOrderConfirmation(order).catch((err) => {
+    console.warn('[vitrine] order confirmation notify failed', err);
   });
 }

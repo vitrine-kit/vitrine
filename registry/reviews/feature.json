@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "reviews",
+  "title": "Product reviews",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["catalog", "simple-store", "full-store"],
+  "registryDependencies": ["product-page"],
+  "corePackages": { "@vitrine-kit/core": ">=0.1.0" },
+  "npm": [],
+  "files": [
+    { "from": "files/components/reviews/", "to": "components/reviews/" },
+    { "from": "files/lib/reviews/", "to": "lib/reviews/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.reviews": true } },
+  "slots": [{ "slot": "product.below-description", "component": "ReviewList", "order": 20 }],
+  "blueprint": { "extend": "product", "addFields": ["reviews"] },
+  "env": [],
+  "claudeDoc": "docs/reviews.md",
+  "conflicts": [],
+  "removable": true
+}

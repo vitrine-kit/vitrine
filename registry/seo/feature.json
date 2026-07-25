@@ -10,7 +10,8 @@
   "npm": [],
   "files": [
     { "from": "files/components/seo/", "to": "components/seo/" },
-    { "from": "files/lib/seo/", "to": "lib/seo/" }
+    { "from": "files/lib/seo/", "to": "lib/seo/" },
+    { "from": "files/app/", "to": "app/" }
   ],
   "config": { "set": { "features.seo": true } },
   "slots": [],

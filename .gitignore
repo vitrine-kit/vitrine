@@ -5,6 +5,8 @@ packages/cli/kit/
 coverage/
 *.log
 *.tsbuildinfo
+sandbox/test-results/
+sandbox/playwright-report/
 
 # Environment and local dev data
 .env

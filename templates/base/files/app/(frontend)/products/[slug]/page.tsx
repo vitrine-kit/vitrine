@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getCatalogSource } from '@/lib/adapter';
 import { loadProduct } from '@/lib/catalog/data';
+import { getRequestLocale } from '@/lib/i18n/locale';
 import { ProductView } from '@/components/product/ProductView';
 import { buildProductMetadata } from '@/lib/seo/metadata';
 import { productJsonLd } from '@/lib/seo/jsonld';
@@ -16,8 +17,9 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const locale = await getRequestLocale();
   const source = await getCatalogSource();
-  const product = await loadProduct(source, slug);
+  const product = await loadProduct(source, slug, locale);
   if (!product) return {};
   const meta = buildProductMetadata(product, { baseUrl });
   return {
@@ -30,8 +32,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
+  const locale = await getRequestLocale();
   const source = await getCatalogSource();
-  const product = await loadProduct(source, slug);
+  const product = await loadProduct(source, slug, locale);
   if (!product) notFound();
 
   return (

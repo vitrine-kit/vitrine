@@ -2,6 +2,8 @@
 // CategoryNav mounts) and passes it categories from the active CatalogSource.
 import { Slot } from '@vitrine-kit/core/react';
 import { getCatalogSource } from '@/lib/adapter';
+import { siteName } from '@/lib/site';
+import { siteConfig } from '@/site.config';
 
 export async function SiteHeader() {
   const source = await getCatalogSource();
@@ -11,11 +13,15 @@ export async function SiteHeader() {
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-container items-center justify-between gap-gutter px-gutter py-unit">
         <a href="/" className="font-heading text-fg">
-          <Slot name="global.header-start" fallback={<span>Vitrine</span>} />
+          <Slot name="global.header-start" fallback={<span>{siteName}</span>} />
         </a>
         <Slot name="global.header-nav" categories={categories} />
         <div className="flex items-center gap-unit">
-          <Slot name="global.header-actions" />
+          <Slot
+            name="global.header-actions"
+            locales={siteConfig.i18n.locales}
+            defaultLocale={siteConfig.i18n.defaultLocale}
+          />
         </div>
       </div>
     </header>

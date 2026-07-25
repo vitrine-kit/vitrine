@@ -51,13 +51,37 @@ function parseRemoveItemBody(body: unknown): { lineId: string } | null {
   return { lineId };
 }
 
+function publicError(error: unknown): string {
+  if (!(error instanceof Error)) return 'cart update failed';
+  return error.message.replace(/^\[vitrine\]\s*/, '');
+}
+
 async function ensureCartId(commerce: CommerceBackend): Promise<string> {
   const jar = await cookies();
   const existing = jar.get(COOKIE)?.value;
   if (existing) return existing;
   const cart = await commerce.createCart();
-  jar.set(COOKIE, cart.id, { httpOnly: true, sameSite: 'lax', path: '/' });
+  jar.set(COOKIE, cart.id, {
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+    secure: process.env.NODE_ENV === 'production',
+  });
   return cart.id;
+}
+
+export async function GET() {
+  const id = (await cookies()).get(COOKIE)?.value;
+  if (!id) {
+    return NextResponse.json({ id: null, lines: [], currency: 'USD', subtotal: 0, total: 0 });
+  }
+  try {
+    const commerce = await getCommerceBackend();
+    const cart = await commerce.getCart(id);
+    return NextResponse.json(cart ?? { id, lines: [], currency: 'USD', subtotal: 0, total: 0 });
+  } catch (error) {
+    return NextResponse.json({ error: publicError(error) }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
@@ -65,9 +89,15 @@ export async function POST(req: Request) {
   if (limited) return limited;
   const parsed = parseAddItemBody(await req.json());
   if (!parsed) return NextResponse.json({ error: 'invalid body' }, { status: 400 });
-  const commerce = await getCommerceBackend();
-  const id = await ensureCartId(commerce);
-  return NextResponse.json(await commerce.addItem(id, parsed.variantId, parsed.quantity));
+  try {
+    const commerce = await getCommerceBackend();
+    const id = await ensureCartId(commerce);
+    return NextResponse.json(await commerce.addItem(id, parsed.variantId, parsed.quantity));
+  } catch (error) {
+    const message = publicError(error);
+    const status = /out of stock|not found/i.test(message) ? 409 : 500;
+    return NextResponse.json({ error: message }, { status });
+  }
 }
 
 export async function PATCH(req: Request) {
@@ -77,8 +107,12 @@ export async function PATCH(req: Request) {
   if (!parsed) return NextResponse.json({ error: 'invalid body' }, { status: 400 });
   const id = (await cookies()).get(COOKIE)?.value;
   if (!id) return NextResponse.json({ error: 'cart not found' }, { status: 400 });
-  const commerce = await getCommerceBackend();
-  return NextResponse.json(await commerce.updateItem(id, parsed.lineId, parsed.quantity));
+  try {
+    const commerce = await getCommerceBackend();
+    return NextResponse.json(await commerce.updateItem(id, parsed.lineId, parsed.quantity));
+  } catch (error) {
+    return NextResponse.json({ error: publicError(error) }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: Request) {
@@ -88,6 +122,10 @@ export async function DELETE(req: Request) {
   if (!parsed) return NextResponse.json({ error: 'invalid body' }, { status: 400 });
   const id = (await cookies()).get(COOKIE)?.value;
   if (!id) return NextResponse.json({ error: 'cart not found' }, { status: 400 });
-  const commerce = await getCommerceBackend();
-  return NextResponse.json(await commerce.removeItem(id, parsed.lineId));
+  try {
+    const commerce = await getCommerceBackend();
+    return NextResponse.json(await commerce.removeItem(id, parsed.lineId));
+  } catch (error) {
+    return NextResponse.json({ error: publicError(error) }, { status: 500 });
+  }
 }

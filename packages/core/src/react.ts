@@ -1,6 +1,11 @@
+'use client';
+
 // The React slot wrapper: <Slot name="product.below-description" />.
-// Renders the slot's registered components in order. React is an
-// optional peer; imported from the @vitrine-kit/core/react subpath.
+// Renders the slot's registered components in order. Must be a Client
+// Component so registry-mounted 'use client' children (AddToCart, etc.)
+// hydrate — creating them from a Server Component via the registry yields
+// static HTML with no event handlers. React is an optional peer; import
+// from the @vitrine-kit/core/react subpath.
 import {
   createElement,
   Fragment,

@@ -4,6 +4,7 @@
 import type { CatalogSource, Category, Product, ProductQuery } from '@vitrine-kit/contracts';
 import { shopQuery } from './graphql.js';
 import { mapVendureCollection, mapVendureProduct } from './map.js';
+import { applyProductQuery } from './product-query.js';
 import type { VCollection, VProduct } from './vendure-types.js';
 
 const PRODUCT_FIELDS = `
@@ -19,24 +20,30 @@ export class VendureCatalogSource implements CatalogSource {
     const take = query.perPage ?? 24;
     const skip = ((query.page ?? 1) - 1) * take;
 
-    if (query.category) {
+    let products: Product[];
+    if (query.search?.trim()) {
+      products = await this.search(query.search.trim(), query.locale);
+    } else if (query.category) {
       const { data } = await shopQuery<{ collection: { productVariants: { items: { product: VProduct }[] } } | null }>(
         `query ($slug: String!) { collection(slug: $slug) { productVariants { items { product { ${PRODUCT_FIELDS} } } } } }`,
         { slug: query.category },
       );
       const byId = new Map<string, VProduct>();
       for (const it of data.collection?.productVariants.items ?? []) byId.set(String(it.product.id), it.product);
-      return [...byId.values()].map(mapVendureProduct);
+      products = [...byId.values()].map(mapVendureProduct);
+    } else {
+      const { data } = await shopQuery<{ products: { items: VProduct[] } }>(
+        `query ($take: Int, $skip: Int) { products(options: { take: $take, skip: $skip }) { items { ${PRODUCT_FIELDS} } } }`,
+        { take: Math.max(take, 100), skip: 0 },
+      );
+      products = data.products.items.map(mapVendureProduct);
     }
 
-    const { data } = await shopQuery<{ products: { items: VProduct[] } }>(
-      `query ($take: Int, $skip: Int) { products(options: { take: $take, skip: $skip }) { items { ${PRODUCT_FIELDS} } } }`,
-      { take, skip },
-    );
-    return data.products.items.map(mapVendureProduct);
+    products = applyProductQuery(products, query);
+    return products.slice(skip, skip + take);
   }
 
-  async getProduct(slug: string): Promise<Product | null> {
+  async getProduct(slug: string, _locale?: string): Promise<Product | null> {
     const { data } = await shopQuery<{ product: VProduct | null }>(
       `query ($slug: String!) { product(slug: $slug) { ${PRODUCT_FIELDS} } }`,
       { slug },
@@ -44,19 +51,19 @@ export class VendureCatalogSource implements CatalogSource {
     return data.product ? mapVendureProduct(data.product) : null;
   }
 
-  async listCategories(): Promise<Category[]> {
+  async listCategories(_locale?: string): Promise<Category[]> {
     const { data } = await shopQuery<{ collections: { items: VCollection[] } }>(
       `{ collections { items { id slug name description parent { id } } } }`,
     );
     return data.collections.items.map(mapVendureCollection);
   }
 
-  async search(term: string): Promise<Product[]> {
+  async search(term: string, locale?: string): Promise<Product[]> {
     const { data } = await shopQuery<{ search: { items: { slug: string }[] } }>(
       `query ($term: String!) { search(input: { term: $term, groupByProduct: true }) { items { slug } } }`,
       { term },
     );
-    const products = await Promise.all(data.search.items.map((i) => this.getProduct(i.slug)));
+    const products = await Promise.all(data.search.items.map((i) => this.getProduct(i.slug, locale)));
     return products.filter((p): p is Product => p !== null);
   }
 }

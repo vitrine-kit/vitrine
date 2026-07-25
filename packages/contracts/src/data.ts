@@ -72,6 +72,15 @@ export interface ProductQuery {
   perPage?: number;
   /** Filter facets: { color: ['red','blue'], size: ['M'] }. */
   filters?: Record<string, string[]>;
+  /** Inclusive lower bound on variant/list price (minor units, e.g. cents). */
+  priceMin?: number;
+  /** Inclusive upper bound on variant/list price (minor units, e.g. cents). */
+  priceMax?: number;
+  /**
+   * CMS / storefront locale (path cookie or explicit). Adapters that support
+   * localized fields pass this through to the backend; others ignore it.
+   */
+  locale?: string;
 }
 
 export interface CartLine {
@@ -125,9 +134,10 @@ export interface Order {
  */
 export interface CatalogSource {
   listProducts(query: ProductQuery): Promise<Product[]>;
-  getProduct(slug: string): Promise<Product | null>;
-  listCategories(): Promise<Category[]>;
-  search(term: string): Promise<Product[]>;
+  /** Optional locale selects localized CMS fields when the backend supports them. */
+  getProduct(slug: string, locale?: string): Promise<Product | null>;
+  listCategories(locale?: string): Promise<Category[]>;
+  search(term: string, locale?: string): Promise<Product[]>;
 }
 
 /**

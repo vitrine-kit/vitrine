@@ -10,12 +10,17 @@
     "*/files/components/**/*.ts",
     "*/files/components/**/*.tsx",
     "*/files/lib/**/*.ts",
-    "*/files/lib/**/*.tsx"
+    "*/files/lib/**/*.tsx",
+    "stubs/**/*.d.ts"
   ],
   "exclude": [
     "**/node_modules",
     "**/dist",
     "*/files/lib/checkout-*/**",
-    "*/files/lib/checkout/fulfill.ts"
+    "*/files/lib/checkout/fulfill.ts",
+    "*/files/lib/checkout/notify.ts",
+    "*/files/lib/email/**",
+    "*/files/lib/accounts/session.ts",
+    "*/files/middleware.ts"
   ]
 }

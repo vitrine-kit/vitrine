@@ -36,6 +36,17 @@ describe('blueprint', () => {
     bp.extend('product', { addFields: [{ name: 'title', type: 'text' }] });
     expect(() => bp.build()).toThrow(/additive only/);
   });
+
+  it('addCollection() appends a feature-owned collection', () => {
+    const bp = createBlueprint();
+    bp.addCollection({ slug: 'customers', fields: [{ name: 'name', type: 'text' }] });
+    expect(bp.build().map((c) => c.slug)).toContain('customers');
+  });
+
+  it('addCollection() rejects duplicate slugs', () => {
+    const bp = createBlueprint();
+    expect(() => bp.addCollection({ slug: 'orders', fields: [] })).toThrow(/already exists/);
+  });
 });
 
 describe('package version', () => {

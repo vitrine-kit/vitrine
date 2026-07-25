@@ -1,6 +1,13 @@
 // Baseline security headers (OWASP A05: Security Misconfiguration) applied to every route.
 // The CSP below is a conservative starting point — payment providers with client-side widgets
 // (e.g. embedded Stripe Elements) may need their domains added to script-src/connect-src/frame-src.
+// Next.js `pnpm dev` (webpack eval source maps / Fast Refresh) needs 'unsafe-eval'; omit it in
+// production builds so the shipped CSP stays tighter.
+const isDev = process.env.NODE_ENV !== 'production';
+const scriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline'";
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -9,8 +16,7 @@ const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   {
     key: 'Content-Security-Policy',
-    value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
+    value: `default-src 'self'; ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';`,
   },
 ];
 

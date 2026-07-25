@@ -42,8 +42,12 @@ export function activePaymentProvider(features: FeatureState[]): string | undefi
 /** Body of the `integrations` property for the managed site.config region (2-space indent). */
 export function renderIntegrationsRegion(features: FeatureState[]): string {
   const payments = activePaymentProvider(features);
-  if (!payments) return '  integrations: {},';
-  return `  integrations: {\n    payments: ${JSON.stringify(payments)},\n  },`;
+  const email = features.some((f) => f.name === 'email') ? 'smtp' : undefined;
+  const lines: string[] = [];
+  if (payments) lines.push(`    payments: ${JSON.stringify(payments)},`);
+  if (email) lines.push(`    email: ${JSON.stringify(email)},`);
+  if (lines.length === 0) return '  integrations: {},';
+  return `  integrations: {\n${lines.join('\n')}\n  },`;
 }
 
 /** Feature names must not collapse into one PascalCase identifier (duplicate register/extend). */

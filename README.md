@@ -40,8 +40,9 @@ pnpm dev                 # Next.js storefront + zero-config dev backend
 ```
 
 The CLI works offline out of the box (a kit snapshot ships with the package);
-`vitrine kit update` refreshes the local registry (`~/.vitrine`) from the latest GitHub
-release (needs the [gh CLI](https://cli.github.com)).
+`vitrine kit update` refreshes the local registry (`~/.vitrine`) from the public
+[`@vitrine-kit/vitrine`](https://www.npmjs.com/package/@vitrine-kit/vitrine) package on npm
+(no GitHub token / `gh` required).
 
 ## Features (copy-in registry)
 
@@ -49,9 +50,16 @@ release (needs the [gh CLI](https://cli.github.com)).
 |---|---|---|
 | `catalog` | catalog, simple-store, full-store | product grid, category navigation |
 | `product-page` | catalog, simple-store, full-store | product view with gallery |
-| `seo` | catalog, simple-store, full-store | metadata + JSON-LD |
+| `seo` | catalog, simple-store, full-store | metadata + JSON-LD + sitemap/robots |
+| `search` | catalog, simple-store, full-store | header search + `/search` results |
+| `filters` | catalog, simple-store, full-store | catalog sort toolbar |
+| `wishlist` | catalog, simple-store, full-store | localStorage wishlist |
+| `reviews` | catalog, simple-store, full-store | product reviews (JSON on product) |
+| `i18n` | catalog, simple-store, full-store | locale switcher + path prefixes when multi-locale |
 | `cart` | simple-store, full-store | cart page, cart API |
 | `checkout` | simple-store, full-store | provider-neutral checkout orchestration |
+| `accounts` | simple-store, full-store | customer login/register + guest order lookup |
+| `email` | simple-store, full-store | SMTP via Payload nodemailer adapter (console fallback) |
 | `checkout-stripe` / `checkout-paddle` / `checkout-yookassa` | simple-store, full-store | payment provider implementations (mutually exclusive; pull in `checkout`) |
 
 ## CLI
@@ -89,7 +97,8 @@ Versions are managed with [Changesets](.changeset). Flow on push to `main`
 
 1. Pending changesets → the bot opens a **"Version Packages"** PR (version bumps + CHANGELOG).
 2. PR merged → CI publishes the changed `@vitrine-kit/*` to npm (npmjs.com, with provenance), pushes
-   git tags, and creates GitHub Releases. The release source archive is what `vitrine kit update` pulls.
+   git tags, and creates GitHub Releases. `vitrine kit update` pulls the bundled `kit/`
+   (registry + templates) from the published `@vitrine-kit/vitrine` package on npm.
 
 ```bash
 pnpm changeset          # describe a change (locally)

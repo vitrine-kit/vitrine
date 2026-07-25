@@ -5,7 +5,7 @@ argument-hint: [feature]
 
 Update features from the registry while keeping the client's edits:
 
-1. `vitrine kit update` — refresh the local registry/templates cache from GitHub
+1. `vitrine kit update` — refresh the local registry/templates cache from npm
    (needs `gh` and `tar`; cache in `~/.vitrine`).
 2. `vitrine kit status` — see what's newer than what's installed.
 3. `vitrine diff $ARGUMENTS` — preview changes without writing (for each feature being updated).

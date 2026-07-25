@@ -44,6 +44,11 @@ export const themeSchema = z
 export const siteConfigSchema = z.object({
   backend: backendSchema,
   tier: tierSchema,
+  /**
+   * Storefront display name (header, metadata, footer). Set by `vitrine init`
+   * from the project name; optional for older clients.
+   */
+  name: z.string().min(1).optional(),
   /** Feature flags: { 'reviews': true }. Set by the install primitive. */
   features: z.record(z.string(), z.boolean()).default({}),
   layout: z

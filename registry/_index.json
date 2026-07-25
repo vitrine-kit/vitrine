@@ -18,6 +18,31 @@
       "kitVersion": "0.0.0",
       "tier": ["catalog", "simple-store", "full-store"]
     },
+    "search": {
+      "title": "Product search",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "filters": {
+      "title": "Catalog sort and filters",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "wishlist": {
+      "title": "Wishlist",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "reviews": {
+      "title": "Product reviews",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
+    "i18n": {
+      "title": "Locale switcher and path prefixes",
+      "kitVersion": "0.0.0",
+      "tier": ["catalog", "simple-store", "full-store"]
+    },
     "cart": {
       "title": "Cart",
       "kitVersion": "0.0.0",
@@ -25,6 +50,16 @@
     },
     "checkout": {
       "title": "Checkout",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
+    },
+    "accounts": {
+      "title": "Accounts — login and order history",
+      "kitVersion": "0.0.0",
+      "tier": ["simple-store", "full-store"]
+    },
+    "email": {
+      "title": "Transactional email",
       "kitVersion": "0.0.0",
       "tier": ["simple-store", "full-store"]
     },

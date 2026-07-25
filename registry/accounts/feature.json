@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schemas/feature.schema.json",
+  "name": "accounts",
+  "title": "Accounts — login and order history",
+  "kitVersion": "0.0.0",
+  "requiresContracts": ">=1.0.0 <2.0.0",
+  "tier": ["simple-store", "full-store"],
+  "registryDependencies": ["checkout"],
+  "corePackages": {
+    "@vitrine-kit/core": ">=0.1.0",
+    "@vitrine-kit/payload-blueprint": ">=0.2.0"
+  },
+  "npm": [],
+  "files": [
+    { "from": "files/components/accounts/", "to": "components/accounts/" },
+    { "from": "files/lib/accounts/", "to": "lib/accounts/" },
+    { "from": "files/app/", "to": "app/" }
+  ],
+  "config": { "set": { "features.accounts": true } },
+  "slots": [{ "slot": "global.header-actions", "component": "AccountLink", "order": 25 }],
+  "blueprint": { "extend": "order", "addFields": ["customer"] },
+  "env": [],
+  "claudeDoc": "docs/accounts.md",
+  "conflicts": [],
+  "removable": true
+}

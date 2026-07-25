@@ -25,5 +25,8 @@ WORKDIR /app
 COPY --from=build /app/public ./public
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
+# Demo seed + uploads (SEED_ON_BOOT); media is also a named volume in compose.
+COPY --from=build /app/seed-assets ./seed-assets
+RUN mkdir -p /app/media
 EXPOSE 3000
 CMD ["node", "server.js"]

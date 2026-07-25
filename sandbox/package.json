@@ -6,7 +6,9 @@
   "description": "Core-development playground: runs the feature registry on the contracts alone.",
   "scripts": {
     "demo": "tsx src/demo.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@vitrine-kit/contracts": "workspace:*",
@@ -14,6 +16,7 @@
     "@vitrine-kit/payload-blueprint": "workspace:*"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.0",
     "tsx": "^4.19.2",
     "vitest": "^2.1.8"
   }
