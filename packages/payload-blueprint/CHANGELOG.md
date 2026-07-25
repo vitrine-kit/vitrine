@@ -1,5 +1,13 @@
 # @vitrine-kit/payload-blueprint
 
+## 0.2.4
+
+### Patch Changes
+
+- ebf83ec: Stop redeclaring `email` on the auth `users` collection. Payload already provides auth email/password; a second required `email` text field caused `ensureDevAdmin` to fail with "Email is required" and aborted the first storefront request.
+- Updated dependencies [ebf83ec]
+  - @vitrine-kit/contracts@1.2.2
+
 ## 0.2.3
 
 ### Patch Changes
