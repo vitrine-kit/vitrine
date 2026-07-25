@@ -31,6 +31,11 @@ does that on push to `main`. Registry/template-only changes reach clients via th
 `@vitrine-kit/vitrine` kit bundle (`vitrine kit update`), so they should ride together with
 a CLI changeset.
 
+If Release fails with `GitHub Actions is not permitted to create or approve pull requests`,
+the version commit is usually already on `changeset-release/main` — open/merge that
+**Version Packages** PR by hand, then enable the Actions setting (or add `CHANGESETS_TOKEN`)
+so the next run can open it automatically. See [README release notes](README.md#release--publishing).
+
 Source `registry/*/feature.json` keeps `"kitVersion": "0.0.0"` on purpose — `copy-kit.mjs`
 stamps the CLI package version into `packages/cli/kit/` at build/publish time. Do not
 hand-bump every feature.json; bump `@vitrine-kit/vitrine` via changesets instead.
