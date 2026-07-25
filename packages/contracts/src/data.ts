@@ -4,7 +4,7 @@
 
 /**
  * Money — an integer in the currency's minor units (cents).
- * 199000 = 1990.00. Decision is fixed (see the demo seed, spec §18.2).
+ * 2490 = 24.90. Decision is fixed (see the demo seed, spec §18.2).
  */
 export type Money = number;
 

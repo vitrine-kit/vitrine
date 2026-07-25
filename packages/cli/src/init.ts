@@ -225,8 +225,9 @@ function clientReadme(name: string, backend: Backend, tier: Tier): string {
           '- Admin: http://localhost:3000/admin',
           '',
           'Without Postgres, dev starts a built-in SQLite (`.vitrine/dev.sqlite`), seeds a',
-          'demo catalog (5 products, 2 categories) and creates a dev admin (login/password printed',
-          'to the console once). Disable the fallback in dev too with `VITRINE_DB_STRICT=1`.',
+          'demo catalog (5 products, 2 categories, size/color variants, gallery images) and creates a',
+          'dev admin (login/password printed to the console once). Disable the fallback in',
+          'dev too with `VITRINE_DB_STRICT=1`.',
         ].join('\n');
 
   const deploySecret =

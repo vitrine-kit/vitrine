@@ -20,7 +20,12 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <div className="flex flex-col gap-section">
       <Slot name="category.header" category={category} />
-      <h1 className="font-heading text-fg">{category.title}</h1>
+      <header className="flex flex-col gap-unit">
+        <h1 className="font-heading text-fg">{category.title}</h1>
+        {category.description ? (
+          <p className="max-w-prose text-muted-fg">{category.description}</p>
+        ) : null}
+      </header>
       <ProductGrid products={products} />
       <Slot name="category.below-products" />
     </div>

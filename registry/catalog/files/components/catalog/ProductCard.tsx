@@ -33,7 +33,11 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="p-gutter">
           <h3 className="font-heading text-fg">{product.title}</h3>
           {price != null ? (
-            <p className="text-price">{formatPrice(price, currency)}</p>
+            <p className="text-price">
+              {product.priceRange && product.priceRange.min !== product.priceRange.max
+                ? `From ${formatPrice(price, currency)}`
+                : formatPrice(price, currency)}
+            </p>
           ) : null}
         </div>
       </a>
