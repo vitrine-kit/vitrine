@@ -17,6 +17,15 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Registry/template sources use TypeScript ESM-style relative imports (`.js` → `.ts`/`.tsx`).
+  // Webpack needs an explicit extensionAlias; without it, `pnpm dev` fails to resolve components.
+  webpack(config) {
+    config.resolve.extensionAlias = {
+      ...(config.resolve.extensionAlias ?? {}),
+      '.js': ['.ts', '.tsx', '.js', '.jsx'],
+    };
+    return config;
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

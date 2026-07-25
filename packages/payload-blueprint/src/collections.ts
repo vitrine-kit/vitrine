@@ -48,9 +48,11 @@ export const mediaCollection: BlueprintCollectionConfig = {
 export const usersCollection: BlueprintCollectionConfig = {
   slug: 'users',
   // maxLoginAttempts/lockTime — Payload's built-in brute-force lockout on the login endpoint.
+  // Auth already provides `email` + `password` — do not redeclare email (Payload 3 treats a
+  // second required email field as empty on create → "Email is required" during ensureDevAdmin).
   auth: { maxLoginAttempts: 5, lockTime: 10 * 60 * 1000 },
   access: adminOnly,
-  fields: [f('email', 'text', { required: true })],
+  fields: [],
 };
 
 export const variantsCollection: BlueprintCollectionConfig = {

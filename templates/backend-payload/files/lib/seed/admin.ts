@@ -14,9 +14,15 @@ export async function ensureDevAdmin(payload: Payload): Promise<void> {
   const { totalDocs } = await payload.count({ collection: 'users' });
   if (!shouldRunDevTask({ isProd, existingCount: totalDocs })) return;
 
-  const email = process.env.DEV_ADMIN_EMAIL ?? 'admin@dev.local';
-  const password = process.env.DEV_ADMIN_PASSWORD ?? randomPassword();
-  await payload.create({ collection: 'users', data: { email, password } });
+  // `.env.example` ships `DEV_ADMIN_EMAIL=` / `DEV_ADMIN_PASSWORD=` — empty strings must
+  // not win over defaults (`??` only treats null/undefined).
+  const email = process.env.DEV_ADMIN_EMAIL?.trim() || 'admin@example.com';
+  const password = process.env.DEV_ADMIN_PASSWORD?.trim() || randomPassword();
+  await payload.create({
+    collection: 'users',
+    data: { email, password },
+    overrideAccess: true,
+  });
   payload.logger.warn(
     `[vitrine] DEV ADMIN ${email} / ${password} — development only, change before deploying`,
   );
