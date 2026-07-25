@@ -25,7 +25,11 @@ export function ProductView({ product }: ProductViewProps) {
         <Slot name="product.below-title" />
         <h1 className="font-heading text-fg">{product.title}</h1>
         {price != null ? (
-          <p className="text-price text-xl">{formatPrice(price, currency)}</p>
+          <p className="text-price text-xl">
+            {product.priceRange && product.priceRange.min !== product.priceRange.max
+              ? `${formatPrice(product.priceRange.min, currency)} – ${formatPrice(product.priceRange.max, currency)}`
+              : formatPrice(price, currency)}
+          </p>
         ) : null}
         <Slot name="product.below-price" />
         <div className="vt-product-purchase">

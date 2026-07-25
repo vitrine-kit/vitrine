@@ -17,16 +17,26 @@ export async function seedDemo(payload: Payload): Promise<void> {
 
   const categoryId = new Map<string, string | number>();
   for (const c of demoCategories) {
-    const doc = await payload.create({ collection: 'categories', data: { slug: c.slug, title: c.title } });
+    const doc = await payload.create({
+      collection: 'categories',
+      data: { slug: c.slug, title: c.title, description: c.description },
+      overrideAccess: true,
+    });
     categoryId.set(c.slug, doc.id);
   }
 
   for (const p of demoProducts) {
-    const media = await payload.create({
-      collection: 'media',
-      data: { alt: p.title },
-      filePath: path.join(seedAssets, p.image),
-    });
+    const mediaIds: Array<string | number> = [];
+    for (const [index, image] of p.images.entries()) {
+      const media = await payload.create({
+        collection: 'media',
+        data: { alt: index === 0 ? p.title : `${p.title} — detail` },
+        filePath: path.join(seedAssets, image),
+        overrideAccess: true,
+      });
+      mediaIds.push(media.id);
+    }
+    const coverId = mediaIds[0];
     const catId = categoryId.get(p.category);
     const product = await payload.create({
       collection: 'products',
@@ -35,17 +45,32 @@ export async function seedDemo(payload: Payload): Promise<void> {
         title: p.title,
         description: plainToRichText(p.description),
         categories: catId ? [catId] : [],
-        images: [media.id],
-        seo: { title: p.seo.title, description: p.seo.description, image: media.id },
+        images: mediaIds,
+        seo: {
+          title: p.seo.title,
+          description: p.seo.description,
+          image: coverId,
+        },
       },
+      overrideAccess: true,
     });
     for (const v of p.variants) {
       await payload.create({
         collection: 'variants',
-        data: { sku: v.sku, price: v.price, stock: v.stock, product: product.id },
+        data: {
+          sku: v.sku,
+          price: v.price,
+          stock: v.stock,
+          product: product.id,
+          ...(v.options ? { options: v.options } : {}),
+        },
+        overrideAccess: true,
       });
     }
   }
 
-  payload.logger.info('[vitrine] demo seed: created 5 products');
+  const variantCount = demoProducts.reduce((n, p) => n + p.variants.length, 0);
+  payload.logger.info(
+    `[vitrine] demo seed: ${demoProducts.length} products, ${demoCategories.length} categories, ${variantCount} variants — browse / then try Add to cart`,
+  );
 }

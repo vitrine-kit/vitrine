@@ -97,23 +97,43 @@ describe('Payload → contract mappers', () => {
 });
 
 describe('demo seed (§18.2) — invariants', () => {
-  it('5 products, 2 categories, prices are integer minor units', () => {
+  it('ships a browseable demo catalog with realistic minor-unit prices', () => {
     expect(demoProducts).toHaveLength(5);
     expect(demoCategories).toHaveLength(2);
+    for (const c of demoCategories) {
+      expect(c.description.trim().length).toBeGreaterThan(20);
+    }
     for (const p of demoProducts) {
-      expect(p.image).toMatch(/^placeholder-\d\.svg$/);
+      expect(p.images.length).toBeGreaterThan(0);
+      for (const image of p.images) {
+        expect(image).toMatch(/^placeholder-\d[a-z]?\.svg$/);
+      }
       expect(demoCategories.some((c) => c.slug === p.category)).toBe(true);
+      expect(p.description.trim().length).toBeGreaterThan(40);
+      expect(p.seo.title.trim().length).toBeGreaterThan(0);
+      expect(p.seo.description.trim().length).toBeGreaterThan(10);
       expect(p.variants.length).toBeGreaterThan(0);
       for (const v of p.variants) {
         expect(Number.isInteger(v.price)).toBe(true);
         expect(v.price).toBeGreaterThan(0);
+        // Demo prices should look like real storefront amounts (cents), not inflated typos.
+        expect(v.price).toBeLessThan(100_000);
       }
     }
   });
 
-  it('placeholder assets for each product exist in the template (offline seed)', () => {
+  it('includes multi-variant apparel so Add to cart can demonstrate options', () => {
+    const tee = demoProducts.find((p) => p.slug === 'classic-tee');
+    expect(tee?.variants.length).toBeGreaterThan(1);
+    expect(tee?.variants.every((v) => v.options?.size)).toBe(true);
+    expect(tee?.images.length).toBeGreaterThan(1);
+  });
+
+  it('placeholder assets for each product image exist in the template (offline seed)', () => {
     for (const p of demoProducts) {
-      expect(existsSync(resolve(seedAssets, p.image))).toBe(true);
+      for (const image of p.images) {
+        expect(existsSync(resolve(seedAssets, image))).toBe(true);
+      }
     }
   });
 });
