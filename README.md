@@ -100,6 +100,12 @@ Versions are managed with [Changesets](.changeset). Flow on push to `main`
    git tags, and creates GitHub Releases. `vitrine kit update` pulls the bundled `kit/`
    (registry + templates) from the published `@vitrine-kit/vitrine` package on npm.
 
+Repo requirements for step 1:
+
+- Actions → General → Workflow permissions → enable **Allow GitHub Actions to create and approve
+  pull requests** (in addition to `pull-requests: write` in the workflow), **or**
+- set secret `CHANGESETS_TOKEN` to a PAT that can push and open PRs (used instead of `GITHUB_TOKEN`).
+
 ```bash
 pnpm changeset          # describe a change (locally)
 # the rest is automated by CI; manually: pnpm version-packages && pnpm release

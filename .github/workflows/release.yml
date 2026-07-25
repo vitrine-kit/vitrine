@@ -20,6 +20,11 @@ permissions:
   contents: write # git tags + GitHub Releases
   pull-requests: write # "Version Packages" PR
   id-token: write # npm provenance (OIDC)
+  # Also requires repo setting: Actions → General → Workflow permissions →
+  # "Allow GitHub Actions to create and approve pull requests". Without that,
+  # GITHUB_TOKEN gets 403 on pulls#create even with pull-requests: write.
+  # Optional override: set secret CHANGESETS_TOKEN (PAT with contents+PRs) if
+  # the org forbids Actions-created PRs.
 
 jobs:
   release:
@@ -60,7 +65,9 @@ jobs:
           version: pnpm version-packages # version bump from changesets
           publish: pnpm release # turbo build && changeset publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # "Version Packages" PR + GitHub Releases
+          # Prefer CHANGESETS_TOKEN when the repo/org blocks Actions-created PRs
+          # (error: "GitHub Actions is not permitted to create or approve pull requests").
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN || secrets.GITHUB_TOKEN }}
           # changesets/action specifically looks for NPM_TOKEN; without it, it falls back to OIDC trusted publishing
           # (which we have not configured) and publishing silently never reaches npm.
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # token auth for npm publish
