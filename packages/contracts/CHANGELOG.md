@@ -1,5 +1,12 @@
 # @vitrine-kit/contracts
 
+## 1.3.0
+
+### Minor Changes
+
+- 7c95387: Docker compose first-boot seed/admin, Payload CMS locales for product copy, console email adapter for password reset, and catalog option/price facets.
+- 7c95387: Close the highest-impact simple-store gaps from live client review: treat blank `PAYLOAD_SECRET` as unset and write a filled `.env` at init; add `/order/success`; wire cart qty/remove + badge; drive storefront branding from `siteConfig.name`; return JSON checkout/cart errors; enforce stock on add/checkout.
+
 ## 1.2.2
 
 ### Patch Changes
