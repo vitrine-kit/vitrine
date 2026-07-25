@@ -25,7 +25,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
       {images.length > 1 ? (
         <ul role="list" className="mt-gutter flex gap-gutter">
           {images.map((img, i) => (
-            <li key={`${img.url}-${i}`}>
+            <li key={img.url}>
               <button
                 type="button"
                 onClick={() => setActive(i)}
